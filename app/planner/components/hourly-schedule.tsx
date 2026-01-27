@@ -1,16 +1,23 @@
-import { Input } from "@/components/ui/input";
+"use client";
+
 import { Label } from "@/components/ui/label";
+import { InputWithStatus } from "@/components/ui/input-with-status";
 import { HOURS } from "../constants";
 
 interface HourlyScheduleProps {
   hourlyPlans: Record<string, string>;
   onHourlyPlanChange: (hour: string, minute: string, value: string) => void;
+  completed: Record<string, boolean>;
+  onToggleCompletion: (key: string) => void;
 }
 
 export function HourlySchedule({
   hourlyPlans,
   onHourlyPlanChange,
+  completed,
+  onToggleCompletion,
 }: HourlyScheduleProps) {
+
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-semibold text-foreground">
@@ -37,31 +44,32 @@ export function HourlySchedule({
           const hourNumber = hourMatch ? hourMatch[1] : hour;
           const period = hourMatch ? hourMatch[2] : "";
           
+          const key00 = `${hour}:00`;
+          const key30 = `${hour}:30`;
+          
           return (
             <div key={hour} className="flex items-center gap-4">
               <Label className="w-20 text-sm font-medium text-muted-foreground">
                 {hour}
               </Label>
               <div className="flex-1 flex items-center gap-2">
-                <Input
-                  id={`${hour}:00`}
-                  type="text"
+                <InputWithStatus
+                  id={key00}
+                  value={hourlyPlans[key00] || ""}
+                  onChange={(value) => onHourlyPlanChange(hour, "00", value)}
                   placeholder={`${hourNumber}:00 ${period}`}
-                  value={hourlyPlans[`${hour}:00`] || ""}
-                  onChange={(e) =>
-                    onHourlyPlanChange(hour, "00", e.target.value)
-                  }
+                  completed={completed[key00] || false}
+                  onToggleCompletion={() => onToggleCompletion(key00)}
                   className="flex-1"
                 />
                 <div className="h-8 w-px bg-border"></div>
-                <Input
-                  id={`${hour}:30`}
-                  type="text"
+                <InputWithStatus
+                  id={key30}
+                  value={hourlyPlans[key30] || ""}
+                  onChange={(value) => onHourlyPlanChange(hour, "30", value)}
                   placeholder={`${hourNumber}:30 ${period}`}
-                  value={hourlyPlans[`${hour}:30`] || ""}
-                  onChange={(e) =>
-                    onHourlyPlanChange(hour, "30", e.target.value)
-                  }
+                  completed={completed[key30] || false}
+                  onToggleCompletion={() => onToggleCompletion(key30)}
                   className="flex-1"
                 />
               </div>

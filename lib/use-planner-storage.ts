@@ -1,0 +1,212 @@
+"use client";
+
+import React, { useEffect, useRef, useCallback } from "react";
+import { HOURS } from "@/app/planner/constants";
+
+export interface PlannerData {
+  priorities: string[];
+  brainDump: string;
+  hourlyPlans: Record<string, string>;
+  priorityCompleted: boolean[];
+  hourlyCompleted: Record<string, boolean>;
+  lastSaved?: string; // ISO timestamp
+}
+
+const STORAGE_PREFIX = "planner-";
+const DEBOUNCE_MS = 500;
+
+/**
+ * Generate a consistent storage key from a date
+ * Format: planner-YYYY-MM-DD
+ */
+function getStorageKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${STORAGE_PREFIX}${year}-${month}-${day}`;
+}
+
+/**
+ * Get default/empty planner data
+ */
+function getDefaultData(): PlannerData {
+  return {
+    priorities: ["", "", ""],
+    brainDump: "",
+    hourlyPlans: HOURS.reduce(
+      (acc, hour) => ({
+        ...acc,
+        [`${hour}:00`]: "",
+        [`${hour}:30`]: "",
+      }),
+      {} as Record<string, string>
+    ),
+    priorityCompleted: [false, false, false],
+    hourlyCompleted: {},
+  };
+}
+
+/**
+ * Load planner data from localStorage for a specific date
+ */
+export function loadPlannerData(date: Date): PlannerData | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const key = getStorageKey(date);
+    const stored = localStorage.getItem(key);
+    
+    if (!stored) {
+      return null;
+    }
+
+    const parsed = JSON.parse(stored) as PlannerData;
+    
+    // Validate and merge with defaults to handle missing fields
+    const defaultData = getDefaultData();
+    return {
+      ...defaultData,
+      ...parsed,
+      // Ensure arrays have correct length
+      priorities: Array.isArray(parsed.priorities) 
+        ? [...parsed.priorities, ...defaultData.priorities].slice(0, 3)
+        : defaultData.priorities,
+      priorityCompleted: Array.isArray(parsed.priorityCompleted)
+        ? [...parsed.priorityCompleted, ...defaultData.priorityCompleted].slice(0, 3)
+        : defaultData.priorityCompleted,
+    };
+  } catch (error) {
+    console.error("Failed to load planner data:", error);
+    return null;
+  }
+}
+
+/**
+ * Save planner data to localStorage for a specific date
+ */
+export function savePlannerData(date: Date, data: PlannerData): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    const key = getStorageKey(date);
+    const dataToSave: PlannerData = {
+      ...data,
+      lastSaved: new Date().toISOString(),
+    };
+    localStorage.setItem(key, JSON.stringify(dataToSave));
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "QuotaExceededError") {
+      console.warn("localStorage quota exceeded. Data not saved.");
+      // Could show user notification here
+    } else {
+      console.error("Failed to save planner data:", error);
+    }
+  }
+}
+
+/**
+ * Hook to manage planner data with localStorage persistence
+ * Automatically loads data on mount and when date changes
+ * Debounces saves to avoid excessive localStorage writes
+ */
+export function usePlannerStorage(date: Date | undefined) {
+  const [data, setData] = React.useState<PlannerData>(getDefaultData());
+  const [isLoading, setIsLoading] = React.useState(true);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentDateRef = useRef<Date | undefined>(date);
+  const dataRef = useRef<PlannerData>(getDefaultData());
+
+  // Keep dataRef in sync with data state
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
+
+  // Load data when component mounts or date changes
+  useEffect(() => {
+    if (!date) {
+      setIsLoading(false);
+      return;
+    }
+
+    // Save current date's data before switching dates
+    if (currentDateRef.current && currentDateRef.current.getTime() !== date.getTime()) {
+      // Clear any pending save for the old date
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+      // Immediately save the old date's data using ref to avoid stale closure
+      savePlannerData(currentDateRef.current, dataRef.current);
+    }
+
+    // Load new date's data
+    setIsLoading(true);
+    const loaded = loadPlannerData(date);
+    
+    if (loaded) {
+      setData(loaded);
+      dataRef.current = loaded;
+    } else {
+      const defaultData = getDefaultData();
+      setData(defaultData);
+      dataRef.current = defaultData;
+    }
+    
+    currentDateRef.current = date;
+    setIsLoading(false);
+  }, [date]);
+
+  // Debounced save function
+  const debouncedSave = useCallback(
+    (newData: PlannerData) => {
+      if (!date) return;
+
+      // Clear existing timeout
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+
+      // Set new timeout
+      saveTimeoutRef.current = setTimeout(() => {
+        savePlannerData(date, newData);
+        saveTimeoutRef.current = null;
+      }, DEBOUNCE_MS);
+    },
+    [date]
+  );
+
+  // Update data and trigger save
+  const updateData = useCallback(
+    (updater: PlannerData | ((prev: PlannerData) => PlannerData)) => {
+      setData((prev) => {
+        const newData = typeof updater === "function" ? updater(prev) : updater;
+        debouncedSave(newData);
+        return newData;
+      });
+    },
+    [debouncedSave]
+  );
+
+  // Cleanup timeout on unmount and save current data
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      // Save immediately on unmount if date is set (use ref to avoid stale closure)
+      if (currentDateRef.current) {
+        savePlannerData(currentDateRef.current, dataRef.current);
+      }
+    };
+  }, []);
+
+  return {
+    data,
+    setData: updateData,
+    isLoading,
+  };
+}

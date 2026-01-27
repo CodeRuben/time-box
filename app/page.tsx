@@ -7,29 +7,33 @@ import { BrainDump } from "./planner/components/brain-dump";
 import { DateSelector } from "./planner/components/date-selector";
 import { HourlySchedule } from "./planner/components/hourly-schedule";
 import { ThemeToggle } from "./planner/components/theme-toggle";
-import { HOURS } from "./planner/constants";
+import { usePlannerStorage } from "@/lib/use-planner-storage";
 
 export default function Home() {
-  // State management
-  const [priorities, setPriorities] = useState<string[]>(["", "", ""]);
-  const [brainDump, setBrainDump] = useState<string>("");
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [hourlyPlans, setHourlyPlans] = useState<Record<string, string>>(
-    HOURS.reduce(
-      (acc, hour) => ({
-        ...acc,
-        [`${hour}:00`]: "",
-        [`${hour}:30`]: "",
-      }),
-      {}
-    )
-  );
+  const { data, setData, isLoading } = usePlannerStorage(date);
 
   // Handle priority change
   const handlePriorityChange = (index: number, value: string) => {
-    const newPriorities = [...priorities];
-    newPriorities[index] = value;
-    setPriorities(newPriorities);
+    setData((prev) => {
+      const newPriorities = [...prev.priorities];
+      newPriorities[index] = value;
+      return { ...prev, priorities: newPriorities };
+    });
+  };
+
+  // Handle priority completion toggle
+  const handlePriorityToggle = (index: number) => {
+    setData((prev) => {
+      const newCompleted = [...prev.priorityCompleted];
+      newCompleted[index] = !newCompleted[index];
+      return { ...prev, priorityCompleted: newCompleted };
+    });
+  };
+
+  // Handle brain dump change
+  const handleBrainDumpChange = (value: string) => {
+    setData((prev) => ({ ...prev, brainDump: value }));
   };
 
   // Handle hourly plan change
@@ -38,11 +42,33 @@ export default function Home() {
     minute: string,
     value: string
   ) => {
-    setHourlyPlans((prev) => ({
+    setData((prev) => ({
       ...prev,
-      [`${hour}:${minute}`]: value,
+      hourlyPlans: {
+        ...prev.hourlyPlans,
+        [`${hour}:${minute}`]: value,
+      },
     }));
   };
+
+  // Handle hourly completion toggle
+  const handleHourlyToggle = (key: string) => {
+    setData((prev) => ({
+      ...prev,
+      hourlyCompleted: {
+        ...prev.hourlyCompleted,
+        [key]: !prev.hourlyCompleted[key],
+      },
+    }));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pt-8 px-8 pb-12 flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pt-8 px-8 pb-12">
@@ -53,18 +79,22 @@ export default function Home() {
           <div className="flex flex-col gap-8">
             <PlannerHeader />
             <TopPriorities
-              priorities={priorities}
+              priorities={data.priorities}
               onPriorityChange={handlePriorityChange}
+              completed={data.priorityCompleted}
+              onToggleCompletion={handlePriorityToggle}
             />
-            <BrainDump value={brainDump} onChange={setBrainDump} />
+            <BrainDump value={data.brainDump} onChange={handleBrainDumpChange} />
           </div>
 
           {/* Second Column */}
           <div className="space-y-8 pt-2">
             <DateSelector value={date} onChange={setDate} />
             <HourlySchedule
-              hourlyPlans={hourlyPlans}
+              hourlyPlans={data.hourlyPlans}
               onHourlyPlanChange={handleHourlyPlanChange}
+              completed={data.hourlyCompleted}
+              onToggleCompletion={handleHourlyToggle}
             />
           </div>
         </div>
