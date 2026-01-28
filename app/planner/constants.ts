@@ -1,6 +1,4 @@
 export const HOURS = [
-  "5 AM",
-  "6 AM",
   "7 AM",
   "8 AM",
   "9 AM",

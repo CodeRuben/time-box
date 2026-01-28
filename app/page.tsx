@@ -7,28 +7,42 @@ import { BrainDump } from "./planner/components/brain-dump";
 import { DateSelector } from "./planner/components/date-selector";
 import { HourlySchedule } from "./planner/components/hourly-schedule";
 import { ThemeToggle } from "./planner/components/theme-toggle";
-import { usePlannerStorage } from "@/lib/use-planner-storage";
+import { usePlannerStorage, type TopPriority } from "@/lib/use-planner-storage";
 
 export default function Home() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { data, setData, isLoading } = usePlannerStorage(date);
 
-  // Handle priority change
-  const handlePriorityChange = (index: number, value: string) => {
+  // Handle adding a new priority
+  const handleAddPriority = () => {
     setData((prev) => {
-      const newPriorities = [...prev.priorities];
-      newPriorities[index] = value;
-      return { ...prev, priorities: newPriorities };
+      if (prev.topPriorities.length >= 3) return prev;
+      const newPriority: TopPriority = {
+        id: crypto.randomUUID(),
+        name: "",
+        completed: false,
+        subtasks: [],
+      };
+      return { ...prev, topPriorities: [...prev.topPriorities, newPriority] };
     });
   };
 
-  // Handle priority completion toggle
-  const handlePriorityToggle = (index: number) => {
-    setData((prev) => {
-      const newCompleted = [...prev.priorityCompleted];
-      newCompleted[index] = !newCompleted[index];
-      return { ...prev, priorityCompleted: newCompleted };
-    });
+  // Handle updating a priority
+  const handleUpdatePriority = (updatedPriority: TopPriority) => {
+    setData((prev) => ({
+      ...prev,
+      topPriorities: prev.topPriorities.map((p) =>
+        p.id === updatedPriority.id ? updatedPriority : p
+      ),
+    }));
+  };
+
+  // Handle deleting a priority
+  const handleDeletePriority = (id: string) => {
+    setData((prev) => ({
+      ...prev,
+      topPriorities: prev.topPriorities.filter((p) => p.id !== id),
+    }));
   };
 
   // Handle brain dump change
@@ -79,10 +93,10 @@ export default function Home() {
           <div className="flex flex-col gap-8">
             <PlannerHeader />
             <TopPriorities
-              priorities={data.priorities}
-              onPriorityChange={handlePriorityChange}
-              completed={data.priorityCompleted}
-              onToggleCompletion={handlePriorityToggle}
+              priorities={data.topPriorities}
+              onAddPriority={handleAddPriority}
+              onUpdatePriority={handleUpdatePriority}
+              onDeletePriority={handleDeletePriority}
             />
             <BrainDump value={data.brainDump} onChange={handleBrainDumpChange} />
           </div>

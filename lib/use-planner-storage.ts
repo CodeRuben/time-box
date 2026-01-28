@@ -3,13 +3,35 @@
 import React, { useEffect, useRef, useCallback } from "react";
 import { HOURS } from "@/app/planner/constants";
 
+export interface SubTask {
+  id: string;
+  name: string;
+  completed: boolean;
+}
+
+export interface TopPriority {
+  id: string;
+  name: string;
+  completed: boolean;
+  subtasks: SubTask[];
+}
+
 export interface PlannerData {
-  priorities: string[];
+  topPriorities: TopPriority[];
   brainDump: string;
   hourlyPlans: Record<string, string>;
-  priorityCompleted: boolean[];
   hourlyCompleted: Record<string, boolean>;
   lastSaved?: string; // ISO timestamp
+}
+
+// Legacy interface for migration
+interface LegacyPlannerData {
+  priorities?: string[];
+  priorityCompleted?: boolean[];
+  brainDump?: string;
+  hourlyPlans?: Record<string, string>;
+  hourlyCompleted?: Record<string, boolean>;
+  lastSaved?: string;
 }
 
 const STORAGE_PREFIX = "planner-";
@@ -31,7 +53,7 @@ function getStorageKey(date: Date): string {
  */
 function getDefaultData(): PlannerData {
   return {
-    priorities: ["", "", ""],
+    topPriorities: [],
     brainDump: "",
     hourlyPlans: HOURS.reduce(
       (acc, hour) => ({
@@ -41,8 +63,43 @@ function getDefaultData(): PlannerData {
       }),
       {} as Record<string, string>
     ),
-    priorityCompleted: [false, false, false],
     hourlyCompleted: {},
+  };
+}
+
+/**
+ * Migrate legacy data format to new format
+ */
+function migrateFromLegacy(legacy: LegacyPlannerData): TopPriority[] {
+  if (!legacy.priorities || !Array.isArray(legacy.priorities)) {
+    return [];
+  }
+
+  const migrated: TopPriority[] = [];
+  
+  for (const name of legacy.priorities) {
+    if (name && name.trim() !== "") {
+      migrated.push({
+        id: crypto.randomUUID(),
+        name: name.trim(),
+        completed: false,
+        subtasks: [] as SubTask[],
+      });
+    }
+  }
+  
+  return migrated;
+}
+
+/**
+ * Ensure TopPriority has all required fields (for backwards compatibility)
+ */
+function ensurePriorityFields(priority: Partial<TopPriority> & { id: string; name: string }): TopPriority {
+  return {
+    id: priority.id,
+    name: priority.name,
+    completed: priority.completed ?? false,
+    subtasks: priority.subtasks ?? [],
   };
 }
 
@@ -62,20 +119,35 @@ export function loadPlannerData(date: Date): PlannerData | null {
       return null;
     }
 
-    const parsed = JSON.parse(stored) as PlannerData;
+    const parsed = JSON.parse(stored) as PlannerData & LegacyPlannerData;
     
     // Validate and merge with defaults to handle missing fields
     const defaultData = getDefaultData();
+    
+    // Check if this is legacy format (has priorities array of strings)
+    const isLegacyFormat = 
+      Array.isArray(parsed.priorities) && 
+      (parsed.priorities.length === 0 || typeof parsed.priorities[0] === "string");
+    
+    let topPriorities: TopPriority[];
+    
+    if (isLegacyFormat) {
+      // Migrate from legacy format
+      topPriorities = migrateFromLegacy(parsed);
+    } else if (Array.isArray(parsed.topPriorities)) {
+      // New format - validate and ensure all fields exist (backwards compatibility)
+      topPriorities = parsed.topPriorities.slice(0, 3).map(ensurePriorityFields);
+    } else {
+      topPriorities = [];
+    }
+    
     return {
       ...defaultData,
-      ...parsed,
-      // Ensure arrays have correct length
-      priorities: Array.isArray(parsed.priorities) 
-        ? [...parsed.priorities, ...defaultData.priorities].slice(0, 3)
-        : defaultData.priorities,
-      priorityCompleted: Array.isArray(parsed.priorityCompleted)
-        ? [...parsed.priorityCompleted, ...defaultData.priorityCompleted].slice(0, 3)
-        : defaultData.priorityCompleted,
+      brainDump: parsed.brainDump || defaultData.brainDump,
+      hourlyPlans: parsed.hourlyPlans || defaultData.hourlyPlans,
+      hourlyCompleted: parsed.hourlyCompleted || defaultData.hourlyCompleted,
+      topPriorities,
+      lastSaved: parsed.lastSaved,
     };
   } catch (error) {
     console.error("Failed to load planner data:", error);
