@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Check, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDropZone } from "@/lib/use-drag-drop";
 
 interface InputWithStatusProps {
   value: string;
@@ -24,8 +25,17 @@ export function InputWithStatus({
   className,
   id,
 }: InputWithStatusProps) {
+  const { isDragOver, dropZoneProps } = useDropZone({ onDrop: onChange });
+
   return (
-    <div className={cn("flex items-center", className)}>
+    <div
+      className={cn(
+        "flex items-center rounded-md transition-all",
+        isDragOver && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+        className
+      )}
+      {...dropZoneProps}
+    >
       <Button
         type="button"
         variant="ghost"
@@ -51,7 +61,8 @@ export function InputWithStatus({
         onChange={(e) => onChange(e.target.value)}
         className={cn(
           "flex-1 rounded-l-none",
-          completed && "line-through opacity-60"
+          completed && "line-through opacity-60",
+          isDragOver && "bg-primary/5"
         )}
       />
     </div>

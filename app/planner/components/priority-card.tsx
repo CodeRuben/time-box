@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
   DropdownMenu,
@@ -24,8 +23,10 @@ import {
   X,
   ChevronDown,
   ChevronRight,
+  GripVertical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDraggable, getDraggableProps } from "@/lib/use-drag-drop";
 import type { TopPriority, SubTask } from "@/lib/use-planner-storage";
 
 interface PriorityCardProps {
@@ -187,11 +188,35 @@ export function PriorityCard({
     onUpdate({ ...priority, subtasks: updatedSubtasks });
   };
 
+  // Drag functionality for priority
+  const priorityDragProps = useDraggable(priority.name, !isEditingName);
+
+  // Handle header click to expand/collapse
+  const handleHeaderClick = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   return (
-    <Card className="py-0 gap-0 overflow-hidden hover:bg-accent/30 transition-colors cursor-pointer">
+    <Card className="py-0 gap-0 overflow-hidden">
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-        {/* Compact Header */}
-        <div className="flex items-center gap-2 px-3 py-2">
+        {/* Compact Header - entire area is clickable */}
+        <div
+          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-accent/30 transition-colors"
+          onClick={handleHeaderClick}
+        >
+          {/* Drag Handle for Priority */}
+          <div
+            {...priorityDragProps}
+            onClick={(e) => e.stopPropagation()}
+            className={cn(
+              "shrink-0 cursor-grab active:cursor-grabbing",
+              !priorityDragProps.draggable && "opacity-30 cursor-not-allowed"
+            )}
+            title={priority.name ? "Drag to schedule" : "Add a name first"}
+          >
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </div>
+
           {/* Status Indicator */}
           <Button
             type="button"
@@ -208,44 +233,31 @@ export function PriorityCard({
             )}
           </Button>
 
-          {/* Clickable area to expand */}
-          <CollapsibleTrigger asChild>
-            <button
-              type="button"
-              className="flex-1 flex items-center gap-2 text-left min-w-0"
-            >
-              {/* Expand/Collapse Icon */}
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-              ) : (
-                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-              )}
-
-              {/* Priority Name */}
-              {isEditingName ? (
-                <Input
-                  ref={nameInputRef}
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  onKeyDown={handleNameKeyDown}
-                  onBlur={handleNameBlur}
-                  onClick={(e) => e.stopPropagation()}
-                  className="h-7 text-sm"
-                  placeholder="Priority name"
-                />
-              ) : (
-                <span
-                  onClick={handleNameClick}
-                  className={cn(
-                    "text-sm font-medium truncate cursor-text hover:bg-accent rounded px-1 -mx-1",
-                    isComplete && "line-through opacity-60"
-                  )}
-                >
-                  {priority.name || "Untitled Priority"}
-                </span>
-              )}
-            </button>
-          </CollapsibleTrigger>
+          {/* Priority Name Area */}
+          <div className="flex-1 flex items-center gap-2 text-left min-w-0">
+            {isEditingName ? (
+              <Input
+                ref={nameInputRef}
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onKeyDown={handleNameKeyDown}
+                onBlur={handleNameBlur}
+                onClick={(e) => e.stopPropagation()}
+                className="h-7 text-sm"
+                placeholder="Priority name"
+              />
+            ) : (
+              <span
+                onClick={handleNameClick}
+                className={cn(
+                  "text-sm font-medium truncate cursor-text hover:bg-accent rounded px-1 -mx-1",
+                  isComplete && "line-through opacity-60"
+                )}
+              >
+                {priority.name || "Untitled Priority"}
+              </span>
+            )}
+          </div>
 
           {/* Completion Counter */}
           {totalCount > 0 && !isEditingName && (
@@ -291,11 +303,28 @@ export function PriorityCard({
         <CollapsibleContent>
           <div className="border-t px-5 py-2 space-y-1">
             {/* Subtasks List */}
-            {priority.subtasks.map((subtask) => (
+            {priority.subtasks.map((subtask) => {
+              const subtaskDragProps = getDraggableProps(
+                subtask.name,
+                editingSubtaskId !== subtask.id
+              );
+              return (
               <div
                 key={subtask.id}
                 className="flex items-center gap-2 py-1"
               >
+                {/* Drag Handle for Subtask */}
+                <div
+                  {...subtaskDragProps}
+                  className={cn(
+                    "shrink-0 cursor-grab active:cursor-grabbing",
+                    !subtaskDragProps.draggable && "opacity-30 cursor-not-allowed"
+                  )}
+                  title={subtask.name ? "Drag to schedule" : "Add a name first"}
+                >
+                  <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+
                 <Button
                   type="button"
                   variant="ghost"
@@ -348,7 +377,8 @@ export function PriorityCard({
                   <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
-            ))}
+            );
+            })}
 
             {/* Add Subtask Button */}
             <Button
