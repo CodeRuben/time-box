@@ -56,7 +56,7 @@ export function HourlySchedule({
                   id={key00}
                   value={hourlyPlans[key00] || ""}
                   onChange={(value) => onHourlyPlanChange(hour, "00", value)}
-                  //placeholder={`${hourNumber}:00 ${period}`}
+                  placeholder={`${hourNumber}:00 ${period}`}
                   completed={completed[key00] || false}
                   onToggleCompletion={() => onToggleCompletion(key00)}
                   className="flex-1"
@@ -66,7 +66,7 @@ export function HourlySchedule({
                   id={key30}
                   value={hourlyPlans[key30] || ""}
                   onChange={(value) => onHourlyPlanChange(hour, "30", value)}
-                  //placeholder={`${hourNumber}:30 ${period}`}
+                  placeholder={`${hourNumber}:30 ${period}`}
                   completed={completed[key30] || false}
                   onToggleCompletion={() => onToggleCompletion(key30)}
                   className="flex-1"
