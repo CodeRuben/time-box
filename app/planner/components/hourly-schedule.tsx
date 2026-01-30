@@ -17,7 +17,6 @@ export function HourlySchedule({
   completed,
   onToggleCompletion,
 }: HourlyScheduleProps) {
-
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-semibold text-foreground">
@@ -43,10 +42,10 @@ export function HourlySchedule({
           const hourMatch = hour.match(/^(\d+)\s+(AM|PM)$/);
           const hourNumber = hourMatch ? hourMatch[1] : hour;
           const period = hourMatch ? hourMatch[2] : "";
-          
+
           const key00 = `${hour}:00`;
           const key30 = `${hour}:30`;
-          
+
           return (
             <div key={hour} className="flex items-center gap-4">
               <Label className="w-20 text-sm font-medium text-muted-foreground">
@@ -57,7 +56,7 @@ export function HourlySchedule({
                   id={key00}
                   value={hourlyPlans[key00] || ""}
                   onChange={(value) => onHourlyPlanChange(hour, "00", value)}
-                  placeholder={`${hourNumber}:00 ${period}`}
+                  //placeholder={`${hourNumber}:00 ${period}`}
                   completed={completed[key00] || false}
                   onToggleCompletion={() => onToggleCompletion(key00)}
                   className="flex-1"
@@ -67,7 +66,7 @@ export function HourlySchedule({
                   id={key30}
                   value={hourlyPlans[key30] || ""}
                   onChange={(value) => onHourlyPlanChange(hour, "30", value)}
-                  placeholder={`${hourNumber}:30 ${period}`}
+                  //placeholder={`${hourNumber}:30 ${period}`}
                   completed={completed[key30] || false}
                   onToggleCompletion={() => onToggleCompletion(key30)}
                   className="flex-1"
@@ -80,4 +79,3 @@ export function HourlySchedule({
     </div>
   );
 }
-

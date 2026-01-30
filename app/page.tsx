@@ -32,7 +32,7 @@ export default function Home() {
     setData((prev) => ({
       ...prev,
       topPriorities: prev.topPriorities.map((p) =>
-        p.id === updatedPriority.id ? updatedPriority : p
+        p.id === updatedPriority.id ? updatedPriority : p,
       ),
     }));
   };
@@ -54,7 +54,7 @@ export default function Home() {
   const handleHourlyPlanChange = (
     hour: string,
     minute: string,
-    value: string
+    value: string,
   ) => {
     setData((prev) => ({
       ...prev,
@@ -78,14 +78,14 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pt-8 px-8 pb-12 flex items-center justify-center">
+      <div className="min-h-screen bg-background pt-8 px-8 pb-8 flex items-center justify-center">
         <div>Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pt-8 px-8 pb-12">
+    <div className="min-h-screen bg-background pt-8 px-8 pb-8">
       <ThemeToggle />
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[calc(100vh-5rem)]">
@@ -98,7 +98,10 @@ export default function Home() {
               onUpdatePriority={handleUpdatePriority}
               onDeletePriority={handleDeletePriority}
             />
-            <BrainDump value={data.brainDump} onChange={handleBrainDumpChange} />
+            <BrainDump
+              value={data.brainDump}
+              onChange={handleBrainDumpChange}
+            />
           </div>
 
           {/* Second Column */}

@@ -13,9 +13,8 @@ export function BrainDump({ value, onChange }: BrainDumpProps) {
         placeholder="Write down all your thoughts, tasks, and ideas here..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full flex-1 resize-none"
+        className="w-full flex-1 resize-none min-h-[300px] md:min-h-[400px] lg:min-h-[500px]"
       />
     </div>
   );
 }
-
