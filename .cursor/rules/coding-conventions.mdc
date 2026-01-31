@@ -1,0 +1,68 @@
+---
+description: Project coding conventions for readability and maintainability
+alwaysApply: true
+---
+
+# Coding Conventions
+
+## Single Responsibility
+
+Each function should have a single dependency/responsibility. Break complex functions into smaller, focused units.
+
+```typescript
+// BAD - multiple responsibilities
+function processUserData(user: User) {
+  const validated = validateUser(user);
+  const formatted = formatForDisplay(validated);
+  saveToDatabase(formatted);
+  sendNotification(user.email);
+}
+
+// GOOD - single responsibility per function
+function processUserData(user: User) {
+  const validated = validateUser(user);
+  return formatForDisplay(validated);
+}
+```
+
+## Comments
+
+Only add comments that explain WHY, not WHAT. The code should be self-documenting.
+
+```typescript
+// BAD - redundant
+// Loop through users
+for (const user of users) { ... }
+
+// GOOD - explains intent
+// Skip inactive users to avoid sending emails to stale accounts
+const activeUsers = users.filter(u => u.lastLogin > cutoffDate);
+```
+
+## Custom Hooks
+
+Extract reusable logic into custom hooks. If logic doesn't need to be in the component, move it out.
+
+```typescript
+// BAD - logic cluttering component
+function UserProfile() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { /* fetch logic */ }, []);
+  // ...
+}
+
+// GOOD - encapsulated in hook
+function UserProfile() {
+  const { data, loading } = useUserData(userId);
+  // ...
+}
+```
+
+## UI Components
+
+Use shadcn/ui components as the base library. Extend them rather than building from scratch.
+
+## Imports
+
+Always remove unused imports. Keep import sections clean.
