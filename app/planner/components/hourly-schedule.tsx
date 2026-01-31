@@ -1,21 +1,21 @@
 "use client";
 
 import { Label } from "@/components/ui/label";
-import { InputWithStatus } from "@/components/ui/input-with-status";
+import { InputWithStatus, type TaskStatus } from "@/components/ui/input-with-status";
 import { HOURS } from "../constants";
 
 interface HourlyScheduleProps {
   hourlyPlans: Record<string, string>;
   onHourlyPlanChange: (hour: string, minute: string, value: string) => void;
-  completed: Record<string, boolean>;
-  onToggleCompletion: (key: string) => void;
+  statuses: Record<string, TaskStatus>;
+  onCycleStatus: (key: string) => void;
 }
 
 export function HourlySchedule({
   hourlyPlans,
   onHourlyPlanChange,
-  completed,
-  onToggleCompletion,
+  statuses,
+  onCycleStatus,
 }: HourlyScheduleProps) {
   return (
     <div className="space-y-4">
@@ -57,8 +57,8 @@ export function HourlySchedule({
                   value={hourlyPlans[key00] || ""}
                   onChange={(value) => onHourlyPlanChange(hour, "00", value)}
                   placeholder={`${hourNumber}:00 ${period}`}
-                  completed={completed[key00] || false}
-                  onToggleCompletion={() => onToggleCompletion(key00)}
+                  status={statuses[key00] || "pending"}
+                  onCycleStatus={() => onCycleStatus(key00)}
                   className="flex-1"
                 />
                 <div className="h-8 w-px bg-border"></div>
@@ -67,8 +67,8 @@ export function HourlySchedule({
                   value={hourlyPlans[key30] || ""}
                   onChange={(value) => onHourlyPlanChange(hour, "30", value)}
                   placeholder={`${hourNumber}:30 ${period}`}
-                  completed={completed[key30] || false}
-                  onToggleCompletion={() => onToggleCompletion(key30)}
+                  status={statuses[key30] || "pending"}
+                  onCycleStatus={() => onCycleStatus(key30)}
                   className="flex-1"
                 />
               </div>

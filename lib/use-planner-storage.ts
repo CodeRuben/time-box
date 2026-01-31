@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useCallback } from "react";
 import { HOURS } from "@/app/planner/constants";
+import type { TaskStatus } from "@/components/ui/input-with-status";
 
 export interface SubTask {
   id: string;
@@ -20,17 +21,18 @@ export interface PlannerData {
   topPriorities: TopPriority[];
   brainDump: string;
   hourlyPlans: Record<string, string>;
-  hourlyCompleted: Record<string, boolean>;
+  hourlyStatuses: Record<string, TaskStatus>;
   lastSaved?: string; // ISO timestamp
 }
 
-// Legacy interface for migration
-interface LegacyPlannerData {
+// Legacy interface for migration (exported for testing)
+export interface LegacyPlannerData {
   priorities?: string[];
   priorityCompleted?: boolean[];
   brainDump?: string;
   hourlyPlans?: Record<string, string>;
-  hourlyCompleted?: Record<string, boolean>;
+  hourlyCompleted?: Record<string, boolean>; // Old boolean format
+  hourlyStatuses?: Record<string, TaskStatus>; // New format
   lastSaved?: string;
 }
 
@@ -41,7 +43,7 @@ const DEBOUNCE_MS = 500;
  * Generate a consistent storage key from a date
  * Format: planner-YYYY-MM-DD
  */
-function getStorageKey(date: Date): string {
+export function getStorageKey(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -51,7 +53,7 @@ function getStorageKey(date: Date): string {
 /**
  * Get default/empty planner data
  */
-function getDefaultData(): PlannerData {
+export function getDefaultData(): PlannerData {
   return {
     topPriorities: [],
     brainDump: "",
@@ -63,14 +65,25 @@ function getDefaultData(): PlannerData {
       }),
       {} as Record<string, string>
     ),
-    hourlyCompleted: {},
+    hourlyStatuses: {},
   };
+}
+
+/**
+ * Migrate hourlyCompleted (boolean) to hourlyStatuses (TaskStatus)
+ */
+export function migrateHourlyCompleted(completed: Record<string, boolean>): Record<string, TaskStatus> {
+  const statuses: Record<string, TaskStatus> = {};
+  for (const [key, value] of Object.entries(completed)) {
+    statuses[key] = value ? "completed" : "pending";
+  }
+  return statuses;
 }
 
 /**
  * Migrate legacy data format to new format
  */
-function migrateFromLegacy(legacy: LegacyPlannerData): TopPriority[] {
+export function migrateFromLegacy(legacy: LegacyPlannerData): TopPriority[] {
   if (!legacy.priorities || !Array.isArray(legacy.priorities)) {
     return [];
   }
@@ -94,7 +107,7 @@ function migrateFromLegacy(legacy: LegacyPlannerData): TopPriority[] {
 /**
  * Ensure TopPriority has all required fields (for backwards compatibility)
  */
-function ensurePriorityFields(priority: Partial<TopPriority> & { id: string; name: string }): TopPriority {
+export function ensurePriorityFields(priority: Partial<TopPriority> & { id: string; name: string }): TopPriority {
   return {
     id: priority.id,
     name: priority.name,
@@ -141,11 +154,21 @@ export function loadPlannerData(date: Date): PlannerData | null {
       topPriorities = [];
     }
     
+    // Migrate hourlyCompleted to hourlyStatuses if needed
+    let hourlyStatuses: Record<string, TaskStatus>;
+    if (parsed.hourlyStatuses) {
+      hourlyStatuses = parsed.hourlyStatuses;
+    } else if (parsed.hourlyCompleted) {
+      hourlyStatuses = migrateHourlyCompleted(parsed.hourlyCompleted);
+    } else {
+      hourlyStatuses = defaultData.hourlyStatuses;
+    }
+
     return {
       ...defaultData,
       brainDump: parsed.brainDump || defaultData.brainDump,
       hourlyPlans: parsed.hourlyPlans || defaultData.hourlyPlans,
-      hourlyCompleted: parsed.hourlyCompleted || defaultData.hourlyCompleted,
+      hourlyStatuses,
       topPriorities,
       lastSaved: parsed.lastSaved,
     };

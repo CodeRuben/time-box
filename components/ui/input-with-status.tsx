@@ -2,26 +2,46 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Check, Clock } from "lucide-react";
+import { Check, Clock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDropZone } from "@/lib/use-drag-drop";
+
+export type TaskStatus = "pending" | "completed" | "error";
 
 interface InputWithStatusProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  completed: boolean;
-  onToggleCompletion: () => void;
+  status: TaskStatus;
+  onCycleStatus: () => void;
   className?: string;
   id?: string;
 }
+
+const statusLabels: Record<TaskStatus, string> = {
+  pending: "Mark as complete",
+  completed: "Mark as error",
+  error: "Mark as pending",
+};
+
+const StatusIcon = ({ status }: { status: TaskStatus }) => {
+  switch (status) {
+    case "completed":
+      return <Check className="h-4 w-4 text-green-600 dark:text-green-400" />;
+    case "error":
+      return <X className="h-4 w-4 text-red-600 dark:text-red-400" />;
+    case "pending":
+    default:
+      return <Clock className="h-4 w-4 text-muted-foreground" />;
+  }
+};
 
 export function InputWithStatus({
   value,
   onChange,
   placeholder,
-  completed,
-  onToggleCompletion,
+  status,
+  onCycleStatus,
   className,
   id,
 }: InputWithStatusProps) {
@@ -44,14 +64,10 @@ export function InputWithStatus({
           "h-9 w-9 rounded-r-none border border-r-0 border-input shrink-0 cursor-pointer",
           "hover:bg-accent focus-visible:ring-0 focus-visible:ring-offset-0"
         )}
-        onClick={onToggleCompletion}
-        aria-label={completed ? "Mark as todo" : "Mark as complete"}
+        onClick={onCycleStatus}
+        aria-label={statusLabels[status]}
       >
-        {completed ? (
-          <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-        ) : (
-          <Clock className="h-4 w-4 text-muted-foreground" />
-        )}
+        <StatusIcon status={status} />
       </Button>
       <Input
         id={id}
@@ -61,7 +77,8 @@ export function InputWithStatus({
         onChange={(e) => onChange(e.target.value)}
         className={cn(
           "flex-1 rounded-l-none",
-          completed && "line-through opacity-60",
+          status === "completed" && "line-through opacity-60",
+          status === "error" && "line-through opacity-60",
           isDragOver && "bg-primary/5"
         )}
       />

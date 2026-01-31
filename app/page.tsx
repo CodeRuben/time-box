@@ -65,15 +65,24 @@ export default function Home() {
     }));
   };
 
-  // Handle hourly completion toggle
-  const handleHourlyToggle = (key: string) => {
-    setData((prev) => ({
-      ...prev,
-      hourlyCompleted: {
-        ...prev.hourlyCompleted,
-        [key]: !prev.hourlyCompleted[key],
-      },
-    }));
+  // Handle hourly status cycle: pending -> completed -> error -> pending
+  const handleHourlyCycleStatus = (key: string) => {
+    setData((prev) => {
+      const currentStatus = prev.hourlyStatuses[key] || "pending";
+      const nextStatus =
+        currentStatus === "pending"
+          ? "completed"
+          : currentStatus === "completed"
+            ? "error"
+            : "pending";
+      return {
+        ...prev,
+        hourlyStatuses: {
+          ...prev.hourlyStatuses,
+          [key]: nextStatus,
+        },
+      };
+    });
   };
 
   if (isLoading) {
@@ -110,8 +119,8 @@ export default function Home() {
             <HourlySchedule
               hourlyPlans={data.hourlyPlans}
               onHourlyPlanChange={handleHourlyPlanChange}
-              completed={data.hourlyCompleted}
-              onToggleCompletion={handleHourlyToggle}
+              statuses={data.hourlyStatuses}
+              onCycleStatus={handleHourlyCycleStatus}
             />
           </div>
         </div>
