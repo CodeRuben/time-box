@@ -9,18 +9,10 @@ interface DateSelectorProps {
 export function DateSelector({ value, onChange }: DateSelectorProps) {
   return (
     <div className="flex items-center gap-4">
-      <Label
-        htmlFor="date"
-        className="text-lg font-semibold whitespace-nowrap"
-      >
+      <Label htmlFor="date" className="text-lg font-semibold whitespace-nowrap">
         Date:
       </Label>
-      <DatePicker
-        date={value}
-        onSelect={onChange}
-        className="w-full max-w-xs"
-      />
+      <DatePicker date={value} onSelect={onChange} className="w-56" />
     </div>
   );
 }
-

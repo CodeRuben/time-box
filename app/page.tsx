@@ -7,11 +7,37 @@ import { BrainDump } from "./planner/components/brain-dump";
 import { DateSelector } from "./planner/components/date-selector";
 import { HourlySchedule } from "./planner/components/hourly-schedule";
 import { ThemeToggle } from "./planner/components/theme-toggle";
+import { ReminderButton } from "./planner/components/reminder-button";
+import { CreateReminderDialog } from "./planner/components/create-reminder-dialog";
+import { ReminderInfoDialog } from "./planner/components/reminder-info-dialog";
+import { DeleteReminderAlert } from "./planner/components/delete-reminder-alert";
 import { usePlannerStorage, type TopPriority } from "@/lib/use-planner-storage";
+import { useReminderStorage, type Reminder, type NewReminder } from "@/lib/use-reminder-storage";
 
 export default function Home() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { data, setData, isLoading } = usePlannerStorage(date);
+  
+  // Reminder state and hooks
+  const {
+    addReminder,
+    deleteReminder,
+    dismissReminder,
+    getRemindersForDate,
+    getPastDueReminders,
+    getUpcomingReminders,
+  } = useReminderStorage();
+
+  // Dialog state
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedReminder, setSelectedReminder] = useState<Reminder | null>(null);
+  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+
+  // Get reminders for current date
+  const currentDateReminders = date ? getRemindersForDate(date) : [];
+  const pastDueReminders = getPastDueReminders();
+  const upcomingReminders = getUpcomingReminders();
 
   // Handle adding a new priority
   const handleAddPriority = () => {
@@ -85,6 +111,35 @@ export default function Home() {
     });
   };
 
+  // Reminder handlers
+  const handleAddReminder = () => {
+    setCreateDialogOpen(true);
+  };
+
+  const handleSaveReminder = (newReminder: NewReminder) => {
+    addReminder(newReminder);
+  };
+
+  const handleViewReminder = (reminder: Reminder) => {
+    setSelectedReminder(reminder);
+    setInfoDialogOpen(true);
+  };
+
+  const handleDeleteReminderClick = (reminder: Reminder) => {
+    setSelectedReminder(reminder);
+    setInfoDialogOpen(false);
+    setDeleteAlertOpen(true);
+  };
+
+  const handleConfirmDelete = (id: string) => {
+    deleteReminder(id);
+    setSelectedReminder(null);
+  };
+
+  const handleDismissReminder = (id: string) => {
+    dismissReminder(id);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background pt-8 px-8 pb-8 flex items-center justify-center">
@@ -95,7 +150,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background pt-8 px-8 pb-8">
-      <ThemeToggle />
+      <div className="fixed top-4 right-4 z-10">
+        <ThemeToggle />
+      </div>
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[calc(100vh-5rem)]">
           {/* First Column */}
@@ -115,16 +172,50 @@ export default function Home() {
 
           {/* Second Column */}
           <div className="space-y-8 pt-2">
-            <DateSelector value={date} onChange={setDate} />
+            <div className="flex items-center gap-4">
+              <DateSelector value={date} onChange={setDate} />
+              <ReminderButton
+                pastDueReminders={pastDueReminders}
+                upcomingReminders={upcomingReminders}
+                onAddReminder={handleAddReminder}
+                onViewReminder={handleViewReminder}
+              />
+            </div>
             <HourlySchedule
               hourlyPlans={data.hourlyPlans}
               onHourlyPlanChange={handleHourlyPlanChange}
               statuses={data.hourlyStatuses}
               onCycleStatus={handleHourlyCycleStatus}
+              reminders={currentDateReminders}
+              onViewReminder={handleViewReminder}
+              onDeleteReminder={handleDeleteReminderClick}
             />
           </div>
         </div>
       </div>
+
+      {/* Reminder Dialogs */}
+      <CreateReminderDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onSave={handleSaveReminder}
+        defaultDate={date}
+      />
+
+      <ReminderInfoDialog
+        reminder={selectedReminder}
+        open={infoDialogOpen}
+        onOpenChange={setInfoDialogOpen}
+        onDismiss={handleDismissReminder}
+        onDelete={handleDeleteReminderClick}
+      />
+
+      <DeleteReminderAlert
+        reminder={selectedReminder}
+        open={deleteAlertOpen}
+        onOpenChange={setDeleteAlertOpen}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

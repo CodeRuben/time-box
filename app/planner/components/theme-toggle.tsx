@@ -12,7 +12,7 @@ export function ThemeToggle() {
       variant="outline"
       size="icon"
       onClick={toggleTheme}
-      className="fixed top-4 right-4 z-50"
+      className="h-9 w-9"
       aria-label="Toggle theme"
     >
       {theme === "light" ? (

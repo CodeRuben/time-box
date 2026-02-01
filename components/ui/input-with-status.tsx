@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Check, Clock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDropZone } from "@/lib/use-drag-drop";
+import { ReminderChip } from "@/app/planner/components/reminder-chip";
+import type { Reminder } from "@/lib/use-reminder-storage";
 
 export type TaskStatus = "pending" | "completed" | "error";
 
@@ -16,6 +18,9 @@ interface InputWithStatusProps {
   onCycleStatus: () => void;
   className?: string;
   id?: string;
+  reminders?: Reminder[];
+  onViewReminder?: (reminder: Reminder) => void;
+  onDeleteReminder?: (reminder: Reminder) => void;
 }
 
 const statusLabels: Record<TaskStatus, string> = {
@@ -44,8 +49,12 @@ export function InputWithStatus({
   onCycleStatus,
   className,
   id,
+  reminders = [],
+  onViewReminder,
+  onDeleteReminder,
 }: InputWithStatusProps) {
   const { isDragOver, dropZoneProps } = useDropZone({ onDrop: onChange });
+  const hasReminders = reminders.length > 0;
 
   return (
     <div
@@ -69,6 +78,19 @@ export function InputWithStatus({
       >
         <StatusIcon status={status} />
       </Button>
+      {/* Reminder chips */}
+      {hasReminders && (
+        <div className="flex items-center gap-1 px-1 border-y border-input bg-background">
+          {reminders.map((reminder) => (
+            <ReminderChip
+              key={reminder.id}
+              reminder={reminder}
+              onView={onViewReminder || (() => {})}
+              onDelete={onDeleteReminder || (() => {})}
+            />
+          ))}
+        </div>
+      )}
       <Input
         id={id}
         type="text"
@@ -76,7 +98,9 @@ export function InputWithStatus({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "flex-1 rounded-l-none",
+          "flex-1",
+          !hasReminders && "rounded-l-none",
+          hasReminders && "rounded-none border-l-0",
           status === "completed" && "line-through opacity-60",
           status === "error" && "line-through opacity-60",
           isDragOver && "bg-primary/5"

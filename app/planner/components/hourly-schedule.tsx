@@ -3,12 +3,16 @@
 import { Label } from "@/components/ui/label";
 import { InputWithStatus, type TaskStatus } from "@/components/ui/input-with-status";
 import { HOURS } from "../constants";
+import type { Reminder } from "@/lib/use-reminder-storage";
 
 interface HourlyScheduleProps {
   hourlyPlans: Record<string, string>;
   onHourlyPlanChange: (hour: string, minute: string, value: string) => void;
   statuses: Record<string, TaskStatus>;
   onCycleStatus: (key: string) => void;
+  reminders?: Reminder[];
+  onViewReminder?: (reminder: Reminder) => void;
+  onDeleteReminder?: (reminder: Reminder) => void;
 }
 
 export function HourlySchedule({
@@ -16,7 +20,23 @@ export function HourlySchedule({
   onHourlyPlanChange,
   statuses,
   onCycleStatus,
+  reminders = [],
+  onViewReminder,
+  onDeleteReminder,
 }: HourlyScheduleProps) {
+  // Convert internal key format "5 AM:00" to reminder format "5:00 AM"
+  const convertToReminderFormat = (internalKey: string): string => {
+    const match = internalKey.match(/^(\d+)\s+(AM|PM):(\d+)$/);
+    if (!match) return internalKey;
+    return `${match[1]}:${match[3]} ${match[2]}`;
+  };
+
+  // Helper to filter reminders for a specific time slot
+  const getRemindersForSlot = (internalKey: string) => {
+    const reminderFormat = convertToReminderFormat(internalKey);
+    return reminders.filter((r) => r.timeSlot === reminderFormat);
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-semibold text-foreground">
@@ -60,6 +80,9 @@ export function HourlySchedule({
                   status={statuses[key00] || "pending"}
                   onCycleStatus={() => onCycleStatus(key00)}
                   className="flex-1"
+                  reminders={getRemindersForSlot(key00)}
+                  onViewReminder={onViewReminder}
+                  onDeleteReminder={onDeleteReminder}
                 />
                 <div className="h-8 w-px bg-border"></div>
                 <InputWithStatus
@@ -70,6 +93,9 @@ export function HourlySchedule({
                   status={statuses[key30] || "pending"}
                   onCycleStatus={() => onCycleStatus(key30)}
                   className="flex-1"
+                  reminders={getRemindersForSlot(key30)}
+                  onViewReminder={onViewReminder}
+                  onDeleteReminder={onDeleteReminder}
                 />
               </div>
             </div>
