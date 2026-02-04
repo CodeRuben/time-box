@@ -4,10 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Collapsible,
-  CollapsibleContent,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,7 +52,8 @@ export function PriorityCard({
   const totalCount = priority.subtasks.length;
   // If no subtasks, use the priority's own completed status
   // If subtasks exist, completion is based on all subtasks being complete
-  const isComplete = totalCount === 0 ? priority.completed : completedCount === totalCount;
+  const isComplete =
+    totalCount === 0 ? priority.completed : completedCount === totalCount;
 
   // Toggle the priority's own completion status (only works when no subtasks)
   const handleToggleCompletion = (e: React.MouseEvent) => {
@@ -300,7 +298,7 @@ export function PriorityCard({
         </div>
 
         {/* Expanded Content */}
-        <CollapsibleContent>
+        <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
           <div className="border-t px-5 py-2 space-y-1">
             {/* Subtasks List */}
             {priority.subtasks.map((subtask) => {
@@ -309,75 +307,75 @@ export function PriorityCard({
                 editingSubtaskId !== subtask.id
               );
               return (
-              <div
-                key={subtask.id}
-                className="flex items-center gap-2 py-1"
-              >
-                {/* Drag Handle for Subtask */}
-                <div
-                  {...subtaskDragProps}
-                  className={cn(
-                    "shrink-0 cursor-grab active:cursor-grabbing",
-                    !subtaskDragProps.draggable && "opacity-30 cursor-not-allowed"
-                  )}
-                  title={subtask.name ? "Drag to schedule" : "Add a name first"}
-                >
-                  <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
-                </div>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 shrink-0"
-                  onClick={() => handleToggleSubtask(subtask.id)}
-                  aria-label={
-                    subtask.completed
-                      ? "Mark as incomplete"
-                      : "Mark as complete"
-                  }
-                >
-                  {subtask.completed ? (
-                    <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-                  ) : (
-                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                  )}
-                </Button>
-                
-                {editingSubtaskId === subtask.id ? (
-                  <Input
-                    ref={subtaskInputRef}
-                    value={editSubtaskName}
-                    onChange={(e) => setEditSubtaskName(e.target.value)}
-                    onKeyDown={handleSubtaskKeyDown}
-                    onBlur={handleSubtaskBlur}
-                    className="h-7 text-sm flex-1"
-                    placeholder="Subtask name"
-                  />
-                ) : (
-                  <span
-                    onClick={(e) => handleSubtaskClick(subtask, e)}
+                <div key={subtask.id} className="flex items-center gap-2 py-1">
+                  {/* Drag Handle for Subtask */}
+                  <div
+                    {...subtaskDragProps}
                     className={cn(
-                      "text-sm flex-1 cursor-text hover:bg-accent rounded px-1 -mx-1",
-                      subtask.completed && "line-through opacity-60"
+                      "shrink-0 cursor-grab active:cursor-grabbing",
+                      !subtaskDragProps.draggable &&
+                        "opacity-30 cursor-not-allowed"
                     )}
+                    title={
+                      subtask.name ? "Drag to schedule" : "Add a name first"
+                    }
                   >
-                    {subtask.name || "Untitled subtask"}
-                  </span>
-                )}
+                    <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
+                  </div>
 
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
-                  onClick={() => handleDeleteSubtask(subtask.id)}
-                  aria-label="Delete subtask"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            );
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 shrink-0"
+                    onClick={() => handleToggleSubtask(subtask.id)}
+                    aria-label={
+                      subtask.completed
+                        ? "Mark as incomplete"
+                        : "Mark as complete"
+                    }
+                  >
+                    {subtask.completed ? (
+                      <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                    ) : (
+                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                  </Button>
+
+                  {editingSubtaskId === subtask.id ? (
+                    <Input
+                      ref={subtaskInputRef}
+                      value={editSubtaskName}
+                      onChange={(e) => setEditSubtaskName(e.target.value)}
+                      onKeyDown={handleSubtaskKeyDown}
+                      onBlur={handleSubtaskBlur}
+                      className="h-7 text-sm flex-1"
+                      placeholder="Subtask name"
+                    />
+                  ) : (
+                    <span
+                      onClick={(e) => handleSubtaskClick(subtask, e)}
+                      className={cn(
+                        "text-sm flex-1 cursor-text hover:bg-accent rounded px-1 -mx-1",
+                        subtask.completed && "line-through opacity-60"
+                      )}
+                    >
+                      {subtask.name || "Untitled subtask"}
+                    </span>
+                  )}
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
+                    onClick={() => handleDeleteSubtask(subtask.id)}
+                    aria-label="Delete subtask"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              );
             })}
 
             {/* Add Subtask Button */}

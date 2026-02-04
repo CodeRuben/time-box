@@ -7,8 +7,10 @@ import { cn } from "@/lib/utils";
 import { useDropZone } from "@/lib/use-drag-drop";
 import { ReminderChip } from "@/app/planner/components/reminder-chip";
 import type { Reminder } from "@/lib/use-reminder-storage";
+import type { TaskStatus } from "@/lib/use-planner-storage";
 
-export type TaskStatus = "pending" | "completed" | "error";
+// Re-export for backwards compatibility (deprecated - use import from use-planner-storage)
+export type { TaskStatus };
 
 interface InputWithStatusProps {
   value: string;
@@ -60,7 +62,8 @@ export function InputWithStatus({
     <div
       className={cn(
         "flex items-center rounded-md transition-all",
-        isDragOver && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+        isDragOver &&
+          "ring-2 ring-primary ring-offset-2 ring-offset-background",
         className
       )}
       {...dropZoneProps}

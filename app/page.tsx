@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { PlannerHeader } from "./planner/components/planner-header";
 import { TopPriorities } from "./planner/components/top-priorities";
 import { BrainDump } from "./planner/components/brain-dump";
@@ -11,13 +11,30 @@ import { ReminderButton } from "./planner/components/reminder-button";
 import { CreateReminderDialog } from "./planner/components/create-reminder-dialog";
 import { ReminderInfoDialog } from "./planner/components/reminder-info-dialog";
 import { DeleteReminderAlert } from "./planner/components/delete-reminder-alert";
-import { usePlannerStorage, type TopPriority } from "@/lib/use-planner-storage";
-import { useReminderStorage, type Reminder, type NewReminder } from "@/lib/use-reminder-storage";
+import { ClearDayAlert } from "./planner/components/clear-day-alert";
+import {
+  usePlannerStorage,
+  getDefaultData,
+  type TopPriority,
+  type HourlyItem,
+} from "@/lib/use-planner-storage";
+import { Button } from "@/components/ui/button";
+import { Eraser, Settings } from "lucide-react";
+import {
+  useReminderStorage,
+  type Reminder,
+  type NewReminder,
+} from "@/lib/use-reminder-storage";
+import { useScheduleConfig } from "@/lib/use-schedule-config";
+import { ScheduleConfigDialog } from "./planner/components/schedule-config-dialog";
+import { getHoursInRange } from "./planner/constants";
 
 export default function Home() {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [leftColumnHeight, setLeftColumnHeight] = useState<number | null>(null);
+  const leftColumnRef = useRef<HTMLDivElement>(null);
   const { data, setData, isLoading } = usePlannerStorage(date);
-  
+
   // Reminder state and hooks
   const {
     addReminder,
@@ -28,11 +45,24 @@ export default function Home() {
     getUpcomingReminders,
   } = useReminderStorage();
 
+  // Schedule config
+  const { config: scheduleConfig, updateConfig: updateScheduleConfig } =
+    useScheduleConfig();
+  const visibleHours = getHoursInRange(
+    scheduleConfig.startHour,
+    scheduleConfig.endHour
+  );
+
   // Dialog state
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [selectedReminder, setSelectedReminder] = useState<Reminder | null>(null);
+  const [selectedReminder, setSelectedReminder] = useState<Reminder | null>(
+    null
+  );
   const [infoDialogOpen, setInfoDialogOpen] = useState(false);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const [clearDayAlertOpen, setClearDayAlertOpen] = useState(false);
+  const [scheduleConfigDialogOpen, setScheduleConfigDialogOpen] =
+    useState(false);
 
   // Get reminders for current date
   const currentDateReminders = date ? getRemindersForDate(date) : [];
@@ -58,7 +88,7 @@ export default function Home() {
     setData((prev) => ({
       ...prev,
       topPriorities: prev.topPriorities.map((p) =>
-        p.id === updatedPriority.id ? updatedPriority : p,
+        p.id === updatedPriority.id ? updatedPriority : p
       ),
     }));
   };
@@ -76,39 +106,15 @@ export default function Home() {
     setData((prev) => ({ ...prev, brainDump: value }));
   };
 
-  // Handle hourly plan change
-  const handleHourlyPlanChange = (
-    hour: string,
-    minute: string,
-    value: string,
-  ) => {
+  // Handle hourly slot update
+  const handleUpdateSlot = (slotKey: string, items: HourlyItem[]) => {
     setData((prev) => ({
       ...prev,
-      hourlyPlans: {
-        ...prev.hourlyPlans,
-        [`${hour}:${minute}`]: value,
+      hourlySlots: {
+        ...prev.hourlySlots,
+        [slotKey]: items,
       },
     }));
-  };
-
-  // Handle hourly status cycle: pending -> completed -> error -> pending
-  const handleHourlyCycleStatus = (key: string) => {
-    setData((prev) => {
-      const currentStatus = prev.hourlyStatuses[key] || "pending";
-      const nextStatus =
-        currentStatus === "pending"
-          ? "completed"
-          : currentStatus === "completed"
-            ? "error"
-            : "pending";
-      return {
-        ...prev,
-        hourlyStatuses: {
-          ...prev.hourlyStatuses,
-          [key]: nextStatus,
-        },
-      };
-    });
   };
 
   // Reminder handlers
@@ -140,6 +146,34 @@ export default function Home() {
     dismissReminder(id);
   };
 
+  // Handle clearing all data for the current day
+  const handleClearDay = () => {
+    setData(getDefaultData());
+  };
+
+  // Measure left column height to sync with hourly schedule
+  useEffect(() => {
+    const updateHeight = () => {
+      if (leftColumnRef.current) {
+        setLeftColumnHeight(leftColumnRef.current.offsetHeight);
+      }
+    };
+
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+
+    // Use ResizeObserver for content changes
+    const resizeObserver = new ResizeObserver(updateHeight);
+    if (leftColumnRef.current) {
+      resizeObserver.observe(leftColumnRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", updateHeight);
+      resizeObserver.disconnect();
+    };
+  }, [data]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background pt-8 px-8 pb-8 flex items-center justify-center">
@@ -154,9 +188,9 @@ export default function Home() {
         <ThemeToggle />
       </div>
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[calc(100vh-5rem)]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* First Column */}
-          <div className="flex flex-col gap-8">
+          <div ref={leftColumnRef} className="flex flex-col gap-8">
             <PlannerHeader />
             <TopPriorities
               priorities={data.topPriorities}
@@ -172,8 +206,26 @@ export default function Home() {
 
           {/* Second Column */}
           <div className="space-y-8 pt-2">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <DateSelector value={date} onChange={setDate} />
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9"
+                onClick={() => setClearDayAlertOpen(true)}
+                aria-label="Clear today's planner"
+              >
+                <Eraser className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9"
+                onClick={() => setScheduleConfigDialogOpen(true)}
+                aria-label="Schedule settings"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
               <ReminderButton
                 pastDueReminders={pastDueReminders}
                 upcomingReminders={upcomingReminders}
@@ -182,13 +234,12 @@ export default function Home() {
               />
             </div>
             <HourlySchedule
-              hourlyPlans={data.hourlyPlans}
-              onHourlyPlanChange={handleHourlyPlanChange}
-              statuses={data.hourlyStatuses}
-              onCycleStatus={handleHourlyCycleStatus}
+              hourlySlots={data.hourlySlots}
+              onUpdateSlot={handleUpdateSlot}
               reminders={currentDateReminders}
               onViewReminder={handleViewReminder}
-              onDeleteReminder={handleDeleteReminderClick}
+              maxHeight={leftColumnHeight ? leftColumnHeight - 80 : undefined}
+              visibleHours={visibleHours}
             />
           </div>
         </div>
@@ -215,6 +266,19 @@ export default function Home() {
         open={deleteAlertOpen}
         onOpenChange={setDeleteAlertOpen}
         onConfirm={handleConfirmDelete}
+      />
+
+      <ClearDayAlert
+        open={clearDayAlertOpen}
+        onOpenChange={setClearDayAlertOpen}
+        onConfirm={handleClearDay}
+      />
+
+      <ScheduleConfigDialog
+        open={scheduleConfigDialogOpen}
+        onOpenChange={setScheduleConfigDialogOpen}
+        config={scheduleConfig}
+        onSave={updateScheduleConfig}
       />
     </div>
   );

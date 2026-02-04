@@ -22,18 +22,21 @@ function formatReminderTime(reminder: Reminder): string {
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  
+
   const isToday = date.toDateString() === today.toDateString();
   const isTomorrow = date.toDateString() === tomorrow.toDateString();
-  
+
   if (isToday) {
     return `Today at ${reminder.timeSlot}`;
   }
   if (isTomorrow) {
     return `Tomorrow at ${reminder.timeSlot}`;
   }
-  
-  return `${date.toLocaleDateString("en-US", { month: "short", day: "numeric" })} at ${reminder.timeSlot}`;
+
+  return `${date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })} at ${reminder.timeSlot}`;
 }
 
 export function ReminderButton({
@@ -50,10 +53,12 @@ export function ReminderButton({
       <PopoverTrigger asChild>
         <span className="relative inline-flex">
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             className="h-9 w-9"
-            aria-label={`Reminders${hasPastDue ? ` (${pastDueReminders.length} past due)` : ""}`}
+            aria-label={`Reminders${
+              hasPastDue ? ` (${pastDueReminders.length} past due)` : ""
+            }`}
           >
             <Bell className="h-5 w-5" />
           </Button>
@@ -84,7 +89,7 @@ export function ReminderButton({
             </Button>
           </div>
         </div>
-        
+
         <div className="max-h-80 overflow-y-auto">
           {/* Past Due Section */}
           {pastDueReminders.length > 0 && (
@@ -113,7 +118,7 @@ export function ReminderButton({
               </div>
             </div>
           )}
-          
+
           {/* Upcoming Section */}
           {upcomingReminders.length > 0 && (
             <div className="p-2">
@@ -145,7 +150,7 @@ export function ReminderButton({
               </div>
             </div>
           )}
-          
+
           {/* Empty State */}
           {pastDueReminders.length === 0 && upcomingReminders.length === 0 && (
             <div className="p-6 text-center text-muted-foreground">

@@ -8,7 +8,7 @@ interface DateSelectorProps {
 
 export function DateSelector({ value, onChange }: DateSelectorProps) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2">
       <Label htmlFor="date" className="text-lg font-semibold whitespace-nowrap">
         Date:
       </Label>

@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useRef, useCallback } from "react";
-import { HOURS } from "@/app/planner/constants";
-import type { TaskStatus } from "@/components/ui/input-with-status";
+import { ALL_HOURS } from "@/app/planner/constants";
+
+export type TaskStatus = "pending" | "completed" | "error";
 
 export interface SubTask {
   id: string;
@@ -17,12 +18,17 @@ export interface TopPriority {
   subtasks: SubTask[];
 }
 
+export interface HourlyItem {
+  id: string;
+  text: string;
+  status: TaskStatus;
+}
+
 export interface PlannerData {
   topPriorities: TopPriority[];
   brainDump: string;
-  hourlyPlans: Record<string, string>;
-  hourlyStatuses: Record<string, TaskStatus>;
-  lastSaved?: string; // ISO timestamp
+  hourlySlots: Record<string, HourlyItem[]>;
+  lastSaved?: string;
 }
 
 // Legacy interface for migration (exported for testing)
@@ -31,8 +37,9 @@ export interface LegacyPlannerData {
   priorityCompleted?: boolean[];
   brainDump?: string;
   hourlyPlans?: Record<string, string>;
-  hourlyCompleted?: Record<string, boolean>; // Old boolean format
-  hourlyStatuses?: Record<string, TaskStatus>; // New format
+  hourlyCompleted?: Record<string, boolean>;
+  hourlyStatuses?: Record<string, TaskStatus>;
+  hourlySlots?: Record<string, HourlyItem[]>;
   lastSaved?: string;
 }
 
@@ -52,32 +59,61 @@ export function getStorageKey(date: Date): string {
 
 /**
  * Get default/empty planner data
+ * Uses ALL_HOURS to ensure all possible time slots are initialized,
+ * even if the user has configured a narrower visible range
  */
 export function getDefaultData(): PlannerData {
   return {
     topPriorities: [],
     brainDump: "",
-    hourlyPlans: HOURS.reduce(
+    hourlySlots: ALL_HOURS.reduce(
       (acc, hour) => ({
         ...acc,
-        [`${hour}:00`]: "",
-        [`${hour}:30`]: "",
+        [`${hour}:00`]: [],
+        [`${hour}:30`]: [],
       }),
-      {} as Record<string, string>
+      {} as Record<string, HourlyItem[]>
     ),
-    hourlyStatuses: {},
   };
 }
 
 /**
  * Migrate hourlyCompleted (boolean) to hourlyStatuses (TaskStatus)
  */
-export function migrateHourlyCompleted(completed: Record<string, boolean>): Record<string, TaskStatus> {
+export function migrateHourlyCompleted(
+  completed: Record<string, boolean>
+): Record<string, TaskStatus> {
   const statuses: Record<string, TaskStatus> = {};
   for (const [key, value] of Object.entries(completed)) {
     statuses[key] = value ? "completed" : "pending";
   }
   return statuses;
+}
+
+/**
+ * Migrate legacy hourlyPlans + hourlyStatuses to new hourlySlots format
+ */
+export function migrateToHourlySlots(
+  hourlyPlans: Record<string, string>,
+  hourlyStatuses: Record<string, TaskStatus>
+): Record<string, HourlyItem[]> {
+  const hourlySlots: Record<string, HourlyItem[]> = {};
+
+  for (const [key, text] of Object.entries(hourlyPlans)) {
+    if (text && text.trim() !== "") {
+      hourlySlots[key] = [
+        {
+          id: crypto.randomUUID(),
+          text: text.trim(),
+          status: hourlyStatuses[key] || "pending",
+        },
+      ];
+    } else {
+      hourlySlots[key] = [];
+    }
+  }
+
+  return hourlySlots;
 }
 
 /**
@@ -89,7 +125,7 @@ export function migrateFromLegacy(legacy: LegacyPlannerData): TopPriority[] {
   }
 
   const migrated: TopPriority[] = [];
-  
+
   for (const name of legacy.priorities) {
     if (name && name.trim() !== "") {
       migrated.push({
@@ -100,14 +136,16 @@ export function migrateFromLegacy(legacy: LegacyPlannerData): TopPriority[] {
       });
     }
   }
-  
+
   return migrated;
 }
 
 /**
  * Ensure TopPriority has all required fields (for backwards compatibility)
  */
-export function ensurePriorityFields(priority: Partial<TopPriority> & { id: string; name: string }): TopPriority {
+export function ensurePriorityFields(
+  priority: Partial<TopPriority> & { id: string; name: string }
+): TopPriority {
   return {
     id: priority.id,
     name: priority.name,
@@ -127,48 +165,61 @@ export function loadPlannerData(date: Date): PlannerData | null {
   try {
     const key = getStorageKey(date);
     const stored = localStorage.getItem(key);
-    
+
     if (!stored) {
       return null;
     }
 
     const parsed = JSON.parse(stored) as PlannerData & LegacyPlannerData;
-    
+
     // Validate and merge with defaults to handle missing fields
     const defaultData = getDefaultData();
-    
+
     // Check if this is legacy format (has priorities array of strings)
-    const isLegacyFormat = 
-      Array.isArray(parsed.priorities) && 
-      (parsed.priorities.length === 0 || typeof parsed.priorities[0] === "string");
-    
+    const isLegacyFormat =
+      Array.isArray(parsed.priorities) &&
+      (parsed.priorities.length === 0 ||
+        typeof parsed.priorities[0] === "string");
+
     let topPriorities: TopPriority[];
-    
+
     if (isLegacyFormat) {
       // Migrate from legacy format
       topPriorities = migrateFromLegacy(parsed);
     } else if (Array.isArray(parsed.topPriorities)) {
       // New format - validate and ensure all fields exist (backwards compatibility)
-      topPriorities = parsed.topPriorities.slice(0, 3).map(ensurePriorityFields);
+      topPriorities = parsed.topPriorities
+        .slice(0, 3)
+        .map(ensurePriorityFields);
     } else {
       topPriorities = [];
     }
-    
-    // Migrate hourlyCompleted to hourlyStatuses if needed
-    let hourlyStatuses: Record<string, TaskStatus>;
-    if (parsed.hourlyStatuses) {
-      hourlyStatuses = parsed.hourlyStatuses;
-    } else if (parsed.hourlyCompleted) {
-      hourlyStatuses = migrateHourlyCompleted(parsed.hourlyCompleted);
+
+    // Handle hourlySlots migration from legacy hourlyPlans + hourlyStatuses
+    let hourlySlots: Record<string, HourlyItem[]>;
+    if (parsed.hourlySlots) {
+      // New format - ensure all slots exist
+      hourlySlots = { ...defaultData.hourlySlots, ...parsed.hourlySlots };
+    } else if (parsed.hourlyPlans) {
+      // Migrate from legacy hourlyPlans + hourlyStatuses
+      let hourlyStatuses: Record<string, TaskStatus> = {};
+      if (parsed.hourlyStatuses) {
+        hourlyStatuses = parsed.hourlyStatuses;
+      } else if (parsed.hourlyCompleted) {
+        hourlyStatuses = migrateHourlyCompleted(parsed.hourlyCompleted);
+      }
+      hourlySlots = {
+        ...defaultData.hourlySlots,
+        ...migrateToHourlySlots(parsed.hourlyPlans, hourlyStatuses),
+      };
     } else {
-      hourlyStatuses = defaultData.hourlyStatuses;
+      hourlySlots = defaultData.hourlySlots;
     }
 
     return {
       ...defaultData,
       brainDump: parsed.brainDump || defaultData.brainDump,
-      hourlyPlans: parsed.hourlyPlans || defaultData.hourlyPlans,
-      hourlyStatuses,
+      hourlySlots,
       topPriorities,
       lastSaved: parsed.lastSaved,
     };
@@ -228,7 +279,10 @@ export function usePlannerStorage(date: Date | undefined) {
     }
 
     // Save current date's data before switching dates
-    if (currentDateRef.current && currentDateRef.current.getTime() !== date.getTime()) {
+    if (
+      currentDateRef.current &&
+      currentDateRef.current.getTime() !== date.getTime()
+    ) {
       // Clear any pending save for the old date
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
@@ -241,7 +295,7 @@ export function usePlannerStorage(date: Date | undefined) {
     // Load new date's data
     setIsLoading(true);
     const loaded = loadPlannerData(date);
-    
+
     if (loaded) {
       setData(loaded);
       dataRef.current = loaded;
@@ -250,7 +304,7 @@ export function usePlannerStorage(date: Date | undefined) {
       setData(defaultData);
       dataRef.current = defaultData;
     }
-    
+
     currentDateRef.current = date;
     setIsLoading(false);
   }, [date]);
