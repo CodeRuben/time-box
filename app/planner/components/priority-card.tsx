@@ -220,7 +220,7 @@ export function PriorityCard({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-7 w-7 shrink-0"
+            className="h-9 w-9 shrink-0"
             onClick={handleToggleCompletion}
             aria-label={isComplete ? "Completed" : "In progress"}
           >
@@ -278,7 +278,7 @@ export function PriorityCard({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 shrink-0"
+                className="h-9 w-9 shrink-0"
                 onClick={(e) => e.stopPropagation()}
                 aria-label="More options"
               >
@@ -327,7 +327,7 @@ export function PriorityCard({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 shrink-0"
+                    className="h-8 w-8 shrink-0"
                     onClick={() => handleToggleSubtask(subtask.id)}
                     aria-label={
                       subtask.completed
@@ -368,7 +368,7 @@ export function PriorityCard({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
+                    className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
                     onClick={() => handleDeleteSubtask(subtask.id)}
                     aria-label="Delete subtask"
                   >

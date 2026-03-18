@@ -54,7 +54,7 @@ export function BrainDump({ value, onChange }: BrainDumpProps) {
   return (
     <div className="flex flex-col gap-4 flex-1 min-h-0">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-2xl font-semibold text-foreground">Brain Dump</h2>
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground">Brain Dump</h2>
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -62,7 +62,7 @@ export function BrainDump({ value, onChange }: BrainDumpProps) {
                 type="button"
                 variant="outline"
                 size="icon"
-                className="h-8 w-8"
+                className="h-9 w-9"
                 aria-label={
                   showCheckIcon ? "Emoji copied" : "Open emoji picker"
                 }

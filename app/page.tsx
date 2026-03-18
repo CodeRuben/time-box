@@ -175,18 +175,18 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pt-8 px-8 pb-8 flex items-center justify-center">
+      <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8 lg:py-8 flex items-center justify-center">
         <div>Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pt-8 px-8 pb-8">
+    <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           {/* First Column */}
-          <div ref={leftColumnRef} className="flex flex-col gap-8">
+          <div ref={leftColumnRef} className="flex flex-col gap-6 lg:gap-8">
             <PlannerHeader />
             <TopPriorities
               priorities={data.topPriorities}
@@ -201,8 +201,8 @@ export default function Home() {
           </div>
 
           {/* Second Column */}
-          <div className="space-y-8 pt-2">
-            <div className="flex items-center gap-2">
+          <div className="space-y-6 lg:space-y-8 pt-2">
+            <div className="flex flex-wrap items-center gap-2">
               <DateSelector value={date} onChange={setDate} />
               <Button
                 variant="outline"

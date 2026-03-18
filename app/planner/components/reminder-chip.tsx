@@ -35,13 +35,13 @@ export function ReminderChip({ reminder, onView, onDelete }: ReminderChipProps) 
           onDelete(reminder);
         }}
         className={cn(
-          "shrink-0 rounded-full p-0.5",
-          "opacity-0 group-hover:opacity-100 transition-opacity",
+          "shrink-0 rounded-full p-1",
+          "opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity",
           "hover:bg-destructive/20 hover:text-destructive"
         )}
         aria-label={`Delete reminder: ${reminder.title}`}
       >
-        <X className="h-3 w-3" />
+        <X className="h-3.5 w-3.5" />
       </button>
     </span>
   );

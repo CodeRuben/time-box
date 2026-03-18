@@ -74,7 +74,7 @@ export function ReminderButton({
           )}
         </span>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80 p-0" align="end">
         <div className="p-3 border-b">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-sm">Reminders</h3>

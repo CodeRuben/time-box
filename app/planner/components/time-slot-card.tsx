@@ -180,7 +180,7 @@ const TimeSlotItem = memo(
         type="button"
         variant="ghost"
         size="icon"
-        className="h-6 w-6 shrink-0"
+        className="h-8 w-8 shrink-0"
         onClick={(e) => onCycleStatus(item.id, e)}
         aria-label={`Cycle status for ${item.text}`}
       >
@@ -214,7 +214,7 @@ const TimeSlotItem = memo(
         type="button"
         variant="ghost"
         size="icon"
-        className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+        className="h-8 w-8 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
         onClick={(e) => onDelete(item.id, e)}
         aria-label="Delete item"
       >
@@ -348,7 +348,7 @@ export function TimeSlotCard({
         </div>
       </PopoverTrigger>
 
-      <PopoverContent className="w-80 p-0" align="start">
+      <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80 p-0" align="start">
         <div className="p-3 space-y-3">
           {/* Add new item input */}
           <AddItemInput

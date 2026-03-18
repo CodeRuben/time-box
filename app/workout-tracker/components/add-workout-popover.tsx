@@ -44,7 +44,7 @@ export function AddWorkoutPopover({
             Add Workout
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-80 space-y-3">
+        <PopoverContent align="end" className="w-[calc(100vw-2rem)] sm:w-80 space-y-3">
           <Button
             variant="outline"
             className="w-full justify-start"

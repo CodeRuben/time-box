@@ -46,11 +46,11 @@ export function WorkoutItem({
         type="button"
         variant="ghost"
         size="icon"
-        className="absolute -top-2 -right-2 z-10 h-6 w-6 rounded-full border bg-background opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+        className="absolute -top-2 -right-2 z-10 h-7 w-7 rounded-full border bg-background opacity-100 sm:opacity-0 shadow-sm transition-opacity sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
         onClick={onDeleteWorkout}
         aria-label="Remove workout"
       >
-        <X className="h-3 w-3" />
+        <X className="h-3.5 w-3.5" />
       </Button>
       <Collapsible open={isExpanded} onOpenChange={onToggleExpanded}>
         <div
@@ -61,7 +61,7 @@ export function WorkoutItem({
             <button
               type="button"
               className={cn(
-                "mt-0.5 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full",
+                "mt-0.5 flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full",
                 workout.type === "unknown"
                   ? "bg-muted text-muted-foreground"
                   : workout.type === "resistance"
@@ -103,16 +103,16 @@ export function WorkoutItem({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute -top-1.5 -right-1.5 z-10 h-5 w-5 rounded-full border bg-background opacity-0 shadow-sm transition-opacity group-hover/subtask:opacity-100"
+                  className="absolute -top-1.5 -right-1.5 z-10 h-6 w-6 rounded-full border bg-background opacity-100 sm:opacity-0 shadow-sm transition-opacity sm:group-hover/subtask:opacity-100 sm:group-focus-within/subtask:opacity-100"
                   onClick={() => onDeleteSubtask(subtask.id)}
                   aria-label="Delete sub item"
                 >
-                  <X className="h-2.5 w-2.5" />
+                  <X className="h-3 w-3" />
                 </Button>
                 <div className="flex h-8 w-full items-center overflow-hidden rounded-md border">
                   <button
                     type="button"
-                    className="flex h-full w-8 shrink-0 items-center justify-center border-r bg-muted/40 transition-colors hover:bg-muted"
+                    className="flex h-full w-10 shrink-0 items-center justify-center border-r bg-muted/40 transition-colors hover:bg-muted"
                     onClick={() => onToggleSubtask(subtask.id)}
                   >
                     {subtask.status === "completed" ? (

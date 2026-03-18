@@ -12,7 +12,7 @@ export function DateSelector({ value, onChange }: DateSelectorProps) {
       <Label htmlFor="date" className="text-lg font-semibold whitespace-nowrap">
         Date:
       </Label>
-      <DatePicker date={value} onSelect={onChange} className="w-56" />
+      <DatePicker date={value} onSelect={onChange} className="w-auto sm:w-56" />
     </div>
   );
 }

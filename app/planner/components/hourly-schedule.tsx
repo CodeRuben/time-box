@@ -79,7 +79,7 @@ export function HourlySchedule({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-semibold text-foreground">
+      <h2 className="text-xl sm:text-2xl font-semibold text-foreground">
         Hourly Schedule
       </h2>
       <div className="relative">
@@ -87,10 +87,10 @@ export function HourlySchedule({
         {canScrollUp && (
           <button
             onClick={scrollUp}
-            className="absolute -top-1 left-1/2 -translate-x-1/2 z-10 p-1 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm hover:bg-accent transition-colors"
+            className="absolute -top-1 left-1/2 -translate-x-1/2 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm hover:bg-accent transition-colors"
             aria-label="Scroll up"
           >
-            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            <ChevronUp className="h-5 w-5 text-muted-foreground" />
           </button>
         )}
 
@@ -108,12 +108,16 @@ export function HourlySchedule({
             return (
               <div
                 key={hour}
-                className="grid grid-cols-[4rem_1fr_1fr] gap-2 items-stretch"
+                className="grid grid-cols-[3rem_1fr] sm:grid-cols-[4rem_1fr_1fr] gap-1.5 sm:gap-2 items-stretch"
               >
                 {/* Hour label */}
-                <div className="flex items-center justify-center rounded-lg bg-muted/50">
-                  <span className="text-sm font-medium text-muted-foreground">
+                <div className="row-span-2 sm:row-span-1 flex items-center justify-center rounded-lg bg-muted/50">
+                  <span className="hidden sm:inline text-sm font-medium text-muted-foreground">
                     {hour}
+                  </span>
+                  <span className="flex sm:hidden flex-col items-center leading-tight text-muted-foreground">
+                    <span className="text-lg font-semibold">{hour.split(" ")[0]}</span>
+                    <span className="text-xs font-medium uppercase">{hour.split(" ")[1]}</span>
                   </span>
                 </div>
 
@@ -143,10 +147,10 @@ export function HourlySchedule({
         {canScrollDown && (
           <button
             onClick={scrollDown}
-            className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-10 p-1 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm hover:bg-accent transition-colors"
+            className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm hover:bg-accent transition-colors"
             aria-label="Scroll down"
           >
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            <ChevronDown className="h-5 w-5 text-muted-foreground" />
           </button>
         )}
       </div>

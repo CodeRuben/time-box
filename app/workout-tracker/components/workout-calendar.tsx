@@ -35,9 +35,9 @@ export function WorkoutCalendar({
   return (
     <div className="space-y-4">
       <Card className="py-0">
-        <CardHeader className="border-b px-6 py-4">
+        <CardHeader className="border-b px-3 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center justify-between gap-2">
-            <CardTitle className="text-2xl font-semibold">
+            <CardTitle className="text-xl sm:text-2xl font-semibold">
               {format(calendarMonth, "MMMM yyyy")}
             </CardTitle>
             <div className="flex items-center gap-2">
@@ -60,12 +60,12 @@ export function WorkoutCalendar({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6 px-6 py-6">
-          <div className="grid grid-cols-7 gap-2">
+        <CardContent className="space-y-4 sm:space-y-6 px-2 py-3 sm:px-6 sm:py-6">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2">
             {WEEKDAY_LABELS.map((weekday) => (
               <div
                 key={weekday}
-                className="text-muted-foreground py-2 text-center text-sm font-medium"
+                className="text-muted-foreground py-1 sm:py-2 text-center text-xs sm:text-sm font-medium"
               >
                 {weekday}
               </div>
@@ -89,7 +89,7 @@ export function WorkoutCalendar({
                   type="button"
                   onClick={() => onSelectDate(day)}
                   className={[
-                    "relative aspect-square min-h-24 cursor-pointer rounded-lg border p-2 text-left transition",
+                    "relative sm:aspect-square min-h-12 sm:min-h-20 lg:min-h-24 cursor-pointer rounded-lg border p-1.5 sm:p-2 text-left transition",
                     "hover:border-primary hover:bg-accent/60",
                     isSelected ? "border-primary bg-primary/15" : "",
                     !isSelected && isToday ? "border-primary/60" : "",
@@ -99,20 +99,20 @@ export function WorkoutCalendar({
                   ].join(" ")}
                   aria-label={`Select ${format(day, "MMMM d, yyyy")}`}
                 >
-                  <span className="absolute top-2 left-2 text-sm font-semibold">
+                  <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 text-xs sm:text-sm font-semibold">
                     {format(day, "d")}
                   </span>
 
-                  <div className="absolute right-2 bottom-2 flex items-center gap-1">
+                  <div className="absolute right-1.5 bottom-1.5 sm:right-2 sm:bottom-2 flex items-center gap-0.5 sm:gap-1">
                     {visibleWorkoutTypes.map((type, index) => (
                       <span
                         key={`${dateKey}-${type}-${index}`}
-                        className={`h-2.5 w-2.5 rounded-full ${WORKOUT_TYPE_META[type].dotClass}`}
+                        className={`h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full ${WORKOUT_TYPE_META[type].dotClass}`}
                         title={WORKOUT_TYPE_META[type].label}
                       />
                     ))}
                     {hiddenWorkoutCount > 0 && (
-                      <span className="text-muted-foreground text-[10px] font-medium">
+                      <span className="text-muted-foreground text-[10px] sm:text-xs font-medium">
                         +{hiddenWorkoutCount}
                       </span>
                     )}

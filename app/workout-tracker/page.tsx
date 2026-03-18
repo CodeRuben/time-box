@@ -38,11 +38,11 @@ export default function WorkoutTrackerPage() {
   } = useWorkoutTrackerPage();
 
   return (
-    <div className="min-h-screen bg-background px-8 py-8">
+    <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-6 lg:mb-8 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-4xl font-bold text-foreground">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
               Workout Tracker
             </h1>
             <p className="text-muted-foreground mt-2">
@@ -51,7 +51,7 @@ export default function WorkoutTrackerPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 xl:grid-cols-[2fr_1fr]">
+        <div className="grid grid-cols-1 gap-6 lg:gap-8 xl:grid-cols-[2fr_1fr]">
           <WorkoutCalendar
             calendarDays={calendarDays}
             calendarMonth={calendarMonth}
