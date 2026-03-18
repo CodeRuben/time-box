@@ -6,7 +6,6 @@ import { TopPriorities } from "./planner/components/top-priorities";
 import { BrainDump } from "./planner/components/brain-dump";
 import { DateSelector } from "./planner/components/date-selector";
 import { HourlySchedule } from "./planner/components/hourly-schedule";
-import { ThemeToggle } from "./planner/components/theme-toggle";
 import { ReminderButton } from "./planner/components/reminder-button";
 import { CreateReminderDialog } from "./planner/components/create-reminder-dialog";
 import { ReminderInfoDialog } from "./planner/components/reminder-info-dialog";
@@ -184,9 +183,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background pt-8 px-8 pb-8">
-      <div className="fixed top-4 right-4 z-10">
-        <ThemeToggle />
-      </div>
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* First Column */}
