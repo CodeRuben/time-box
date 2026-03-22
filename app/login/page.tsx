@@ -3,7 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { LOGIN_RATE_LIMIT_ERROR } from "@/lib/auth-errors";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,7 +22,11 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      setError("Invalid email or password");
+      setError(
+        result.error === LOGIN_RATE_LIMIT_ERROR
+          ? "Too many login attempts. Please try again in a few minutes."
+          : "Invalid email or password"
+      );
     } else {
       router.push("/");
       router.refresh();
@@ -33,6 +37,10 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center">
       <div className="w-full max-w-md space-y-8 p-8">
         <h2 className="text-3xl font-bold text-center">Sign In</h2>
+        <p className="text-center text-sm text-muted-foreground">
+          Use your admin account to sync planner and workout data to the
+          database.
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
@@ -76,12 +84,8 @@ export default function LoginPage() {
             Sign In
           </button>
         </form>
-
-        <p className="text-center text-sm">
-          Don't have an account?{" "}
-          <Link href="/register" className="text-blue-600 hover:underline">
-            Sign up
-          </Link>
+        <p className="text-center text-sm text-muted-foreground">
+          Registration is disabled for now.
         </p>
       </div>
     </div>

@@ -58,13 +58,20 @@ export function useWorkoutTrackerPage() {
     Record<string, boolean>
   >({});
 
-  const { data, isLoading, addWorkout, updateWorkout, deleteWorkout, clearWorkouts, getWorkoutTypesForDate } =
-    useWorkoutStorage(selectedDate);
-
   const calendarDays = useMemo(
     () => getCalendarDays(calendarMonth),
     [calendarMonth],
   );
+  const {
+    data,
+    isLoading,
+    autosaveStatus,
+    addWorkout,
+    updateWorkout,
+    deleteWorkout,
+    clearWorkouts,
+    getWorkoutTypesForDate,
+  } = useWorkoutStorage(selectedDate, calendarDays);
 
   const selectedDateLabel = format(selectedDate, "EEEE, MMMM d, yyyy");
   const goToPreviousMonth = () => {
@@ -183,6 +190,7 @@ export function useWorkoutTrackerPage() {
     calendarDays,
     calendarMonth,
     data,
+    autosaveStatus,
     getWorkoutTypesForDate,
     isAddWorkoutPopoverOpen,
     isClearDialogOpen,

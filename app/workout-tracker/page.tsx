@@ -4,12 +4,16 @@ import { ClearWorkoutsDialog } from "./components/clear-workouts-dialog";
 import { SelectedDayCard } from "./components/selected-day-card";
 import { WorkoutCalendar } from "./components/workout-calendar";
 import { useWorkoutTrackerPage } from "./hooks/use-workout-tracker-page";
+import { AutosaveIndicator } from "../components/autosave-indicator";
+import { useSession } from "next-auth/react";
 
 export default function WorkoutTrackerPage() {
+  const { status } = useSession();
   const {
     calendarDays,
     calendarMonth,
     data,
+    autosaveStatus,
     getWorkoutTypesForDate,
     isAddWorkoutPopoverOpen,
     isClearDialogOpen,
@@ -49,6 +53,9 @@ export default function WorkoutTrackerPage() {
               Track workouts by day and review past activity.
             </p>
           </div>
+          {status === "authenticated" && (
+            <AutosaveIndicator status={autosaveStatus} />
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:gap-8 xl:grid-cols-[2fr_1fr]">

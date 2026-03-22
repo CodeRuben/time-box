@@ -1,6 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
+import { formatDateKey } from "@/lib/date-key";
+import type { AutosaveStatus } from "@/lib/autosave-status";
 
 export type WorkoutType = "unknown" | "resistance" | "cardio";
 export type WorkoutDotType = Exclude<WorkoutType, "unknown">;
@@ -32,12 +35,12 @@ export interface NewWorkoutInput {
 }
 
 const STORAGE_PREFIX = "workout-tracker-";
+const WORKOUTS_API_PREFIX = "/api/workouts";
+
+type WorkoutStorageMode = "local" | "account";
 
 export function formatWorkoutDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return formatDateKey(date);
 }
 
 export function getWorkoutStorageKey(date: Date): string {
@@ -134,6 +137,40 @@ function normalizeWorkout(raw: unknown): Workout | null {
   };
 }
 
+function hydrateWorkoutDayData(raw: unknown): WorkoutDayData | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+
+  const parsed = raw as Partial<WorkoutDayData>;
+  const workouts = Array.isArray(parsed.workouts)
+    ? parsed.workouts
+        .map(normalizeWorkout)
+        .filter((workout): workout is Workout => workout !== null)
+    : [];
+
+  return {
+    workouts,
+    lastSaved: parsed.lastSaved,
+  };
+}
+
+function extractWorkoutTypes(data: WorkoutDayData): WorkoutDotType[] {
+  return data.workouts
+    .map((workout) => workout.type)
+    .filter((type): type is WorkoutDotType => type !== "unknown");
+}
+
+function getStorageMode(
+  status: "authenticated" | "loading" | "unauthenticated"
+): WorkoutStorageMode | null {
+  if (status === "loading") {
+    return null;
+  }
+
+  return status === "authenticated" ? "account" : "local";
+}
+
 export function loadWorkoutDayData(date: Date): WorkoutDayData | null {
   if (typeof window === "undefined") {
     return null;
@@ -146,17 +183,7 @@ export function loadWorkoutDayData(date: Date): WorkoutDayData | null {
       return null;
     }
 
-    const parsed = JSON.parse(stored) as Partial<WorkoutDayData>;
-    const workouts = Array.isArray(parsed.workouts)
-      ? parsed.workouts
-          .map(normalizeWorkout)
-          .filter((workout): workout is Workout => workout !== null)
-      : [];
-
-    return {
-      workouts,
-      lastSaved: parsed.lastSaved,
-    };
+    return hydrateWorkoutDayData(JSON.parse(stored));
   } catch (error) {
     console.error("Failed to load workout data:", error);
     return null;
@@ -200,99 +227,418 @@ export function loadWorkoutTypesForDate(date: Date): WorkoutDotType[] {
     return [];
   }
 
-  return loaded.workouts
-    .map((workout) => workout.type)
-    .filter((type): type is WorkoutDotType => type !== "unknown");
+  return extractWorkoutTypes(loaded);
 }
 
-export function useWorkoutStorage(date: Date) {
-  const [refreshToken, setRefreshToken] = useState(0);
-  const isHydrated = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
+async function loadWorkoutDayDataFromAccount(
+  date: Date
+): Promise<WorkoutDayData | null> {
+  const response = await fetch(`${WORKOUTS_API_PREFIX}/${formatWorkoutDateKey(date)}`, {
+    cache: "no-store",
+    credentials: "same-origin",
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error("Failed to load workout data from account");
+  }
+
+  const payload = (await response.json()) as {
+    data?: unknown;
+  };
+
+  return hydrateWorkoutDayData(payload.data);
+}
+
+async function saveWorkoutDayDataToAccount(
+  date: Date,
+  data: WorkoutDayData
+): Promise<void> {
+  const response = await fetch(`${WORKOUTS_API_PREFIX}/${formatWorkoutDateKey(date)}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "same-origin",
+    body: JSON.stringify({
+      data,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to save workout data to account");
+  }
+}
+
+async function clearWorkoutDayDataFromAccount(date: Date): Promise<void> {
+  const response = await fetch(`${WORKOUTS_API_PREFIX}/${formatWorkoutDateKey(date)}`, {
+    method: "DELETE",
+    credentials: "same-origin",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to clear workout data from account");
+  }
+}
+
+function buildLocalSummary(dates: Date[]): Record<string, WorkoutDotType[]> {
+  return Object.fromEntries(
+    dates.map((targetDate) => [
+      formatWorkoutDateKey(targetDate),
+      loadWorkoutTypesForDate(targetDate),
+    ])
+  );
+}
+
+function normalizeWorkoutSummary(
+  raw: unknown
+): Record<string, WorkoutDotType[]> {
+  if (!raw || typeof raw !== "object") {
+    return {};
+  }
+
+  const parsed = raw as Record<string, unknown>;
+
+  return Object.fromEntries(
+    Object.entries(parsed).map(([dateKey, value]) => [
+      dateKey,
+      Array.isArray(value)
+        ? value.filter(
+            (type): type is WorkoutDotType =>
+              type === "resistance" || type === "cardio"
+          )
+        : [],
+    ])
+  );
+}
+
+async function loadWorkoutSummaryFromAccount(
+  dates: Date[]
+): Promise<Record<string, WorkoutDotType[]>> {
+  if (dates.length === 0) {
+    return {};
+  }
+
+  const dateKeys = dates.map(formatWorkoutDateKey).sort();
+  const searchParams = new URLSearchParams({
+    start: dateKeys[0],
+    end: dateKeys[dateKeys.length - 1],
+  });
+  const response = await fetch(`${WORKOUTS_API_PREFIX}/summary?${searchParams}`, {
+    cache: "no-store",
+    credentials: "same-origin",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to load workout summary from account");
+  }
+
+  const payload = (await response.json()) as {
+    summary?: unknown;
+  };
+
+  return normalizeWorkoutSummary(payload.summary);
+}
+
+export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
+  const { status } = useSession();
+  const storageMode = getStorageMode(status);
+  const [data, setData] = useState<WorkoutDayData>(getDefaultWorkoutDayData());
+  const [isLoading, setIsLoading] = useState(true);
+  const [autosaveStatus, setAutosaveStatus] = useState<AutosaveStatus>("idle");
+  const savedResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const persistIdRef = useRef(0);
+  const [summaryMap, setSummaryMap] = useState<Record<string, WorkoutDotType[]>>(
+    {}
+  );
+  const summaryDatesKey = useMemo(
+    () => summaryDates.map(formatWorkoutDateKey).join("|"),
+    [summaryDates]
   );
 
-  const data = useMemo(() => {
-    if (!isHydrated) {
-      return getDefaultWorkoutDayData();
+  const clearSavedReset = useCallback(() => {
+    if (savedResetTimeoutRef.current) {
+      clearTimeout(savedResetTimeoutRef.current);
+      savedResetTimeoutRef.current = null;
     }
-    return loadWorkoutDayData(date) ?? getDefaultWorkoutDayData();
-  }, [date, refreshToken, isHydrated]);
+  }, []);
+
+  const scheduleResetToIdle = useCallback(() => {
+    clearSavedReset();
+    savedResetTimeoutRef.current = setTimeout(() => {
+      setAutosaveStatus("idle");
+      savedResetTimeoutRef.current = null;
+    }, 2000);
+  }, [clearSavedReset]);
+
+  const updateSummaryEntry = useCallback(
+    (targetDate: Date, nextData: WorkoutDayData) => {
+      setSummaryMap((previous) => ({
+        ...previous,
+        [formatWorkoutDateKey(targetDate)]: extractWorkoutTypes(nextData),
+      }));
+    },
+    []
+  );
+
+  const persistWorkoutDay = useCallback(
+    (targetDate: Date, nextData: WorkoutDayData) => {
+      if (!storageMode) {
+        return;
+      }
+
+      const id = ++persistIdRef.current;
+      setAutosaveStatus("saving");
+      clearSavedReset();
+
+      void (async () => {
+        try {
+          if (storageMode === "local") {
+            saveWorkoutDayData(targetDate, nextData);
+          } else {
+            await saveWorkoutDayDataToAccount(targetDate, nextData);
+          }
+
+          if (id === persistIdRef.current) {
+            setAutosaveStatus("saved");
+            scheduleResetToIdle();
+          }
+        } catch (error) {
+          console.error("Failed to persist workout data:", error);
+
+          if (id === persistIdRef.current) {
+            setAutosaveStatus("error");
+          }
+        }
+      })();
+    },
+    [storageMode, clearSavedReset, scheduleResetToIdle]
+  );
+
+  useEffect(() => {
+    if (!storageMode) {
+      setIsLoading(true);
+      setAutosaveStatus("idle");
+      clearSavedReset();
+      return;
+    }
+
+    persistIdRef.current += 1;
+    setAutosaveStatus("idle");
+    clearSavedReset();
+
+    let isCancelled = false;
+    setIsLoading(true);
+
+    const loadDay = async () => {
+      try {
+        const loaded =
+          storageMode === "account"
+            ? await loadWorkoutDayDataFromAccount(date)
+            : loadWorkoutDayData(date);
+        const nextData = loaded ?? getDefaultWorkoutDayData();
+
+        if (isCancelled) {
+          return;
+        }
+
+        setData(nextData);
+        updateSummaryEntry(date, nextData);
+      } catch (error) {
+        console.error("Failed to hydrate workout data:", error);
+
+        if (isCancelled) {
+          return;
+        }
+
+        const defaultData = getDefaultWorkoutDayData();
+        setData(defaultData);
+        updateSummaryEntry(date, defaultData);
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadDay();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [date, storageMode, updateSummaryEntry, clearSavedReset]);
+
+  useEffect(() => {
+    if (!storageMode) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadSummary = async () => {
+      try {
+        const nextSummary =
+          storageMode === "account"
+            ? await loadWorkoutSummaryFromAccount(summaryDates)
+            : buildLocalSummary(summaryDates);
+
+        if (!isCancelled) {
+          setSummaryMap(nextSummary);
+        }
+      } catch (error) {
+        console.error("Failed to load workout summary:", error);
+
+        if (!isCancelled) {
+          setSummaryMap(buildLocalSummary(summaryDates));
+        }
+      }
+    };
+
+    void loadSummary();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [storageMode, summaryDates, summaryDatesKey]);
 
   const addWorkout = useCallback(
     (newWorkout: NewWorkoutInput) => {
+      if (!storageMode) {
+        return;
+      }
+
       const subtaskNames = newWorkout.subtaskNames ?? [];
-      const currentData = loadWorkoutDayData(date) ?? getDefaultWorkoutDayData();
-      const updated: WorkoutDayData = {
-        ...currentData,
-        workouts: [
-          ...currentData.workouts,
-          {
-            id: crypto.randomUUID(),
-            type: newWorkout.type ?? "unknown",
-            name: newWorkout.name?.trim() || "",
-            subtasks: subtaskNames.map((name) => ({
+      setData((currentData) => {
+        const updated: WorkoutDayData = {
+          ...currentData,
+          workouts: [
+            ...currentData.workouts,
+            {
               id: crypto.randomUUID(),
-              name,
-              status: "pending" as const,
-            })),
-            createdAt: new Date().toISOString(),
-          },
-        ],
-      };
-      saveWorkoutDayData(date, updated);
-      setRefreshToken((value) => value + 1);
+              type: newWorkout.type ?? "unknown",
+              name: newWorkout.name?.trim() || "",
+              subtasks: subtaskNames.map((name) => ({
+                id: crypto.randomUUID(),
+                name,
+                status: "pending" as const,
+              })),
+              createdAt: new Date().toISOString(),
+            },
+          ],
+        };
+
+        persistWorkoutDay(date, updated);
+        updateSummaryEntry(date, updated);
+        return updated;
+      });
     },
-    [date]
+    [date, persistWorkoutDay, storageMode, updateSummaryEntry]
   );
 
   const updateWorkout = useCallback(
     (workoutId: string, updater: (workout: Workout) => Workout) => {
-      const currentData = loadWorkoutDayData(date) ?? getDefaultWorkoutDayData();
-      const updated: WorkoutDayData = {
-        ...currentData,
-        workouts: currentData.workouts.map((workout) =>
-          workout.id === workoutId ? updater(workout) : workout
-        ),
-      };
-      saveWorkoutDayData(date, updated);
-      setRefreshToken((value) => value + 1);
+      if (!storageMode) {
+        return;
+      }
+
+      setData((currentData) => {
+        const updated: WorkoutDayData = {
+          ...currentData,
+          workouts: currentData.workouts.map((workout) =>
+            workout.id === workoutId ? updater(workout) : workout
+          ),
+        };
+
+        persistWorkoutDay(date, updated);
+        updateSummaryEntry(date, updated);
+        return updated;
+      });
     },
-    [date]
+    [date, persistWorkoutDay, storageMode, updateSummaryEntry]
   );
 
   const deleteWorkout = useCallback(
     (workoutId: string) => {
-      const currentData = loadWorkoutDayData(date) ?? getDefaultWorkoutDayData();
-      const updated: WorkoutDayData = {
-        ...currentData,
-        workouts: currentData.workouts.filter((workout) => workout.id !== workoutId),
-      };
-      saveWorkoutDayData(date, updated);
-      setRefreshToken((value) => value + 1);
+      if (!storageMode) {
+        return;
+      }
+
+      setData((currentData) => {
+        const updated: WorkoutDayData = {
+          ...currentData,
+          workouts: currentData.workouts.filter((workout) => workout.id !== workoutId),
+        };
+
+        persistWorkoutDay(date, updated);
+        updateSummaryEntry(date, updated);
+        return updated;
+      });
     },
-    [date]
+    [date, persistWorkoutDay, storageMode, updateSummaryEntry]
   );
 
   const clearWorkouts = useCallback(() => {
-    clearWorkoutDayData(date);
-    setRefreshToken((value) => value + 1);
-  }, [date]);
+    if (!storageMode) {
+      return;
+    }
+
+    const defaultData = getDefaultWorkoutDayData();
+    setData(defaultData);
+    updateSummaryEntry(date, defaultData);
+
+    if (storageMode === "local") {
+      clearWorkoutDayData(date);
+      setAutosaveStatus("saved");
+      scheduleResetToIdle();
+      return;
+    }
+
+    const id = ++persistIdRef.current;
+    setAutosaveStatus("saving");
+    clearSavedReset();
+
+    void clearWorkoutDayDataFromAccount(date)
+      .then(() => {
+        if (id === persistIdRef.current) {
+          setAutosaveStatus("saved");
+          scheduleResetToIdle();
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to clear workout data:", error);
+        if (id === persistIdRef.current) {
+          setAutosaveStatus("error");
+        }
+      });
+  }, [
+    date,
+    storageMode,
+    updateSummaryEntry,
+    scheduleResetToIdle,
+    clearSavedReset,
+  ]);
 
   const getWorkoutTypesForDate = useCallback(
-    (targetDate: Date): WorkoutDotType[] => {
-      if (!isHydrated) {
-        return [];
-      }
-      return loadWorkoutTypesForDate(targetDate);
-    },
-    [isHydrated]
+    (targetDate: Date): WorkoutDotType[] =>
+      summaryMap[formatWorkoutDateKey(targetDate)] ?? [],
+    [summaryMap]
   );
+
+  useEffect(() => {
+    return () => {
+      clearSavedReset();
+    };
+  }, [clearSavedReset]);
 
   return {
     data,
-    isLoading: !isHydrated,
+    isLoading,
+    autosaveStatus,
     addWorkout,
     updateWorkout,
     deleteWorkout,

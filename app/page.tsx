@@ -27,12 +27,15 @@ import {
 import { useScheduleConfig } from "@/lib/use-schedule-config";
 import { ScheduleConfigDialog } from "./planner/components/schedule-config-dialog";
 import { getHoursInRange } from "./planner/constants";
+import { AutosaveIndicator } from "./components/autosave-indicator";
+import { useSession } from "next-auth/react";
 
 export default function Home() {
+  const { status } = useSession();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [leftColumnHeight, setLeftColumnHeight] = useState<number | null>(null);
   const leftColumnRef = useRef<HTMLDivElement>(null);
-  const { data, setData, isLoading } = usePlannerStorage(date);
+  const { data, setData, isLoading, autosaveStatus } = usePlannerStorage(date);
 
   // Reminder state and hooks
   const {
@@ -228,6 +231,9 @@ export default function Home() {
                 onAddReminder={handleAddReminder}
                 onViewReminder={handleViewReminder}
               />
+              {status === "authenticated" && (
+                <AutosaveIndicator status={autosaveStatus} />
+              )}
             </div>
             <HourlySchedule
               hourlySlots={data.hourlySlots}
