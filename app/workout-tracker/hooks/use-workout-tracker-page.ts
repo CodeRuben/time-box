@@ -19,6 +19,7 @@ import {
   useWorkoutStorage,
 } from "@/lib/use-workout-storage";
 import { WORKOUT_TEMPLATES } from "../constants";
+import { usePreviousWorkouts } from "./use-previous-workouts";
 
 function cycleSubtaskStatus(
   status: WorkoutSubtaskStatus,
@@ -73,6 +74,12 @@ export function useWorkoutTrackerPage() {
     getWorkoutTypesForDate,
   } = useWorkoutStorage(selectedDate, calendarDays);
 
+  const {
+    entries: previousWorkoutEntries,
+    isLoading: isPreviousWorkoutsLoading,
+    load: loadPreviousWorkouts,
+  } = usePreviousWorkouts(selectedDate);
+
   const selectedDateLabel = format(selectedDate, "EEEE, MMMM d, yyyy");
   const goToPreviousMonth = () => {
     setCalendarMonth((prev) => subMonths(prev, 1));
@@ -111,6 +118,15 @@ export function useWorkoutTrackerPage() {
       type: template.type,
       name: template.name,
       subtaskNames: template.exercises,
+    });
+    setIsAddWorkoutPopoverOpen(false);
+  };
+
+  const handleCopyPrevious = (workout: Workout) => {
+    addWorkout({
+      type: workout.type,
+      name: workout.name,
+      subtaskNames: workout.subtasks.map((s) => s.name),
     });
     setIsAddWorkoutPopoverOpen(false);
   };
@@ -202,6 +218,7 @@ export function useWorkoutTrackerPage() {
     handleAddWorkout,
     handleAddWorkoutPopoverOpenChange,
     handleClearSelectedDate,
+    handleCopyPrevious,
     handleCycleWorkoutType,
     handleDeleteWorkout,
     handleDeleteSubtask,
@@ -210,6 +227,9 @@ export function useWorkoutTrackerPage() {
     handleTemplateSelected,
     handleToggleSubtask,
     handleWorkoutNameChange,
+    isPreviousWorkoutsLoading,
+    loadPreviousWorkouts,
+    previousWorkoutEntries,
     isWorkoutExpanded,
     setIsAddWorkoutPopoverOpen,
     setIsClearDialogOpen,

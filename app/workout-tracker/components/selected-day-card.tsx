@@ -2,6 +2,7 @@
 
 import { Eraser } from "lucide-react";
 import { type Workout } from "@/lib/use-workout-storage";
+import type { PreviousWorkoutEntry } from "../hooks/use-previous-workouts";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AddWorkoutPopover } from "./add-workout-popover";
@@ -16,6 +17,10 @@ interface SelectedDayCardProps {
   onAddWorkoutPopoverOpenChange: (open: boolean) => void;
   onAddBlankWorkout: () => void;
   onSelectTemplate: (templateId: string) => void;
+  onCopyPrevious: (workout: Workout) => void;
+  previousWorkoutEntries: PreviousWorkoutEntry[];
+  isPreviousWorkoutsLoading: boolean;
+  onLoadPreviousWorkouts: () => void;
   isWorkoutExpanded: (workoutId: string) => boolean;
   onToggleWorkoutExpanded: (workoutId: string) => void;
   onCycleWorkoutType: (workout: Workout) => void;
@@ -40,6 +45,10 @@ export function SelectedDayCard({
   onAddWorkoutPopoverOpenChange,
   onAddBlankWorkout,
   onSelectTemplate,
+  onCopyPrevious,
+  previousWorkoutEntries,
+  isPreviousWorkoutsLoading,
+  onLoadPreviousWorkouts,
   isWorkoutExpanded,
   onToggleWorkoutExpanded,
   onCycleWorkoutType,
@@ -124,6 +133,10 @@ export function SelectedDayCard({
               onOpenChange={onAddWorkoutPopoverOpenChange}
               onAddBlankWorkout={onAddBlankWorkout}
               onSelectTemplate={onSelectTemplate}
+              onCopyPrevious={onCopyPrevious}
+              previousWorkoutEntries={previousWorkoutEntries}
+              isPreviousWorkoutsLoading={isPreviousWorkoutsLoading}
+              onLoadPreviousWorkouts={onLoadPreviousWorkouts}
             />
           </>
         )}

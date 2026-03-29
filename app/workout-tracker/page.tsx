@@ -27,6 +27,7 @@ export default function WorkoutTrackerPage() {
     handleAddWorkout,
     handleAddWorkoutPopoverOpenChange,
     handleClearSelectedDate,
+    handleCopyPrevious,
     handleCycleWorkoutType,
     handleDeleteWorkout,
     handleDeleteSubtask,
@@ -35,6 +36,9 @@ export default function WorkoutTrackerPage() {
     handleTemplateSelected,
     handleToggleSubtask,
     handleWorkoutNameChange,
+    isPreviousWorkoutsLoading,
+    loadPreviousWorkouts,
+    previousWorkoutEntries,
     isWorkoutExpanded,
     setIsAddWorkoutPopoverOpen,
     setIsClearDialogOpen,
@@ -82,6 +86,10 @@ export default function WorkoutTrackerPage() {
               setIsAddWorkoutPopoverOpen(false);
             }}
             onSelectTemplate={handleTemplateSelected}
+            onCopyPrevious={handleCopyPrevious}
+            previousWorkoutEntries={previousWorkoutEntries}
+            isPreviousWorkoutsLoading={isPreviousWorkoutsLoading}
+            onLoadPreviousWorkouts={loadPreviousWorkouts}
             isWorkoutExpanded={isWorkoutExpanded}
             onToggleWorkoutExpanded={toggleWorkoutExpanded}
             onCycleWorkoutType={handleCycleWorkoutType}

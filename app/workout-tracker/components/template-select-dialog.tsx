@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { Check } from "lucide-react";
 import type { WorkoutTemplate } from "../constants";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -52,65 +53,94 @@ export function TemplateSelectDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Choose a template</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-2 py-2">
-          {templates.map((template) => {
-            const isExpanded = expandedId === template.id;
-            return (
-              <Collapsible
-                key={template.id}
-                open={isExpanded}
-                onOpenChange={handleExpandChange(template.id)}
-              >
-                <div
-                  className={cn(
-                    "rounded-lg border-2 transition-colors",
-                    isExpanded
-                      ? "border-green-500/60 bg-green-500/10"
-                      : "border-transparent bg-muted/30 hover:bg-muted/50",
-                  )}
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-lg">
+        <div className="border-b border-border/60 bg-muted/15 px-6 py-5 dark:border-border/75 dark:bg-muted/20">
+          <DialogHeader className="text-left">
+            <DialogTitle className="text-xl font-semibold tracking-tight">
+              Choose a template
+            </DialogTitle>
+          </DialogHeader>
+        </div>
+
+        <div className="scrollbar-themed max-h-[min(52vh,22rem)] overflow-y-auto bg-muted/5 px-3 py-3 sm:px-4 dark:bg-muted/20">
+          <div className="flex flex-col gap-2">
+            {templates.map((template) => {
+              const isExpanded = expandedId === template.id;
+              return (
+                <Collapsible
+                  key={template.id}
+                  open={isExpanded}
+                  onOpenChange={handleExpandChange(template.id)}
                 >
-                  <CollapsibleTrigger asChild>
-                    <button
-                      type="button"
-                      className="flex w-full items-center gap-2 px-3 py-3 text-left"
-                    >
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <span className="font-medium">{template.name}</span>
-                        <span className="text-muted-foreground ml-2 text-xs">
-                          {template.exercises.length} exercises
-                        </span>
+                  <div
+                    className={cn(
+                      "overflow-hidden rounded-xl border shadow-sm transition-colors",
+                      isExpanded
+                        ? "border-emerald-500/35 bg-emerald-500/[0.07] ring-1 ring-emerald-500/15"
+                        : "border-border/70 bg-card hover:border-border hover:bg-muted/25",
+                    )}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex w-full cursor-pointer items-center gap-3 px-4 py-3.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      >
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                            <span className="text-sm font-semibold text-foreground">
+                              {template.name}
+                            </span>
+                            <span className="rounded-md bg-muted/80 px-1.5 py-px text-xs font-medium tabular-nums text-muted-foreground">
+                              {template.exercises.length}{" "}
+                              {template.exercises.length === 1
+                                ? "exercise"
+                                : "exercises"}
+                            </span>
+                          </div>
+                        </div>
+                        {isExpanded && (
+                          <Check
+                            className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400"
+                            strokeWidth={2.5}
+                            aria-hidden
+                          />
+                        )}
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+                      <div className="border-t border-border/60 bg-muted/25 px-4 pb-4 pt-1 dark:border-border/70 dark:bg-muted/30">
+                        <p className="mb-2.5 pt-2 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
+                          Exercises
+                        </p>
+                        <ul className="space-y-2">
+                          {template.exercises.map((exercise, index) => (
+                            <li
+                              key={index}
+                              className="flex gap-3 text-sm leading-snug"
+                            >
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-background text-xs font-medium text-muted-foreground shadow-sm ring-1 ring-border/50">
+                                {index + 1}
+                              </span>
+                              <span className="min-w-0 flex-1 pt-0.5 text-foreground/90">
+                                {exercise}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                    </button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-                    <ul className="list-inside list-disc space-y-1 border-t border-border/50 px-3 pb-3 pt-2 text-sm text-muted-foreground">
-                      {template.exercises.map((exercise, index) => (
-                        <li key={index}>{exercise}</li>
-                      ))}
-                    </ul>
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
-            );
-          })}
+                    </CollapsibleContent>
+                  </div>
+                </Collapsible>
+              );
+            })}
+          </div>
         </div>
-        <div className="flex justify-end">
-          <Button
-            onClick={handleSelect}
-            disabled={!expandedId}
-          >
-            Select
+
+        <DialogFooter className="gap-2 border-t border-border/60 bg-muted/10 px-6 py-4 sm:justify-end dark:border-border/75 dark:bg-muted/15">
+          <Button type="button" onClick={handleSelect} disabled={!expandedId}>
+            Add workout
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

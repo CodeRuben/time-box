@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { formatDateKey } from "@/lib/date-key";
 import type { AutosaveStatus } from "@/lib/autosave-status";
+import { AUTOSAVE_DEBOUNCE_MS } from "@/lib/autosave-debounce";
 
 export type WorkoutType = "unknown" | "resistance" | "cardio";
 export type WorkoutDotType = Exclude<WorkoutType, "unknown">;
@@ -37,7 +38,7 @@ export interface NewWorkoutInput {
 const STORAGE_PREFIX = "workout-tracker-";
 const WORKOUTS_API_PREFIX = "/api/workouts";
 
-type WorkoutStorageMode = "local" | "account";
+export type WorkoutStorageMode = "local" | "account";
 
 export function formatWorkoutDateKey(date: Date): string {
   return formatDateKey(date);
@@ -161,7 +162,7 @@ function extractWorkoutTypes(data: WorkoutDayData): WorkoutDotType[] {
     .filter((type): type is WorkoutDotType => type !== "unknown");
 }
 
-function getStorageMode(
+export function getStorageMode(
   status: "authenticated" | "loading" | "unauthenticated"
 ): WorkoutStorageMode | null {
   if (status === "loading") {
@@ -228,6 +229,42 @@ export function loadWorkoutTypesForDate(date: Date): WorkoutDotType[] {
   }
 
   return extractWorkoutTypes(loaded);
+}
+
+export function loadAllLocalWorkoutDays(): Array<{
+  dateKey: string;
+  data: WorkoutDayData;
+}> {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  const entries: Array<{ dateKey: string; data: WorkoutDayData }> = [];
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key?.startsWith(STORAGE_PREFIX)) {
+      continue;
+    }
+
+    const dateKey = key.slice(STORAGE_PREFIX.length);
+
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) {
+        continue;
+      }
+
+      const data = hydrateWorkoutDayData(JSON.parse(raw));
+      if (data && data.workouts.length > 0) {
+        entries.push({ dateKey, data });
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return entries.sort((a, b) => b.dateKey.localeCompare(a.dateKey));
 }
 
 async function loadWorkoutDayDataFromAccount(
@@ -343,6 +380,21 @@ async function loadWorkoutSummaryFromAccount(
   return normalizeWorkoutSummary(payload.summary);
 }
 
+function flushWorkoutDayToStorage(
+  mode: WorkoutStorageMode,
+  targetDate: Date,
+  payload: WorkoutDayData
+): void {
+  if (mode === "local") {
+    saveWorkoutDayData(targetDate, payload);
+    return;
+  }
+
+  void saveWorkoutDayDataToAccount(targetDate, payload).catch((error) => {
+    console.error("Failed to flush workout data:", error);
+  });
+}
+
 export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
   const { status } = useSession();
   const storageMode = getStorageMode(status);
@@ -352,6 +404,11 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
   const savedResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dataRef = useRef<WorkoutDayData>(getDefaultWorkoutDayData());
+  const currentDateRef = useRef<Date | undefined>(undefined);
+  const currentModeRef = useRef<WorkoutStorageMode | null>(null);
+  const storageModeRef = useRef<WorkoutStorageMode | null>(null);
   const persistIdRef = useRef(0);
   const [summaryMap, setSummaryMap] = useState<Record<string, WorkoutDotType[]>>(
     {}
@@ -376,6 +433,14 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
     }, 2000);
   }, [clearSavedReset]);
 
+  useEffect(() => {
+    storageModeRef.current = storageMode;
+  }, [storageMode]);
+
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
+
   const updateSummaryEntry = useCallback(
     (targetDate: Date, nextData: WorkoutDayData) => {
       setSummaryMap((previous) => ({
@@ -386,22 +451,35 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
     []
   );
 
-  const persistWorkoutDay = useCallback(
-    (targetDate: Date, nextData: WorkoutDayData) => {
-      if (!storageMode) {
+  const debouncedPersist = useCallback(() => {
+    if (!storageMode) {
+      return;
+    }
+
+    setAutosaveStatus("saving");
+    clearSavedReset();
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      const id = ++persistIdRef.current;
+      const snapshot = dataRef.current;
+      const targetDate = currentDateRef.current;
+      const mode = storageModeRef.current;
+
+      if (!targetDate || !mode) {
+        saveTimeoutRef.current = null;
         return;
       }
 
-      const id = ++persistIdRef.current;
-      setAutosaveStatus("saving");
-      clearSavedReset();
-
       void (async () => {
         try {
-          if (storageMode === "local") {
-            saveWorkoutDayData(targetDate, nextData);
+          if (mode === "local") {
+            saveWorkoutDayData(targetDate, snapshot);
           } else {
-            await saveWorkoutDayDataToAccount(targetDate, nextData);
+            await saveWorkoutDayDataToAccount(targetDate, snapshot);
           }
 
           if (id === persistIdRef.current) {
@@ -416,21 +494,48 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
           }
         }
       })();
-    },
-    [storageMode, clearSavedReset, scheduleResetToIdle]
-  );
+
+      saveTimeoutRef.current = null;
+    }, AUTOSAVE_DEBOUNCE_MS);
+  }, [storageMode, clearSavedReset, scheduleResetToIdle]);
 
   useEffect(() => {
     if (!storageMode) {
       setIsLoading(true);
       setAutosaveStatus("idle");
       clearSavedReset();
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
       return;
     }
 
     persistIdRef.current += 1;
     setAutosaveStatus("idle");
     clearSavedReset();
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+
+    if (currentDateRef.current && currentModeRef.current) {
+      const isDateChanged =
+        currentDateRef.current.getTime() !== date.getTime();
+      const isModeChanged = currentModeRef.current !== storageMode;
+
+      if (isDateChanged || isModeChanged) {
+        flushWorkoutDayToStorage(
+          currentModeRef.current,
+          currentDateRef.current,
+          dataRef.current
+        );
+      }
+    }
+
+    currentDateRef.current = date;
+    currentModeRef.current = storageMode;
 
     let isCancelled = false;
     setIsLoading(true);
@@ -448,6 +553,7 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
         }
 
         setData(nextData);
+        dataRef.current = nextData;
         updateSummaryEntry(date, nextData);
       } catch (error) {
         console.error("Failed to hydrate workout data:", error);
@@ -458,6 +564,7 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
 
         const defaultData = getDefaultWorkoutDayData();
         setData(defaultData);
+        dataRef.current = defaultData;
         updateSummaryEntry(date, defaultData);
       } finally {
         if (!isCancelled) {
@@ -532,12 +639,12 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
           ],
         };
 
-        persistWorkoutDay(date, updated);
         updateSummaryEntry(date, updated);
+        debouncedPersist();
         return updated;
       });
     },
-    [date, persistWorkoutDay, storageMode, updateSummaryEntry]
+    [date, debouncedPersist, storageMode, updateSummaryEntry]
   );
 
   const updateWorkout = useCallback(
@@ -554,12 +661,12 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
           ),
         };
 
-        persistWorkoutDay(date, updated);
         updateSummaryEntry(date, updated);
+        debouncedPersist();
         return updated;
       });
     },
-    [date, persistWorkoutDay, storageMode, updateSummaryEntry]
+    [date, debouncedPersist, storageMode, updateSummaryEntry]
   );
 
   const deleteWorkout = useCallback(
@@ -574,12 +681,12 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
           workouts: currentData.workouts.filter((workout) => workout.id !== workoutId),
         };
 
-        persistWorkoutDay(date, updated);
         updateSummaryEntry(date, updated);
+        debouncedPersist();
         return updated;
       });
     },
-    [date, persistWorkoutDay, storageMode, updateSummaryEntry]
+    [date, debouncedPersist, storageMode, updateSummaryEntry]
   );
 
   const clearWorkouts = useCallback(() => {
@@ -587,8 +694,14 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
       return;
     }
 
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+
     const defaultData = getDefaultWorkoutDayData();
     setData(defaultData);
+    dataRef.current = defaultData;
     updateSummaryEntry(date, defaultData);
 
     if (storageMode === "local") {
@@ -631,7 +744,17 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
 
   useEffect(() => {
     return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
       clearSavedReset();
+      if (currentDateRef.current && currentModeRef.current) {
+        flushWorkoutDayToStorage(
+          currentModeRef.current,
+          currentDateRef.current,
+          dataRef.current
+        );
+      }
     };
   }, [clearSavedReset]);
 

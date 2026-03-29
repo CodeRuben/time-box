@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { AlertCircle, BadgeCheck, Check, Loader2 } from "lucide-react";
+import { AlertCircle, Check, Cloud, Loader2 } from "lucide-react";
 import type { AutosaveStatus } from "@/lib/autosave-status";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,8 @@ type AutosaveIndicatorProps = {
   status: AutosaveStatus;
   className?: string;
 };
+
+const muted = "text-muted-foreground";
 
 const statusPresentation: Record<
   AutosaveStatus,
@@ -20,24 +22,22 @@ const statusPresentation: Record<
   }
 > = {
   idle: {
-    Icon: BadgeCheck,
-    label: "Up to date",
-    iconClassName: "text-muted-foreground",
-    textClassName: "text-muted-foreground",
+    Icon: Cloud,
+    label: "All changes saved",
+    iconClassName: muted,
+    textClassName: muted,
   },
   saving: {
     Icon: Loader2,
     label: "Saving…",
-    iconClassName: "text-primary animate-spin",
-    textClassName: "text-primary",
+    iconClassName: cn(muted, "animate-spin"),
+    textClassName: muted,
   },
   saved: {
     Icon: Check,
     label: "Saved",
-    iconClassName: "text-emerald-600 dark:text-emerald-400",
-    textClassName: "text-emerald-600 dark:text-emerald-400",
-    buttonClassName:
-      "border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/5 dark:bg-emerald-400/5",
+    iconClassName: muted,
+    textClassName: muted,
   },
   error: {
     Icon: AlertCircle,

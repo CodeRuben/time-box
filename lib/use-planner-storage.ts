@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { ALL_HOURS } from "@/app/planner/constants";
 import { formatDateKey } from "@/lib/date-key";
 import type { AutosaveStatus } from "@/lib/autosave-status";
+import { AUTOSAVE_DEBOUNCE_MS } from "@/lib/autosave-debounce";
 
 export type TaskStatus = "pending" | "completed" | "error";
 
@@ -47,7 +48,6 @@ export interface LegacyPlannerData {
 }
 
 const STORAGE_PREFIX = "planner-";
-const DEBOUNCE_MS = 500;
 const PLANNER_API_PREFIX = "/api/planner";
 
 type PlannerStorageMode = "local" | "account";
@@ -475,7 +475,7 @@ export function usePlannerStorage(date: Date | undefined) {
       })();
 
       saveTimeoutRef.current = null;
-    }, DEBOUNCE_MS);
+    }, AUTOSAVE_DEBOUNCE_MS);
   }, [date, storageMode, clearSavedReset, scheduleResetToIdle]);
 
   // Update data and trigger save
