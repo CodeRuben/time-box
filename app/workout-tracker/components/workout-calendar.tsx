@@ -74,7 +74,7 @@ export function WorkoutCalendar({
             {calendarDays.map((day) => {
               const dateKey = formatWorkoutDateKey(day);
               const outsideMonth = !isSameMonth(day, calendarMonth);
-              const workoutTypes = outsideMonth ? [] : getWorkoutTypesForDate(day);
+              const workoutTypes = getWorkoutTypesForDate(day);
               const visibleWorkoutTypes = workoutTypes.slice(0, MAX_CALENDAR_DOTS);
               const hiddenWorkoutCount = Math.max(
                 0,
