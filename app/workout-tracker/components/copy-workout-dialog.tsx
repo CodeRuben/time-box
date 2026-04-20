@@ -39,13 +39,10 @@ function formatEntryDateShort(dateKey: string): string {
 }
 
 function workoutTypeDotClass(type: Workout["type"]): string {
-  if (type === "resistance") {
-    return WORKOUT_TYPE_META.resistance.dotClass;
+  if (type === "unknown") {
+    return "bg-muted-foreground/55";
   }
-  if (type === "cardio") {
-    return WORKOUT_TYPE_META.cardio.dotClass;
-  }
-  return "bg-muted-foreground/55";
+  return WORKOUT_TYPE_META[type].dotClass;
 }
 
 export function CopyWorkoutDialog({

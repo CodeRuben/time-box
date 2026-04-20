@@ -21,21 +21,29 @@ import {
   ChevronDown,
   ChevronRight,
   GripVertical,
+  LinkIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDraggable, getDraggableProps } from "@/lib/use-drag-drop";
 import type { TopPriority, SubTask } from "@/lib/use-planner-storage";
+import type { Task } from "@/lib/task-types";
 
 interface PriorityCardProps {
   priority: TopPriority;
   onUpdate: (priority: TopPriority) => void;
   onDelete: (id: string) => void;
+  onViewLinkedTask?: (taskId: string) => void;
+  // When the priority is linked to a task, pass the resolved Task so we can
+  // derive counts/completion from the live data instead of a stale subtask copy.
+  linkedTask?: Task | null;
 }
 
 export function PriorityCard({
   priority,
   onUpdate,
   onDelete,
+  onViewLinkedTask,
+  linkedTask,
 }: PriorityCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   // Inline editing states
@@ -47,21 +55,48 @@ export function PriorityCard({
   const subtaskInputRef = useRef<HTMLInputElement>(null);
   const hasInitialized = useRef(false);
 
-  // Calculate completion status
-  const completedCount = priority.subtasks.filter((s) => s.completed).length;
-  const totalCount = priority.subtasks.length;
-  // If no subtasks, use the priority's own completed status
-  // If subtasks exist, completion is based on all subtasks being complete
-  const isComplete =
-    totalCount === 0 ? priority.completed : completedCount === totalCount;
+  const linkedTaskId = priority.linkedTaskId;
+  const isLinked = !!linkedTaskId;
 
-  // Toggle the priority's own completion status (only works when no subtasks)
+  // For linked priorities derive state from the live task (checklist drives
+  // the counter + completion). Falls back to priority.completed when the task
+  // can't be found (e.g. deleted or not yet loaded).
+  const displayTotal = isLinked
+    ? (linkedTask?.checklist.length ?? 0)
+    : priority.subtasks.length;
+  const displayCompleted = isLinked
+    ? (linkedTask?.checklist.filter((i) => i.completed).length ?? 0)
+    : priority.subtasks.filter((s) => s.completed).length;
+
+  let isComplete: boolean;
+  if (isLinked) {
+    if (linkedTask) {
+      isComplete =
+        linkedTask.status === "done" ||
+        (displayTotal > 0 && displayCompleted === displayTotal);
+    } else {
+      isComplete = priority.completed;
+    }
+  } else if (displayTotal === 0) {
+    isComplete = priority.completed;
+  } else {
+    isComplete = displayCompleted === displayTotal;
+  }
+
   const handleToggleCompletion = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (totalCount === 0) {
+    // Linked priorities can't be toggled from here — their state is derived
+    // from the linked task. Open the detail dialog so the user can interact
+    // with checklist items instead.
+    if (isLinked) {
+      if (linkedTaskId && onViewLinkedTask) {
+        onViewLinkedTask(linkedTaskId);
+      }
+      return;
+    }
+    if (displayTotal === 0) {
       onUpdate({ ...priority, completed: !priority.completed });
     } else {
-      // If there are subtasks, just expand to show them
       setIsExpanded(!isExpanded);
     }
   };
@@ -189,17 +224,19 @@ export function PriorityCard({
   // Drag functionality for priority
   const priorityDragProps = useDraggable(priority.name, !isEditingName);
 
-  // Handle header click to expand/collapse
   const handleHeaderClick = () => {
+    if (isLinked) return;
     setIsExpanded(!isExpanded);
   };
 
   return (
     <Card className="py-0 gap-0 overflow-hidden">
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-        {/* Compact Header - entire area is clickable */}
         <div
-          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-accent/30 transition-colors"
+          className={cn(
+            "flex items-center gap-2 px-3 py-2 transition-colors",
+            !isLinked && "cursor-pointer hover:bg-accent/30"
+          )}
           onClick={handleHeaderClick}
         >
           {/* Drag Handle for Priority */}
@@ -257,8 +294,26 @@ export function PriorityCard({
             )}
           </div>
 
+          {/* Linked Task Indicator */}
+          {linkedTaskId && onViewLinkedTask && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 shrink-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewLinkedTask(linkedTaskId);
+              }}
+              aria-label="View linked task"
+              title="Linked task — click to view"
+            >
+              <LinkIcon className="h-3.5 w-3.5 text-primary" />
+            </Button>
+          )}
+
           {/* Completion Counter */}
-          {totalCount > 0 && !isEditingName && (
+          {displayTotal > 0 && !isEditingName && (
             <span
               className={cn(
                 "text-xs font-medium shrink-0 tabular-nums",
@@ -267,7 +322,7 @@ export function PriorityCard({
                   : "text-muted-foreground"
               )}
             >
-              {completedCount}/{totalCount}
+              {displayCompleted}/{displayTotal}
             </span>
           )}
 
@@ -297,100 +352,98 @@ export function PriorityCard({
           </DropdownMenu>
         </div>
 
-        {/* Expanded Content */}
-        <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
-          <div className="border-t px-5 py-2 space-y-1">
-            {/* Subtasks List */}
-            {priority.subtasks.map((subtask) => {
-              const subtaskDragProps = getDraggableProps(
-                subtask.name,
-                editingSubtaskId !== subtask.id
-              );
-              return (
-                <div key={subtask.id} className="flex items-center gap-2 py-1">
-                  {/* Drag Handle for Subtask */}
-                  <div
-                    {...subtaskDragProps}
-                    className={cn(
-                      "shrink-0 cursor-grab active:cursor-grabbing",
-                      !subtaskDragProps.draggable &&
-                        "opacity-30 cursor-not-allowed"
-                    )}
-                    title={
-                      subtask.name ? "Drag to schedule" : "Add a name first"
-                    }
-                  >
-                    <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0"
-                    onClick={() => handleToggleSubtask(subtask.id)}
-                    aria-label={
-                      subtask.completed
-                        ? "Mark as incomplete"
-                        : "Mark as complete"
-                    }
-                  >
-                    {subtask.completed ? (
-                      <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-                    ) : (
-                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                    )}
-                  </Button>
-
-                  {editingSubtaskId === subtask.id ? (
-                    <Input
-                      ref={subtaskInputRef}
-                      value={editSubtaskName}
-                      onChange={(e) => setEditSubtaskName(e.target.value)}
-                      onKeyDown={handleSubtaskKeyDown}
-                      onBlur={handleSubtaskBlur}
-                      className="h-7 text-sm flex-1"
-                      placeholder="Subtask name"
-                    />
-                  ) : (
-                    <span
-                      onClick={(e) => handleSubtaskClick(subtask, e)}
+        {!isLinked && (
+          <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
+            <div className="border-t px-5 py-2 space-y-1">
+              {priority.subtasks.map((subtask) => {
+                const subtaskDragProps = getDraggableProps(
+                  subtask.name,
+                  editingSubtaskId !== subtask.id
+                );
+                return (
+                  <div key={subtask.id} className="flex items-center gap-2 py-1">
+                    <div
+                      {...subtaskDragProps}
                       className={cn(
-                        "text-sm flex-1 cursor-text hover:bg-accent rounded px-1 -mx-1",
-                        subtask.completed && "line-through opacity-60"
+                        "shrink-0 cursor-grab active:cursor-grabbing",
+                        !subtaskDragProps.draggable &&
+                          "opacity-30 cursor-not-allowed"
                       )}
+                      title={
+                        subtask.name ? "Drag to schedule" : "Add a name first"
+                      }
                     >
-                      {subtask.name || "Untitled subtask"}
-                    </span>
-                  )}
+                      <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
 
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-                    onClick={() => handleDeleteSubtask(subtask.id)}
-                    aria-label="Delete subtask"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              );
-            })}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      onClick={() => handleToggleSubtask(subtask.id)}
+                      aria-label={
+                        subtask.completed
+                          ? "Mark as incomplete"
+                          : "Mark as complete"
+                      }
+                    >
+                      {subtask.completed ? (
+                        <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                      ) : (
+                        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                      )}
+                    </Button>
 
-            {/* Add Subtask Button */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleAddSubtask}
-              className="w-full justify-center text-muted-foreground mt-1"
-            >
-              <Plus className="h-4 w-4" />
-              Add subtask
-            </Button>
-          </div>
-        </CollapsibleContent>
+                    {editingSubtaskId === subtask.id ? (
+                      <Input
+                        ref={subtaskInputRef}
+                        value={editSubtaskName}
+                        onChange={(e) => setEditSubtaskName(e.target.value)}
+                        onKeyDown={handleSubtaskKeyDown}
+                        onBlur={handleSubtaskBlur}
+                        className="h-7 text-sm flex-1"
+                        placeholder="Subtask name"
+                      />
+                    ) : (
+                      <span
+                        onClick={(e) => handleSubtaskClick(subtask, e)}
+                        className={cn(
+                          "text-sm flex-1 cursor-text hover:bg-accent rounded px-1 -mx-1",
+                          subtask.completed && "line-through opacity-60"
+                        )}
+                      >
+                        {subtask.name || "Untitled subtask"}
+                      </span>
+                    )}
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleDeleteSubtask(subtask.id)}
+                      aria-label="Delete subtask"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                );
+              })}
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleAddSubtask}
+                className="w-full justify-center text-muted-foreground mt-1"
+              >
+                <Plus className="h-4 w-4" />
+                Add subtask
+              </Button>
+            </div>
+          </CollapsibleContent>
+        )}
       </Collapsible>
     </Card>
   );

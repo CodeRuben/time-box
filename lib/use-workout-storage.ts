@@ -6,7 +6,7 @@ import { formatDateKey } from "@/lib/date-key";
 import type { AutosaveStatus } from "@/lib/autosave-status";
 import { AUTOSAVE_DEBOUNCE_MS } from "@/lib/autosave-debounce";
 
-export type WorkoutType = "unknown" | "resistance" | "cardio";
+export type WorkoutType = "unknown" | "resistance" | "cardio" | "hybrid";
 export type WorkoutDotType = Exclude<WorkoutType, "unknown">;
 export type WorkoutSubtaskStatus = "pending" | "completed" | "error";
 
@@ -59,7 +59,12 @@ function isWorkoutSubtaskStatus(value: unknown): value is WorkoutSubtaskStatus {
 }
 
 function isWorkoutType(value: unknown): value is WorkoutType {
-  return value === "unknown" || value === "resistance" || value === "cardio";
+  return (
+    value === "unknown" ||
+    value === "resistance" ||
+    value === "cardio" ||
+    value === "hybrid"
+  );
 }
 
 function normalizeWorkout(raw: unknown): Workout | null {
@@ -345,7 +350,9 @@ function normalizeWorkoutSummary(
       Array.isArray(value)
         ? value.filter(
             (type): type is WorkoutDotType =>
-              type === "resistance" || type === "cardio"
+              type === "resistance" ||
+              type === "cardio" ||
+              type === "hybrid",
           )
         : [],
     ])

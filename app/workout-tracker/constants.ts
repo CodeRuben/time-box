@@ -5,15 +5,22 @@ export const MAX_CALENDAR_DOTS = 4;
 
 export const WORKOUT_TYPE_META: Record<
   WorkoutDotType,
-  { label: string; dotClass: string }
+  { label: string; dotClass: string; badgeClass: string }
 > = {
   resistance: {
     label: "Resistance training",
     dotClass: "bg-violet-500",
+    badgeClass: "bg-violet-500/20 text-violet-600",
   },
   cardio: {
     label: "Cardio",
     dotClass: "bg-teal-500",
+    badgeClass: "bg-teal-500/20 text-teal-600",
+  },
+  hybrid: {
+    label: "Hybrid",
+    dotClass: "bg-amber-500",
+    badgeClass: "bg-amber-500/20 text-amber-700 dark:text-amber-500",
   },
 };
 
@@ -40,7 +47,7 @@ export const WORKOUT_TEMPLATES: WorkoutTemplate[] = [
   {
     id: "hiit-circuit",
     name: "HIIT Circuit",
-    type: "resistance",
+    type: "hybrid",
     exercises: [
       "12 Inverted row",
       "8 Sumo squats",

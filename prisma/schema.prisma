@@ -21,6 +21,7 @@ model User {
   sessions      Session[]
   plannerDays   PlannerDay[]
   workoutDays   WorkoutDay[]
+  tasks         Task[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -84,4 +85,25 @@ model WorkoutDay {
 
   @@unique([userId, date])
   @@index([userId])
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String   @default("")
+  // Stored as a JSON-encoded array of { id, name, completed }. SQLite lacks a
+  // native JSON column, so we validate at the API boundary (see
+  // `lib/task-api-helpers.ts`) before writing.
+  checklist   String   @default("[]")
+  // Enum-like values validated at the API boundary: "todo" | "in_progress" | "done".
+  status      String   @default("todo")
+  // Enum-like values validated at the API boundary: "work" | "personal".
+  type        String   @default("personal")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, status])
 }

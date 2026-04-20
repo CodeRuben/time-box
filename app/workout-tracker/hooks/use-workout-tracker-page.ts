@@ -40,6 +40,9 @@ function cycleWorkoutType(currentType: WorkoutType): WorkoutType {
   if (currentType === "resistance") {
     return "cardio";
   }
+  if (currentType === "cardio") {
+    return "hybrid";
+  }
   return "unknown";
 }
 

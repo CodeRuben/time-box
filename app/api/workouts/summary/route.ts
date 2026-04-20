@@ -9,7 +9,7 @@ function unauthorizedResponse() {
 
 function extractWorkoutTypes(
   value: string
-): Array<"resistance" | "cardio"> {
+): Array<"resistance" | "cardio" | "hybrid"> {
   try {
     const parsed = JSON.parse(value) as {
       workouts?: Array<{
@@ -22,7 +22,11 @@ function extractWorkoutTypes(
     }
 
     return parsed.workouts.flatMap((workout) => {
-      if (workout?.type === "resistance" || workout?.type === "cardio") {
+      if (
+        workout?.type === "resistance" ||
+        workout?.type === "cardio" ||
+        workout?.type === "hybrid"
+      ) {
         return [workout.type];
       }
 

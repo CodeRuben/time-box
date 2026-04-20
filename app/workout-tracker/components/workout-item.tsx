@@ -1,6 +1,15 @@
 "use client";
 
-import { Activity, Check, CircleHelp, Dumbbell, Plus, Timer, X } from "lucide-react";
+import {
+  Activity,
+  Check,
+  CircleHelp,
+  Dumbbell,
+  Flame,
+  Plus,
+  Timer,
+  X,
+} from "lucide-react";
 import { type Workout, type WorkoutType } from "@/lib/use-workout-storage";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
@@ -64,9 +73,7 @@ export function WorkoutItem({
                 "mt-0.5 flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full",
                 workout.type === "unknown"
                   ? "bg-muted text-muted-foreground"
-                  : workout.type === "resistance"
-                    ? "bg-violet-500/20 text-violet-600"
-                    : "bg-teal-500/20 text-teal-600",
+                  : WORKOUT_TYPE_META[workout.type].badgeClass,
               )}
               onClick={(event) => {
                 event.stopPropagation();
@@ -79,8 +86,10 @@ export function WorkoutItem({
                 <CircleHelp className="h-4 w-4" />
               ) : workout.type === "resistance" ? (
                 <Dumbbell className="h-4 w-4" />
-              ) : (
+              ) : workout.type === "cardio" ? (
                 <Activity className="h-4 w-4" />
+              ) : (
+                <Flame className="h-4 w-4" />
               )}
             </button>
             <div className="min-w-0 flex-1">

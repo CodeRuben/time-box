@@ -119,8 +119,11 @@ function AccountHeaderControl() {
 
 const navItems = [
   { href: "/", label: "Planner" },
+  { href: "/tasks", label: "Tasks" },
   { href: "/workout-tracker", label: "Workouts" },
 ];
+
+const VISIBLE_ROUTES = new Set(navItems.map((item) => item.href));
 
 export function LogoMarkA() {
   return (
@@ -146,7 +149,7 @@ export function LogoMarkB() {
 export function AppHeader() {
   const pathname = usePathname();
 
-  if (!pathname || (pathname !== "/" && pathname !== "/workout-tracker")) {
+  if (!pathname || !VISIBLE_ROUTES.has(pathname)) {
     return null;
   }
 
