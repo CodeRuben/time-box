@@ -156,10 +156,10 @@ export function WorkoutCalendar({
                   {CalendarIndicatorIcon && calendarIndicatorMeta && (
                     <div className="absolute right-2 bottom-2 hidden sm:flex">
                       <span
-                        className={`flex h-7 w-7 items-center justify-center rounded-full shadow-sm ring-1 ring-background/80 ${calendarIndicatorMeta.badgeClass}`}
+                        className={`flex h-6 w-6 items-center justify-center rounded-full shadow-sm ring-1 ring-background/80 ${calendarIndicatorMeta.badgeClass}`}
                         title={calendarIndicatorMeta.label}
                       >
-                        <CalendarIndicatorIcon className="h-3.5 w-3.5" />
+                        <CalendarIndicatorIcon className="h-3 w-3" />
                       </span>
                     </div>
                   )}
