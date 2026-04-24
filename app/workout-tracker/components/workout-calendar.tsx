@@ -112,6 +112,9 @@ export function WorkoutCalendar({
               const CalendarIndicatorIcon = calendarIndicatorType
                 ? CALENDAR_WORKOUT_ICONS[calendarIndicatorType]
                 : null;
+              const calendarIndicatorMeta = calendarIndicatorType
+                ? WORKOUT_TYPE_META[calendarIndicatorType]
+                : null;
               const isSelected = isSameDay(day, selectedDate);
               const isToday = isSameDay(day, today);
 
@@ -150,11 +153,11 @@ export function WorkoutCalendar({
                     )}
                   </div>
 
-                  {CalendarIndicatorIcon && (
+                  {CalendarIndicatorIcon && calendarIndicatorMeta && (
                     <div className="absolute right-2 bottom-2 hidden sm:flex">
                       <span
-                        className={`flex h-7 w-7 items-center justify-center rounded-full shadow-sm ring-1 ring-background/80 ${WORKOUT_TYPE_META[calendarIndicatorType].badgeClass}`}
-                        title={WORKOUT_TYPE_META[calendarIndicatorType].label}
+                        className={`flex h-7 w-7 items-center justify-center rounded-full shadow-sm ring-1 ring-background/80 ${calendarIndicatorMeta.badgeClass}`}
+                        title={calendarIndicatorMeta.label}
                       >
                         <CalendarIndicatorIcon className="h-3.5 w-3.5" />
                       </span>
