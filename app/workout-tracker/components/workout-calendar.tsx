@@ -1,7 +1,14 @@
 "use client";
 
 import { format, isSameDay, isSameMonth } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Activity,
+  ChevronLeft,
+  ChevronRight,
+  Dumbbell,
+  Flame,
+  type LucideIcon,
+} from "lucide-react";
 import { formatWorkoutDateKey, type WorkoutDotType } from "@/lib/use-workout-storage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +17,27 @@ import {
   WEEKDAY_LABELS,
   WORKOUT_TYPE_META,
 } from "../constants";
+
+const CALENDAR_WORKOUT_ICONS: Record<WorkoutDotType, LucideIcon> = {
+  resistance: Dumbbell,
+  cardio: Activity,
+  hybrid: Flame,
+};
+
+function getCalendarIndicatorType(
+  workoutTypes: WorkoutDotType[],
+): WorkoutDotType | null {
+  if (workoutTypes.length === 0) {
+    return null;
+  }
+
+  const uniqueWorkoutTypes = [...new Set(workoutTypes)];
+  if (uniqueWorkoutTypes.length === 1) {
+    return uniqueWorkoutTypes[0];
+  }
+
+  return "hybrid";
+}
 
 interface WorkoutCalendarProps {
   calendarDays: Date[];
@@ -80,6 +108,10 @@ export function WorkoutCalendar({
                 0,
                 workoutTypes.length - MAX_CALENDAR_DOTS,
               );
+              const calendarIndicatorType = getCalendarIndicatorType(workoutTypes);
+              const CalendarIndicatorIcon = calendarIndicatorType
+                ? CALENDAR_WORKOUT_ICONS[calendarIndicatorType]
+                : null;
               const isSelected = isSameDay(day, selectedDate);
               const isToday = isSameDay(day, today);
 
@@ -103,7 +135,7 @@ export function WorkoutCalendar({
                     {format(day, "d")}
                   </span>
 
-                  <div className="absolute right-1.5 bottom-1.5 sm:right-2 sm:bottom-2 flex items-center gap-0.5 sm:gap-1">
+                  <div className="absolute right-1.5 bottom-1.5 flex items-center gap-0.5 sm:hidden">
                     {visibleWorkoutTypes.map((type, index) => (
                       <span
                         key={`${dateKey}-${type}-${index}`}
@@ -117,6 +149,17 @@ export function WorkoutCalendar({
                       </span>
                     )}
                   </div>
+
+                  {CalendarIndicatorIcon && (
+                    <div className="absolute right-2 bottom-2 hidden sm:flex">
+                      <span
+                        className={`flex h-7 w-7 items-center justify-center rounded-full shadow-sm ring-1 ring-background/80 ${WORKOUT_TYPE_META[calendarIndicatorType].badgeClass}`}
+                        title={WORKOUT_TYPE_META[calendarIndicatorType].label}
+                      >
+                        <CalendarIndicatorIcon className="h-3.5 w-3.5" />
+                      </span>
+                    </div>
+                  )}
                 </button>
               );
             })}
