@@ -17,7 +17,7 @@ const DEFAULT_CONFIG: ScheduleConfig = {
 /**
  * Load schedule config from localStorage
  */
-export function loadScheduleConfig(): ScheduleConfig {
+function loadScheduleConfig(): ScheduleConfig {
   if (typeof window === "undefined") {
     return DEFAULT_CONFIG;
   }
@@ -52,7 +52,7 @@ export function loadScheduleConfig(): ScheduleConfig {
 /**
  * Save schedule config to localStorage
  */
-export function saveScheduleConfig(config: ScheduleConfig): void {
+function saveScheduleConfig(config: ScheduleConfig): void {
   if (typeof window === "undefined") {
     return;
   }

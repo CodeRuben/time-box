@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { Check, Smile } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const SYMBOLS = ["✔️", "❌", "⏳", "✅", "⚠️", "✨"];
 
@@ -67,11 +68,20 @@ export function BrainDump({ value, onChange }: BrainDumpProps) {
                   showCheckIcon ? "Emoji copied" : "Open emoji picker"
                 }
               >
-                {showCheckIcon ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  <Smile className="h-4 w-4" />
-                )}
+                <span className="relative flex h-4 w-4 items-center justify-center">
+                  <Smile
+                    className={cn(
+                      "absolute h-4 w-4 transition-[opacity,scale] duration-150 ease-out-cubic will-change-[opacity,scale] motion-reduce:transition-none",
+                      showCheckIcon ? "scale-90 opacity-0" : "scale-100 opacity-100"
+                    )}
+                  />
+                  <Check
+                    className={cn(
+                      "absolute h-4 w-4 transition-[opacity,scale] duration-150 ease-out-cubic will-change-[opacity,scale] motion-reduce:transition-none",
+                      showCheckIcon ? "scale-100 opacity-100" : "scale-90 opacity-0"
+                    )}
+                  />
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent

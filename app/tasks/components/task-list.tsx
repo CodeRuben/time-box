@@ -28,6 +28,8 @@ function statusVariant(status: string) {
       return "default" as const;
     case "in_progress":
       return "secondary" as const;
+    case "blocked":
+      return "destructive" as const;
     default:
       return "outline" as const;
   }
@@ -83,7 +85,7 @@ export function TaskList({
           return (
             <div
               key={task.id}
-              className="group grid grid-cols-1 sm:grid-cols-[1fr_100px_100px_110px_44px] gap-2 sm:gap-4 items-center px-4 py-3 hover:bg-accent/30 cursor-pointer transition-colors"
+              className="group grid grid-cols-1 sm:grid-cols-[1fr_100px_100px_110px_44px] gap-2 sm:gap-4 items-center px-4 py-3 hover:bg-accent/30 cursor-pointer"
               onClick={() => onSelectTask(task)}
             >
               {/* Name + checklist progress */}

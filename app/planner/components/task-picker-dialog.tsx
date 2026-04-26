@@ -22,11 +22,12 @@ interface TaskPickerDialogProps {
   onSelect: (task: Task) => void;
 }
 
-// In-progress first, then todo, then done. Within a group, newest first.
+// In-progress first, then blocked, todo, and done. Within a group, newest first.
 const STATUS_ORDER: Record<Task["status"], number> = {
   in_progress: 0,
-  todo: 1,
-  done: 2,
+  blocked: 1,
+  todo: 2,
+  done: 3,
 };
 
 export function TaskPickerDialog({

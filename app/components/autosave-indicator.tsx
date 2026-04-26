@@ -67,7 +67,14 @@ export function AutosaveIndicator({ status, className }: AutosaveIndicatorProps)
           buttonClassName
         )}
       >
-        <Icon className={cn("shrink-0", iconClassName)} aria-hidden />
+        <Icon
+          key={status}
+          className={cn(
+            "shrink-0 animate-in fade-in-0 zoom-in-95 duration-150 ease-out-cubic motion-reduce:animate-none",
+            iconClassName
+          )}
+          aria-hidden
+        />
         <span
           className={cn(
             "min-w-0 truncate text-left text-xs font-medium leading-none",

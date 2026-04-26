@@ -49,7 +49,7 @@ export function formatDateKey(date: Date): string {
  * Parse a time slot string to get hour in 24h format
  * e.g., "9:00 AM" -> 9, "2:30 PM" -> 14
  */
-export function parseTimeSlotHour(timeSlot: string): number {
+function parseTimeSlotHour(timeSlot: string): number {
   const match = timeSlot.match(/^(\d+):(\d+)\s+(AM|PM)$/);
   if (!match) return 0;
 
@@ -69,7 +69,7 @@ export function parseTimeSlotHour(timeSlot: string): number {
  * Parse a time slot to get minutes (0 or 30)
  * e.g., "9:00 AM" -> 0, "2:30 PM" -> 30
  */
-export function parseTimeSlotMinutes(timeSlot: string): number {
+function parseTimeSlotMinutes(timeSlot: string): number {
   const match = timeSlot.match(/^(\d+):(\d+)\s+(AM|PM)$/);
   return match ? parseInt(match[2], 10) : 0;
 }
@@ -109,7 +109,7 @@ export function isReminderPastDue(reminder: Reminder): boolean {
 /**
  * Check if a reminder is upcoming (today or future, not past due)
  */
-export function isReminderUpcoming(reminder: Reminder): boolean {
+function isReminderUpcoming(reminder: Reminder): boolean {
   if (reminder.dismissed) return false;
   
   const todayKey = formatDateKey(new Date());

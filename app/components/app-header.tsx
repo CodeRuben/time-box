@@ -125,23 +125,13 @@ const navItems = [
 
 const VISIBLE_ROUTES = new Set(navItems.map((item) => item.href));
 
-export function LogoMarkA() {
+function LogoMarkA() {
   return (
     <div className="grid h-5 w-5 grid-cols-2 grid-rows-2 gap-[3px]">
       <span className="rounded-[2px] bg-foreground" />
       <span className="rounded-[2px] bg-foreground/50" />
       <span className="rounded-[2px] bg-foreground/50" />
       <span className="rounded-[2px] bg-foreground/25" />
-    </div>
-  );
-}
-
-export function LogoMarkB() {
-  return (
-    <div className="flex h-5 w-5 items-center justify-center gap-0.5">
-      <span className="h-4 w-[3px] rounded-full bg-foreground/80" />
-      <span className="h-4 w-[3px] rounded-full bg-foreground/50" />
-      <span className="h-4 w-[3px] rounded-full bg-foreground/30" />
     </div>
   );
 }

@@ -134,7 +134,7 @@ export function PriorityCard({
 
   const handleToggleSubtask = (subtaskId: string) => {
     const updatedSubtasks = priority.subtasks.map((s) =>
-      s.id === subtaskId ? { ...s, completed: !s.completed } : s
+      s.id === subtaskId ? { ...s, completed: !s.completed } : s,
     );
     onUpdate({ ...priority, subtasks: updatedSubtasks });
   };
@@ -179,13 +179,13 @@ export function PriorityCard({
       const trimmedName = editSubtaskName.trim();
       if (trimmedName) {
         const updatedSubtasks = priority.subtasks.map((s) =>
-          s.id === editingSubtaskId ? { ...s, name: trimmedName } : s
+          s.id === editingSubtaskId ? { ...s, name: trimmedName } : s,
         );
         onUpdate({ ...priority, subtasks: updatedSubtasks });
       } else {
         // Remove subtask if name is empty
         const updatedSubtasks = priority.subtasks.filter(
-          (s) => s.id !== editingSubtaskId
+          (s) => s.id !== editingSubtaskId,
         );
         onUpdate({ ...priority, subtasks: updatedSubtasks });
       }
@@ -230,12 +230,12 @@ export function PriorityCard({
   };
 
   return (
-    <Card className="py-0 gap-0 overflow-hidden">
+    <Card className="animate-in fade-in-0 slide-in-from-top-1 duration-200 ease-out-cubic py-0 gap-0 overflow-hidden motion-reduce:animate-none">
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <div
           className={cn(
             "flex items-center gap-2 px-3 py-2 transition-colors",
-            !isLinked && "cursor-pointer hover:bg-accent/30"
+            !isLinked && "cursor-pointer hover:bg-accent/30",
           )}
           onClick={handleHeaderClick}
         >
@@ -245,7 +245,7 @@ export function PriorityCard({
             onClick={(e) => e.stopPropagation()}
             className={cn(
               "shrink-0 cursor-grab active:cursor-grabbing",
-              !priorityDragProps.draggable && "opacity-30 cursor-not-allowed"
+              !priorityDragProps.draggable && "opacity-30 cursor-not-allowed",
             )}
             title={priority.name ? "Drag to schedule" : "Add a name first"}
           >
@@ -257,15 +257,28 @@ export function PriorityCard({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-9 w-9 shrink-0"
+            className="h-9 w-9 shrink-0 active:scale-[0.97] transition-transform ease-out will-change-transform hover:bg-transparent hover:text-current motion-reduce:transition-none motion-reduce:active:scale-100"
             onClick={handleToggleCompletion}
             aria-label={isComplete ? "Completed" : "In progress"}
           >
-            {isComplete ? (
-              <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-            ) : (
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            )}
+            <span className="relative flex h-4 w-4 items-center justify-center">
+              <Check
+                className={cn(
+                  "absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-green-600 transition-[opacity,filter,scale] duration-100 ease-out will-change-[opacity,filter,scale] motion-reduce:transition-none motion-reduce:blur-none dark:text-green-400",
+                  isComplete
+                    ? "scale-100 opacity-100 blur-none"
+                    : "scale-0 opacity-0 blur-[2px]",
+                )}
+              />
+              <Clock
+                className={cn(
+                  "absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-muted-foreground transition-[opacity,filter,scale] duration-100 ease-out will-change-[opacity,filter,scale] motion-reduce:transition-none motion-reduce:blur-none",
+                  isComplete
+                    ? "scale-0 opacity-0 blur-[2px]"
+                    : "scale-100 opacity-100 blur-none",
+                )}
+              />
+            </span>
           </Button>
 
           {/* Priority Name Area */}
@@ -286,7 +299,7 @@ export function PriorityCard({
                 onClick={handleNameClick}
                 className={cn(
                   "text-sm font-medium truncate cursor-text hover:bg-accent rounded px-1 -mx-1",
-                  isComplete && "line-through opacity-60"
+                  isComplete && "line-through opacity-60",
                 )}
               >
                 {priority.name || "Untitled Priority"}
@@ -319,7 +332,7 @@ export function PriorityCard({
                 "text-xs font-medium shrink-0 tabular-nums",
                 isComplete
                   ? "text-green-600 dark:text-green-400"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground",
               )}
             >
               {displayCompleted}/{displayTotal}
@@ -358,16 +371,19 @@ export function PriorityCard({
               {priority.subtasks.map((subtask) => {
                 const subtaskDragProps = getDraggableProps(
                   subtask.name,
-                  editingSubtaskId !== subtask.id
+                  editingSubtaskId !== subtask.id,
                 );
                 return (
-                  <div key={subtask.id} className="flex items-center gap-2 py-1">
+                  <div
+                    key={subtask.id}
+                    className="animate-in fade-in-0 slide-in-from-top-1 flex items-center gap-2 py-1 duration-150 ease-out-cubic motion-reduce:animate-none"
+                  >
                     <div
                       {...subtaskDragProps}
                       className={cn(
                         "shrink-0 cursor-grab active:cursor-grabbing",
                         !subtaskDragProps.draggable &&
-                          "opacity-30 cursor-not-allowed"
+                          "opacity-30 cursor-not-allowed",
                       )}
                       title={
                         subtask.name ? "Drag to schedule" : "Add a name first"
@@ -410,7 +426,7 @@ export function PriorityCard({
                         onClick={(e) => handleSubtaskClick(subtask, e)}
                         className={cn(
                           "text-sm flex-1 cursor-text hover:bg-accent rounded px-1 -mx-1",
-                          subtask.completed && "line-through opacity-60"
+                          subtask.completed && "line-through opacity-60",
                         )}
                       >
                         {subtask.name || "Untitled subtask"}

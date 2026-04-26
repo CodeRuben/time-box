@@ -10,7 +10,7 @@ export type WorkoutType = "unknown" | "resistance" | "cardio" | "hybrid";
 export type WorkoutDotType = Exclude<WorkoutType, "unknown">;
 export type WorkoutSubtaskStatus = "pending" | "completed" | "error";
 
-export interface WorkoutSubtask {
+interface WorkoutSubtask {
   id: string;
   name: string;
   status: WorkoutSubtaskStatus;
@@ -29,7 +29,7 @@ export interface WorkoutDayData {
   lastSaved?: string;
 }
 
-export interface NewWorkoutInput {
+interface NewWorkoutInput {
   type: WorkoutType;
   name?: string;
   subtaskNames?: string[];
@@ -38,7 +38,7 @@ export interface NewWorkoutInput {
 const STORAGE_PREFIX = "workout-tracker-";
 const WORKOUTS_API_PREFIX = "/api/workouts";
 
-export type WorkoutStorageMode = "local" | "account";
+type WorkoutStorageMode = "local" | "account";
 
 export function formatWorkoutDateKey(date: Date): string {
   return formatDateKey(date);

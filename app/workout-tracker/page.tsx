@@ -6,9 +6,12 @@ import { WorkoutCalendar } from "./components/workout-calendar";
 import { useWorkoutTrackerPage } from "./hooks/use-workout-tracker-page";
 import { AutosaveIndicator } from "../components/autosave-indicator";
 import { useSession } from "next-auth/react";
+import { LoadingScreen } from "@/components/ui/loading-screen";
+import { useRef } from "react";
 
 export default function WorkoutTrackerPage() {
   const { status } = useSession();
+  const hasLoadedOnceRef = useRef(false);
   const {
     calendarDays,
     calendarMonth,
@@ -44,6 +47,14 @@ export default function WorkoutTrackerPage() {
     setIsClearDialogOpen,
     toggleWorkoutExpanded,
   } = useWorkoutTrackerPage();
+
+  if (!isLoading) {
+    hasLoadedOnceRef.current = true;
+  }
+
+  if (isLoading && !hasLoadedOnceRef.current) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8 lg:py-8">

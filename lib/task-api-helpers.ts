@@ -3,6 +3,7 @@ import type { ChecklistItem, TaskStatus, TaskType } from "@/lib/task-types";
 const VALID_STATUSES: ReadonlySet<TaskStatus> = new Set<TaskStatus>([
   "todo",
   "in_progress",
+  "blocked",
   "done",
 ]);
 
@@ -11,11 +12,11 @@ const VALID_TYPES: ReadonlySet<TaskType> = new Set<TaskType>([
   "personal",
 ]);
 
-export function isValidStatus(value: unknown): value is TaskStatus {
+function isValidStatus(value: unknown): value is TaskStatus {
   return typeof value === "string" && VALID_STATUSES.has(value as TaskStatus);
 }
 
-export function isValidType(value: unknown): value is TaskType {
+function isValidType(value: unknown): value is TaskType {
   return typeof value === "string" && VALID_TYPES.has(value as TaskType);
 }
 
@@ -29,11 +30,11 @@ function isValidChecklistItem(value: unknown): value is ChecklistItem {
   );
 }
 
-export function isValidChecklist(value: unknown): value is ChecklistItem[] {
+function isValidChecklist(value: unknown): value is ChecklistItem[] {
   return Array.isArray(value) && value.every(isValidChecklistItem);
 }
 
-export interface TaskRow {
+interface TaskRow {
   id: string;
   name: string;
   description: string;
@@ -57,7 +58,7 @@ export function formatTask(task: TaskRow) {
   };
 }
 
-export interface TaskBody {
+interface TaskBody {
   name?: string;
   description?: string;
   checklist?: ChecklistItem[];
@@ -65,7 +66,7 @@ export interface TaskBody {
   type?: TaskType;
 }
 
-export interface TaskValidationError {
+interface TaskValidationError {
   error: string;
   status: number;
 }

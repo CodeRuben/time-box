@@ -277,7 +277,11 @@ export function TaskFormDialog({
             >
               Close
             </Button>
-            <Button type="submit" disabled={!name.trim()}>
+            <Button
+              type="submit"
+              disabled={!name.trim()}
+              className="active:scale-[0.97] ease-out will-change-transform motion-reduce:transition-none motion-reduce:active:scale-100"
+            >
               Save
             </Button>
           </DialogFooter>

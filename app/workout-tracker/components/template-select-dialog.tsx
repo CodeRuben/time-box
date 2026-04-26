@@ -115,7 +115,7 @@ export function TemplateSelectDialog({
                         <ul className="space-y-2">
                           {template.exercises.map((exercise, index) => (
                             <li
-                              key={index}
+                              key={`${exercise}-${index}`}
                               className="flex gap-3 text-sm leading-snug"
                             >
                               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-background text-xs font-medium text-muted-foreground shadow-sm ring-1 ring-border/50">
@@ -137,7 +137,12 @@ export function TemplateSelectDialog({
         </div>
 
         <DialogFooter className="gap-2 border-t border-border/60 bg-muted/10 px-6 py-4 sm:justify-end dark:border-border/75 dark:bg-muted/15">
-          <Button type="button" onClick={handleSelect} disabled={!expandedId}>
+          <Button
+            type="button"
+            onClick={handleSelect}
+            disabled={!expandedId}
+            className="active:scale-[0.97] ease-out will-change-transform motion-reduce:transition-none motion-reduce:active:scale-100"
+          >
             Add workout
           </Button>
         </DialogFooter>

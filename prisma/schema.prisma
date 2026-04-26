@@ -96,7 +96,7 @@ model Task {
   // native JSON column, so we validate at the API boundary (see
   // `lib/task-api-helpers.ts`) before writing.
   checklist   String   @default("[]")
-  // Enum-like values validated at the API boundary: "todo" | "in_progress" | "done".
+  // Enum-like values validated at the API boundary: "todo" | "in_progress" | "blocked" | "done".
   status      String   @default("todo")
   // Enum-like values validated at the API boundary: "work" | "personal".
   type        String   @default("personal")

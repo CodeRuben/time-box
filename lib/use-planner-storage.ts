@@ -29,7 +29,7 @@ export interface HourlyItem {
   status: TaskStatus;
 }
 
-export interface PlannerData {
+interface PlannerData {
   topPriorities: TopPriority[];
   brainDump: string;
   hourlySlots: Record<string, HourlyItem[]>;

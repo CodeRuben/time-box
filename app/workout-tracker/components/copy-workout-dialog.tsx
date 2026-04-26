@@ -200,7 +200,12 @@ export function CopyWorkoutDialog({
             </div>
 
             <DialogFooter className="gap-2 border-t border-border/60 bg-muted/10 px-6 py-4 sm:justify-end dark:border-border/75 dark:bg-muted/15">
-              <Button type="button" onClick={handleSelect} disabled={!expandedId}>
+              <Button
+                type="button"
+                onClick={handleSelect}
+                disabled={!expandedId}
+                className="active:scale-[0.97] ease-out will-change-transform motion-reduce:transition-none motion-reduce:active:scale-100"
+              >
                 Add workout
               </Button>
             </DialogFooter>

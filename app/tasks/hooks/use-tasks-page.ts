@@ -10,7 +10,7 @@ export function useTasksPage() {
 
   // Filters
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("in_progress");
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [typeFilter, setTypeFilter] = useState<TaskType | "all">("all");
 
   // Dialog state
@@ -64,6 +64,25 @@ export function useTasksPage() {
       await cloneTask(task);
     },
     [cloneTask]
+  );
+
+  const handleMoveTask = useCallback(
+    async (taskId: string, status: TaskStatus) => {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task || task.status === status) return;
+
+      try {
+        await updateTask(taskId, { status });
+      } catch (error) {
+        console.error("Failed to move task:", error);
+        return;
+      }
+
+      if (selectedTask?.id === taskId) {
+        setSelectedTask((prev) => (prev ? { ...prev, status } : null));
+      }
+    },
+    [tasks, updateTask, selectedTask]
   );
 
   const handleToggleChecklistItem = useCallback(
@@ -125,6 +144,7 @@ export function useTasksPage() {
     handleEditTask,
     handleDeleteTask,
     handleCloneTask,
+    handleMoveTask,
     handleToggleChecklistItem,
     openEditDialog,
     openDetailDialog,

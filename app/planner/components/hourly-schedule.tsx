@@ -7,6 +7,8 @@ import { HOURS } from "../constants";
 import type { HourlyItem } from "@/lib/use-planner-storage";
 import type { Reminder } from "@/lib/use-reminder-storage";
 
+const EMPTY_REMINDERS: Reminder[] = [];
+
 interface HourlyScheduleProps {
   hourlySlots: Record<string, HourlyItem[]>;
   onUpdateSlot: (slotKey: string, items: HourlyItem[]) => void;
@@ -19,7 +21,7 @@ interface HourlyScheduleProps {
 export function HourlySchedule({
   hourlySlots,
   onUpdateSlot,
-  reminders = [],
+  reminders = EMPTY_REMINDERS,
   onViewReminder,
   maxHeight,
   visibleHours = HOURS,
@@ -45,7 +47,9 @@ export function HourlySchedule({
     const container = scrollContainerRef.current;
     if (container) {
       updateScrollIndicators();
-      container.addEventListener("scroll", updateScrollIndicators);
+      container.addEventListener("scroll", updateScrollIndicators, {
+        passive: true,
+      });
       return () =>
         container.removeEventListener("scroll", updateScrollIndicators);
     }

@@ -113,7 +113,7 @@ export function CreateReminderDialog({
               <SelectTrigger id="reminder-time" className="w-full">
                 <SelectValue placeholder="Select a time slot" />
               </SelectTrigger>
-              <SelectContent position="popper" className="!max-h-60">
+              <SelectContent position="popper" className="max-h-60!">
                 {timeSlotOptions.map((slot) => (
                   <SelectItem key={slot} value={slot}>
                     {slot}
@@ -127,7 +127,11 @@ export function CreateReminderDialog({
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!isValid}>
+          <Button
+            onClick={handleSave}
+            disabled={!isValid}
+            className="active:scale-[0.97] ease-out will-change-transform motion-reduce:transition-none motion-reduce:active:scale-100"
+          >
             Save Reminder
           </Button>
         </DialogFooter>

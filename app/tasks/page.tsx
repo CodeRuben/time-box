@@ -2,12 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { TaskList } from "./components/task-list";
+import { TaskBoard } from "./components/task-board";
 import { TaskFilters } from "./components/task-filters";
 import { TaskFormDialog } from "./components/task-form-dialog";
 import { TaskDetailDialog } from "./components/task-detail-dialog";
 import { DeleteTaskAlert } from "./components/delete-task-alert";
 import { useTasksPage } from "./hooks/use-tasks-page";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export default function TasksPage() {
   const {
@@ -35,6 +36,7 @@ export default function TasksPage() {
     handleEditTask,
     handleDeleteTask,
     handleCloneTask,
+    handleMoveTask,
     handleToggleChecklistItem,
     openEditDialog,
     openDetailDialog,
@@ -42,24 +44,19 @@ export default function TasksPage() {
   } = useTasksPage();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8 lg:py-8 flex items-center justify-center">
-        <div>Loading...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-      <div className="mx-auto max-w-5xl">
-        {/* Header */}
+      <div className="mx-auto max-w-7xl">
         <div className="mb-6 lg:mb-8 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
-              Task Manager
+              Task Board
             </h1>
             <p className="text-muted-foreground mt-2">
-              Manage work and personal tasks in one place.
+              Track work and personal tasks across each status lane.
             </p>
           </div>
           <Button onClick={() => setCreateDialogOpen(true)}>
@@ -68,7 +65,6 @@ export default function TasksPage() {
           </Button>
         </div>
 
-        {/* Filters */}
         <div className="mb-4">
           <TaskFilters
             search={search}
@@ -80,17 +76,16 @@ export default function TasksPage() {
           />
         </div>
 
-        {/* Task list */}
-        <TaskList
+        <TaskBoard
           tasks={filteredTasks}
           onSelectTask={openDetailDialog}
           onEditTask={openEditDialog}
           onCloneTask={handleCloneTask}
           onDeleteTask={openDeleteAlert}
+          onMoveTask={handleMoveTask}
         />
       </div>
 
-      {/* Create Dialog */}
       <TaskFormDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
@@ -98,7 +93,6 @@ export default function TasksPage() {
         title="Create Task"
       />
 
-      {/* Edit Dialog */}
       <TaskFormDialog
         key={selectedTask?.id}
         open={editDialogOpen}
@@ -108,7 +102,6 @@ export default function TasksPage() {
         title="Edit Task"
       />
 
-      {/* Detail Dialog */}
       <TaskDetailDialog
         task={selectedTask}
         open={detailDialogOpen}
@@ -119,7 +112,6 @@ export default function TasksPage() {
         onToggleChecklistItem={handleToggleChecklistItem}
       />
 
-      {/* Delete confirmation */}
       <DeleteTaskAlert
         task={selectedTask}
         open={deleteAlertOpen}

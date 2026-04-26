@@ -124,9 +124,10 @@ export function WorkoutCalendar({
                   type="button"
                   onClick={() => onSelectDate(day)}
                   className={[
-                    "relative sm:aspect-square min-h-12 sm:min-h-20 lg:min-h-24 cursor-pointer rounded-lg border p-1.5 sm:p-2 text-left transition",
-                    "hover:border-primary hover:bg-accent/60",
-                    isSelected ? "border-primary bg-primary/15" : "",
+                    "relative sm:aspect-square min-h-12 sm:min-h-20 lg:min-h-24 cursor-pointer rounded-lg border p-1.5 sm:p-2 text-left",
+                    "transition-[background-color,border-color,box-shadow] duration-150 ease-out-cubic motion-reduce:transition-none",
+                    "hover:bg-accent/30",
+                    isSelected ? "border-primary bg-primary/15 ring-2 ring-primary/20 shadow-sm" : "",
                     !isSelected && isToday ? "border-primary/60" : "",
                     outsideMonth
                       ? "text-muted-foreground/70 bg-muted/20"

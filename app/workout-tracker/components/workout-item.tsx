@@ -70,7 +70,7 @@ export function WorkoutItem({
             <button
               type="button"
               className={cn(
-                "mt-0.5 flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full",
+                "mt-0.5 flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full transition-transform ease-out will-change-transform active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
                 workout.type === "unknown"
                   ? "bg-muted text-muted-foreground"
                   : WORKOUT_TYPE_META[workout.type].badgeClass,
@@ -82,15 +82,40 @@ export function WorkoutItem({
               aria-label="Cycle workout type"
               title={`Type: ${getWorkoutTypeLabel(workout.type)}`}
             >
-              {workout.type === "unknown" ? (
-                <CircleHelp className="h-4 w-4" />
-              ) : workout.type === "resistance" ? (
-                <Dumbbell className="h-4 w-4" />
-              ) : workout.type === "cardio" ? (
-                <Activity className="h-4 w-4" />
-              ) : (
-                <Flame className="h-4 w-4" />
-              )}
+              <span className="relative flex h-4 w-4 items-center justify-center">
+                <CircleHelp
+                  className={cn(
+                    "absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 transition-[opacity,filter] duration-150 ease-out will-change-[opacity,filter] motion-reduce:transition-none motion-reduce:blur-none",
+                    workout.type === "unknown"
+                      ? "opacity-100 blur-none"
+                      : "opacity-0 blur-[2px]"
+                  )}
+                />
+                <Dumbbell
+                  className={cn(
+                    "absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 transition-[opacity,filter] duration-150 ease-out will-change-[opacity,filter] motion-reduce:transition-none motion-reduce:blur-none",
+                    workout.type === "resistance"
+                      ? "opacity-100 blur-none"
+                      : "opacity-0 blur-[2px]"
+                  )}
+                />
+                <Activity
+                  className={cn(
+                    "absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 transition-[opacity,filter] duration-150 ease-out will-change-[opacity,filter] motion-reduce:transition-none motion-reduce:blur-none",
+                    workout.type === "cardio"
+                      ? "opacity-100 blur-none"
+                      : "opacity-0 blur-[2px]"
+                  )}
+                />
+                <Flame
+                  className={cn(
+                    "absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 transition-[opacity,filter] duration-150 ease-out will-change-[opacity,filter] motion-reduce:transition-none motion-reduce:blur-none",
+                    workout.type === "hybrid"
+                      ? "opacity-100 blur-none"
+                      : "opacity-0 blur-[2px]"
+                  )}
+                />
+              </span>
             </button>
             <div className="min-w-0 flex-1">
               <Input

@@ -34,6 +34,7 @@ import { useTaskStorage } from "@/lib/use-task-storage";
 import { TaskPickerDialog } from "./planner/components/task-picker-dialog";
 import { TaskDetailDialog } from "./tasks/components/task-detail-dialog";
 import type { Task } from "@/lib/task-types";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export default function Home() {
   const router = useRouter();
@@ -263,11 +264,7 @@ export default function Home() {
   }, [data]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8 lg:py-8 flex items-center justify-center">
-        <div>Loading...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

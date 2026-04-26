@@ -14,10 +14,16 @@ type ButtonVariant = VariantProps<typeof buttonVariants>["variant"];
 interface LinkTaskButtonProps {
   onClick: () => void;
   variant: ButtonVariant;
+  label?: string;
   className?: string;
 }
 
-function LinkTaskButton({ onClick, variant, className }: LinkTaskButtonProps) {
+function LinkTaskButton({
+  onClick,
+  variant,
+  label = "Link task",
+  className,
+}: LinkTaskButtonProps) {
   return (
     <Button
       type="button"
@@ -27,7 +33,7 @@ function LinkTaskButton({ onClick, variant, className }: LinkTaskButtonProps) {
       className={className}
     >
       <LinkIcon className="h-4 w-4" />
-      Link task
+      {label}
     </Button>
   );
 }
@@ -55,9 +61,33 @@ export function TopPriorities({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl sm:text-2xl font-semibold text-foreground">
-        Top Priorities
-      </h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground">
+          Top Priorities
+        </h2>
+
+        {priorities.length > 0 && canAddMore && (
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onAddPriority}
+              className="px-2.5"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            {onLinkTask && (
+              <LinkTaskButton
+                onClick={onLinkTask}
+                variant="outline"
+                label=""
+                className="px-2.5"
+              />
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="space-y-3">
         {priorities.length === 0 ? (
@@ -72,12 +102,17 @@ export function TopPriorities({
                 variant="outline"
                 size="sm"
                 onClick={onAddPriority}
+                className="active:scale-[0.97] ease-out will-change-transform motion-reduce:transition-none motion-reduce:active:scale-100"
               >
                 <Plus className="h-4 w-4" />
                 New priority
               </Button>
               {onLinkTask && (
-                <LinkTaskButton onClick={onLinkTask} variant="outline" />
+                <LinkTaskButton
+                  onClick={onLinkTask}
+                  variant="outline"
+                  className="active:scale-[0.97] ease-out will-change-transform motion-reduce:transition-none motion-reduce:active:scale-100"
+                />
               )}
             </div>
           </div>
@@ -91,35 +126,13 @@ export function TopPriorities({
               onViewLinkedTask={onViewLinkedTask}
               linkedTask={
                 priority.linkedTaskId
-                  ? tasksById?.get(priority.linkedTaskId) ?? null
+                  ? (tasksById?.get(priority.linkedTaskId) ?? null)
                   : undefined
               }
             />
           ))
         )}
       </div>
-
-      {priorities.length > 0 && canAddMore && (
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onAddPriority}
-            className="flex-1 text-muted-foreground"
-          >
-            <Plus className="h-4 w-4" />
-            Add item ({priorities.length}/{MAX_PRIORITIES})
-          </Button>
-          {onLinkTask && (
-            <LinkTaskButton
-              onClick={onLinkTask}
-              variant="ghost"
-              className="text-muted-foreground"
-            />
-          )}
-        </div>
-      )}
     </div>
   );
 }

@@ -93,6 +93,7 @@ export function AddWorkoutPopover({
             <button
               type="button"
               role="option"
+              aria-selected={false}
               className={menuItemClass}
               onClick={handleExistingTemplateClick}
             >
@@ -101,6 +102,7 @@ export function AddWorkoutPopover({
             <button
               type="button"
               role="option"
+              aria-selected={false}
               className={menuItemClass}
               onClick={handleCopyPreviousClick}
             >
@@ -109,6 +111,7 @@ export function AddWorkoutPopover({
             <button
               type="button"
               role="option"
+              aria-selected={false}
               className={menuItemClass}
               onClick={handleNewWorkoutClick}
             >
