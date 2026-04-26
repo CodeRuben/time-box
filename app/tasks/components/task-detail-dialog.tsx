@@ -13,11 +13,11 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Check,
+  ClipboardCheck,
   Circle,
   Copy,
   ExternalLink,
   Loader2,
-  OctagonAlert,
   Pencil,
   Trash2,
 } from "lucide-react";
@@ -46,8 +46,8 @@ function StatusIcon({ status }: { status: string }) {
       return <Check className="h-3.5 w-3.5" />;
     case "in_progress":
       return <Loader2 className="h-3.5 w-3.5" />;
-    case "blocked":
-      return <OctagonAlert className="h-3.5 w-3.5" />;
+    case "review":
+      return <ClipboardCheck className="h-3.5 w-3.5" />;
     default:
       return <Circle className="h-3.5 w-3.5" />;
   }
@@ -59,8 +59,8 @@ function statusVariant(status: string) {
       return "default" as const;
     case "in_progress":
       return "secondary" as const;
-    case "blocked":
-      return "destructive" as const;
+    case "review":
+      return "outline" as const;
     default:
       return "outline" as const;
   }

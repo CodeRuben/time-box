@@ -3,7 +3,7 @@ import type { ChecklistItem, TaskStatus, TaskType } from "@/lib/task-types";
 const VALID_STATUSES: ReadonlySet<TaskStatus> = new Set<TaskStatus>([
   "todo",
   "in_progress",
-  "blocked",
+  "review",
   "done",
 ]);
 

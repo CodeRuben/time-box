@@ -15,11 +15,11 @@ import { TASK_STATUS_OPTIONS, TASK_TYPE_OPTIONS } from "@/lib/task-types";
 import { format } from "date-fns";
 import {
   CheckCircle2,
+  ClipboardCheck,
   Circle,
   Copy,
   Loader2,
   MoreVertical,
-  OctagonAlert,
   Pencil,
   Trash2,
 } from "lucide-react";
@@ -46,8 +46,8 @@ function StatusIcon({ status }: { status: TaskStatus }) {
       return <CheckCircle2 className="h-4 w-4 text-green-600" />;
     case "in_progress":
       return <Loader2 className="h-4 w-4 text-blue-600" />;
-    case "blocked":
-      return <OctagonAlert className="h-4 w-4 text-destructive" />;
+    case "review":
+      return <ClipboardCheck className="h-4 w-4 text-amber-600" />;
     default:
       return <Circle className="h-4 w-4 text-muted-foreground" />;
   }

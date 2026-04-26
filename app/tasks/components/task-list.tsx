@@ -28,8 +28,8 @@ function statusVariant(status: string) {
       return "default" as const;
     case "in_progress":
       return "secondary" as const;
-    case "blocked":
-      return "destructive" as const;
+    case "review":
+      return "outline" as const;
     default:
       return "outline" as const;
   }

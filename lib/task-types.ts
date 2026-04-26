@@ -1,4 +1,4 @@
-export type TaskStatus = "todo" | "in_progress" | "blocked" | "done";
+export type TaskStatus = "todo" | "in_progress" | "review" | "done";
 export type TaskType = "work" | "personal";
 
 export interface ChecklistItem {
@@ -29,7 +29,7 @@ export interface NewTask {
 export const TASK_STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
   { value: "todo", label: "To Do" },
   { value: "in_progress", label: "In Progress" },
-  { value: "blocked", label: "Blocked" },
+  { value: "review", label: "In Review" },
   { value: "done", label: "Done" },
 ];
 
