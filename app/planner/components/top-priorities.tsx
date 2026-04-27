@@ -45,6 +45,7 @@ interface TopPrioritiesProps {
   onDeletePriority: (id: string) => void;
   onLinkTask?: () => void;
   onViewLinkedTask?: (taskId: string) => void;
+  onToggleLinkedChecklistItem?: (taskId: string, itemId: string) => void;
   tasksById?: Map<string, Task>;
 }
 
@@ -55,6 +56,7 @@ export function TopPriorities({
   onDeletePriority,
   onLinkTask,
   onViewLinkedTask,
+  onToggleLinkedChecklistItem,
   tasksById,
 }: TopPrioritiesProps) {
   const canAddMore = priorities.length < MAX_PRIORITIES;
@@ -124,6 +126,7 @@ export function TopPriorities({
               onUpdate={onUpdatePriority}
               onDelete={onDeletePriority}
               onViewLinkedTask={onViewLinkedTask}
+              onToggleLinkedChecklistItem={onToggleLinkedChecklistItem}
               linkedTask={
                 priority.linkedTaskId
                   ? (tasksById?.get(priority.linkedTaskId) ?? null)

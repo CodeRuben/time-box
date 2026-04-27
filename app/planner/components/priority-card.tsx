@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import {
   DropdownMenu,
@@ -19,7 +20,6 @@ import {
   Plus,
   X,
   ChevronDown,
-  ChevronRight,
   GripVertical,
   LinkIcon,
 } from "lucide-react";
@@ -28,11 +28,15 @@ import { useDraggable, getDraggableProps } from "@/lib/use-drag-drop";
 import type { TopPriority, SubTask } from "@/lib/use-planner-storage";
 import type { Task } from "@/lib/task-types";
 
+const priorityCollapsibleAnimation =
+  "overflow-hidden data-[state=open]:animate-[priority-collapsible-down_160ms_ease-out] data-[state=closed]:animate-[priority-collapsible-up_120ms_ease-out] motion-reduce:animate-none";
+
 interface PriorityCardProps {
   priority: TopPriority;
   onUpdate: (priority: TopPriority) => void;
   onDelete: (id: string) => void;
   onViewLinkedTask?: (taskId: string) => void;
+  onToggleLinkedChecklistItem?: (taskId: string, itemId: string) => void;
   // When the priority is linked to a task, pass the resolved Task so we can
   // derive counts/completion from the live data instead of a stale subtask copy.
   linkedTask?: Task | null;
@@ -43,29 +47,31 @@ export function PriorityCard({
   onUpdate,
   onDelete,
   onViewLinkedTask,
+  onToggleLinkedChecklistItem,
   linkedTask,
 }: PriorityCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   // Inline editing states
-  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(priority.name === "");
   const [editName, setEditName] = useState(priority.name);
   const [editingSubtaskId, setEditingSubtaskId] = useState<string | null>(null);
   const [editSubtaskName, setEditSubtaskName] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
   const subtaskInputRef = useRef<HTMLInputElement>(null);
-  const hasInitialized = useRef(false);
 
   const linkedTaskId = priority.linkedTaskId;
   const isLinked = !!linkedTaskId;
+  const linkedChecklist = linkedTask?.checklist ?? [];
+  const canExpandLinkedChecklist = isLinked && linkedChecklist.length > 0;
 
   // For linked priorities derive state from the live task (checklist drives
   // the counter + completion). Falls back to priority.completed when the task
   // can't be found (e.g. deleted or not yet loaded).
   const displayTotal = isLinked
-    ? (linkedTask?.checklist.length ?? 0)
+    ? linkedChecklist.length
     : priority.subtasks.length;
   const displayCompleted = isLinked
-    ? (linkedTask?.checklist.filter((i) => i.completed).length ?? 0)
+    ? linkedChecklist.filter((i) => i.completed).length
     : priority.subtasks.filter((s) => s.completed).length;
 
   let isComplete: boolean;
@@ -86,10 +92,11 @@ export function PriorityCard({
   const handleToggleCompletion = (e: React.MouseEvent) => {
     e.stopPropagation();
     // Linked priorities can't be toggled from here — their state is derived
-    // from the linked task. Open the detail dialog so the user can interact
-    // with checklist items instead.
+    // from the linked task checklist.
     if (isLinked) {
-      if (linkedTaskId && onViewLinkedTask) {
+      if (canExpandLinkedChecklist) {
+        setIsExpanded(!isExpanded);
+      } else if (linkedTaskId && onViewLinkedTask) {
         onViewLinkedTask(linkedTaskId);
       }
       return;
@@ -100,14 +107,6 @@ export function PriorityCard({
       setIsExpanded(!isExpanded);
     }
   };
-
-  // Auto-enter edit mode for new priorities (empty name)
-  useEffect(() => {
-    if (!hasInitialized.current && priority.name === "") {
-      setIsEditingName(true);
-      hasInitialized.current = true;
-    }
-  }, [priority.name]);
 
   // Focus name input when entering edit mode
   useEffect(() => {
@@ -125,18 +124,16 @@ export function PriorityCard({
     }
   }, [editingSubtaskId]);
 
-  // Sync edit name with prop when not editing
-  useEffect(() => {
-    if (!isEditingName) {
-      setEditName(priority.name);
-    }
-  }, [priority.name, isEditingName]);
-
   const handleToggleSubtask = (subtaskId: string) => {
     const updatedSubtasks = priority.subtasks.map((s) =>
       s.id === subtaskId ? { ...s, completed: !s.completed } : s,
     );
     onUpdate({ ...priority, subtasks: updatedSubtasks });
+  };
+
+  const handleToggleLinkedChecklistItem = (itemId: string) => {
+    if (!linkedTaskId || !onToggleLinkedChecklistItem) return;
+    onToggleLinkedChecklistItem(linkedTaskId, itemId);
   };
 
   // Name editing handlers
@@ -225,9 +222,26 @@ export function PriorityCard({
   const priorityDragProps = useDraggable(priority.name, !isEditingName);
 
   const handleHeaderClick = () => {
-    if (isLinked) return;
+    if (isLinked && !canExpandLinkedChecklist) return;
     setIsExpanded(!isExpanded);
   };
+
+  const statusIcon = (
+    <span className="relative flex h-4 w-4 items-center justify-center">
+      <Check
+        className={cn(
+          "absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-green-600 transition-[opacity,filter,scale] duration-100 ease-out will-change-[opacity,filter,scale] motion-reduce:transition-none motion-reduce:blur-none dark:text-green-400",
+          isComplete ? "scale-100 opacity-100 blur-none" : "scale-0 opacity-0 blur-[2px]",
+        )}
+      />
+      <Clock
+        className={cn(
+          "absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-muted-foreground transition-[opacity,filter,scale] duration-100 ease-out will-change-[opacity,filter,scale] motion-reduce:transition-none motion-reduce:blur-none",
+          isComplete ? "scale-0 opacity-0 blur-[2px]" : "scale-100 opacity-100 blur-none",
+        )}
+      />
+    </span>
+  );
 
   return (
     <Card className="animate-in fade-in-0 slide-in-from-top-1 duration-200 ease-out-cubic py-0 gap-0 overflow-hidden motion-reduce:animate-none">
@@ -235,7 +249,8 @@ export function PriorityCard({
         <div
           className={cn(
             "flex items-center gap-2 px-3 py-2 transition-colors",
-            !isLinked && "cursor-pointer hover:bg-accent/30",
+            (!isLinked || canExpandLinkedChecklist) &&
+              "cursor-pointer hover:bg-accent/30",
           )}
           onClick={handleHeaderClick}
         >
@@ -253,33 +268,26 @@ export function PriorityCard({
           </div>
 
           {/* Status Indicator */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 shrink-0 active:scale-[0.97] transition-transform ease-out will-change-transform hover:bg-transparent hover:text-current motion-reduce:transition-none motion-reduce:active:scale-100"
-            onClick={handleToggleCompletion}
-            aria-label={isComplete ? "Completed" : "In progress"}
-          >
-            <span className="relative flex h-4 w-4 items-center justify-center">
-              <Check
-                className={cn(
-                  "absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-green-600 transition-[opacity,filter,scale] duration-100 ease-out will-change-[opacity,filter,scale] motion-reduce:transition-none motion-reduce:blur-none dark:text-green-400",
-                  isComplete
-                    ? "scale-100 opacity-100 blur-none"
-                    : "scale-0 opacity-0 blur-[2px]",
-                )}
-              />
-              <Clock
-                className={cn(
-                  "absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-muted-foreground transition-[opacity,filter,scale] duration-100 ease-out will-change-[opacity,filter,scale] motion-reduce:transition-none motion-reduce:blur-none",
-                  isComplete
-                    ? "scale-0 opacity-0 blur-[2px]"
-                    : "scale-100 opacity-100 blur-none",
-                )}
-              />
+          {isLinked ? (
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center"
+              aria-label={isComplete ? "Completed" : "In progress"}
+              title={isComplete ? "Completed" : "In progress"}
+            >
+              {statusIcon}
             </span>
-          </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0 active:scale-[0.97] transition-transform ease-out will-change-transform hover:bg-transparent hover:text-current motion-reduce:transition-none motion-reduce:active:scale-100"
+              onClick={handleToggleCompletion}
+              aria-label={isComplete ? "Completed" : "In progress"}
+            >
+              {statusIcon}
+            </Button>
+          )}
 
           {/* Priority Name Area */}
           <div className="flex-1 flex items-center gap-2 text-left min-w-0">
@@ -299,7 +307,7 @@ export function PriorityCard({
                 onClick={handleNameClick}
                 className={cn(
                   "text-sm font-medium truncate cursor-text hover:bg-accent rounded px-1 -mx-1",
-                  isComplete && "line-through opacity-60",
+                  isComplete && "opacity-60",
                 )}
               >
                 {priority.name || "Untitled Priority"}
@@ -339,6 +347,16 @@ export function PriorityCard({
             </span>
           )}
 
+          {canExpandLinkedChecklist && !isEditingName && (
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                isExpanded ? "rotate-180" : "rotate-0",
+              )}
+              aria-hidden="true"
+            />
+          )}
+
           {/* Ellipsis Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -366,7 +384,7 @@ export function PriorityCard({
         </div>
 
         {!isLinked && (
-          <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
+          <CollapsibleContent className={priorityCollapsibleAnimation}>
             <div className="border-t px-5 py-2 space-y-1">
               {priority.subtasks.map((subtask) => {
                 const subtaskDragProps = getDraggableProps(
@@ -457,6 +475,35 @@ export function PriorityCard({
                 <Plus className="h-4 w-4" />
                 Add subtask
               </Button>
+            </div>
+          </CollapsibleContent>
+        )}
+
+        {canExpandLinkedChecklist && (
+          <CollapsibleContent className={priorityCollapsibleAnimation}>
+            <div className="border-t px-5 py-2 space-y-0.5">
+              {linkedChecklist.map((item) => (
+                <label
+                  key={item.id}
+                  className="flex items-center gap-2.5 rounded-md px-2 py-2 hover:bg-accent/50 cursor-pointer transition-colors"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <Checkbox
+                    checked={item.completed}
+                    onCheckedChange={() =>
+                      handleToggleLinkedChecklistItem(item.id)
+                    }
+                  />
+                  <span
+                    className={cn(
+                      "text-sm transition-colors",
+                      item.completed && "line-through text-muted-foreground",
+                    )}
+                  >
+                    {item.name}
+                  </span>
+                </label>
+              ))}
             </div>
           </CollapsibleContent>
         )}

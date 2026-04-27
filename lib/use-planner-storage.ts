@@ -29,11 +29,19 @@ export interface HourlyItem {
   status: TaskStatus;
 }
 
-interface PlannerData {
+export interface PlannerData {
   topPriorities: TopPriority[];
   brainDump: string;
   hourlySlots: Record<string, HourlyItem[]>;
   lastSaved?: string;
+}
+
+export interface CopyPreviousDayOptions {
+  includeTopPriorities: boolean;
+  includeHourlySchedule: boolean;
+  includeBrainDump: boolean;
+  onlyUnfinished: boolean;
+  mode: "replace" | "merge";
 }
 
 // Legacy interface for migration (exported for testing)
@@ -163,6 +171,141 @@ function withLastSaved(data: PlannerData): PlannerData {
   return {
     ...data,
     lastSaved: new Date().toISOString(),
+  };
+}
+
+function copySubTasks(subtasks: SubTask[], onlyUnfinished: boolean): SubTask[] {
+  return subtasks
+    .filter((subtask) => !onlyUnfinished || !subtask.completed)
+    .map((subtask) => ({
+      ...subtask,
+      id: crypto.randomUUID(),
+      completed: false,
+    }));
+}
+
+function copyTopPriority(
+  priority: TopPriority,
+  onlyUnfinished: boolean
+): TopPriority {
+  return {
+    ...priority,
+    id: crypto.randomUUID(),
+    completed: false,
+    subtasks: copySubTasks(priority.subtasks, onlyUnfinished),
+  };
+}
+
+function copyHourlyItems(
+  items: HourlyItem[] | undefined,
+  onlyUnfinished: boolean
+): HourlyItem[] {
+  return (items ?? [])
+    .filter((item) => !onlyUnfinished || item.status !== "completed")
+    .map((item) => ({
+      ...item,
+      id: crypto.randomUUID(),
+      status: "pending",
+    }));
+}
+
+function mergeBrainDump(current: string, previous: string): string {
+  const currentText = current.trim();
+  const previousText = previous.trim();
+
+  if (!previousText) {
+    return current;
+  }
+
+  if (!currentText) {
+    return previous;
+  }
+
+  return `${current}\n\n${previous}`;
+}
+
+function getCopiedTopPriorities(
+  previous: PlannerData,
+  onlyUnfinished: boolean
+): TopPriority[] {
+  return previous.topPriorities
+    .filter((priority) => !onlyUnfinished || !priority.completed)
+    .map((priority) => copyTopPriority(priority, onlyUnfinished));
+}
+
+function copyHourlySlots(
+  current: Record<string, HourlyItem[]>,
+  previous: Record<string, HourlyItem[]>,
+  options: CopyPreviousDayOptions
+): Record<string, HourlyItem[]> {
+  const allSlotKeys = new Set([...Object.keys(current), ...Object.keys(previous)]);
+  const nextSlots: Record<string, HourlyItem[]> = {};
+
+  for (const slotKey of allSlotKeys) {
+    const copiedItems = copyHourlyItems(
+      previous[slotKey],
+      options.onlyUnfinished
+    );
+
+    nextSlots[slotKey] =
+      options.mode === "replace"
+        ? copiedItems
+        : [...(current[slotKey] ?? []), ...copiedItems];
+  }
+
+  return nextSlots;
+}
+
+export function hasCopyablePlannerData(
+  previous: PlannerData,
+  options: CopyPreviousDayOptions
+): boolean {
+  if (
+    options.includeTopPriorities &&
+    previous.topPriorities.some(
+      (priority) => !options.onlyUnfinished || !priority.completed
+    )
+  ) {
+    return true;
+  }
+
+  if (
+    options.includeHourlySchedule &&
+    Object.values(previous.hourlySlots).some((items) =>
+      items.some((item) => !options.onlyUnfinished || item.status !== "completed")
+    )
+  ) {
+    return true;
+  }
+
+  return options.includeBrainDump && previous.brainDump.trim().length > 0;
+}
+
+export function copyPlannerDataFromPreviousDay(
+  current: PlannerData,
+  previous: PlannerData,
+  options: CopyPreviousDayOptions
+): PlannerData {
+  const copiedPriorities = getCopiedTopPriorities(
+    previous,
+    options.onlyUnfinished
+  );
+
+  return {
+    ...current,
+    topPriorities: options.includeTopPriorities
+      ? options.mode === "replace"
+        ? copiedPriorities.slice(0, 3)
+        : [...current.topPriorities, ...copiedPriorities].slice(0, 3)
+      : current.topPriorities,
+    brainDump: options.includeBrainDump
+      ? options.mode === "replace"
+        ? previous.brainDump
+        : mergeBrainDump(current.brainDump, previous.brainDump)
+      : current.brainDump,
+    hourlySlots: options.includeHourlySchedule
+      ? copyHourlySlots(current.hourlySlots, previous.hourlySlots, options)
+      : current.hourlySlots,
   };
 }
 
@@ -619,6 +762,36 @@ export function usePlannerStorage(date: Date | undefined) {
     [debouncedSave]
   );
 
+  const loadDataForDate = useCallback(
+    async (targetDate: Date): Promise<PlannerData | null> => {
+      if (!storageMode || !identity) {
+        return null;
+      }
+
+      const cachedData = getCachedData(identity, targetDate);
+      if (cachedData) {
+        return cachedData;
+      }
+
+      const pendingSave = waitForPendingSave(identity, targetDate);
+      if (pendingSave) {
+        await pendingSave;
+      }
+
+      const loaded =
+        storageMode === "account"
+          ? await loadPlannerDataFromAccount(targetDate)
+          : loadPlannerData(targetDate);
+
+      if (loaded) {
+        setCachedData(identity, targetDate, loaded);
+      }
+
+      return loaded;
+    },
+    [storageMode, identity]
+  );
+
   // Cleanup timeout on unmount and save current data
   useEffect(() => {
     return () => {
@@ -646,5 +819,6 @@ export function usePlannerStorage(date: Date | undefined) {
     setData: updateData,
     isLoading,
     autosaveStatus,
+    loadDataForDate,
   };
 }

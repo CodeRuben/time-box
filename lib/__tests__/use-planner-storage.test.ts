@@ -6,9 +6,13 @@ import {
   migrateToHourlySlots,
   migrateFromLegacy,
   ensurePriorityFields,
+  copyPlannerDataFromPreviousDay,
+  hasCopyablePlannerData,
   loadPlannerData,
   savePlannerData,
+  type CopyPreviousDayOptions,
   type LegacyPlannerData,
+  type PlannerData,
   type TopPriority,
 } from "../use-planner-storage";
 
@@ -207,6 +211,133 @@ describe("ensurePriorityFields", () => {
     const input = { id: "123", name: "Test", completed: true };
     const result = ensurePriorityFields(input);
     expect(result.completed).toBe(true);
+  });
+});
+
+describe("copyPlannerDataFromPreviousDay", () => {
+  const baseOptions: CopyPreviousDayOptions = {
+    includeTopPriorities: true,
+    includeHourlySchedule: true,
+    includeBrainDump: false,
+    onlyUnfinished: true,
+    mode: "merge",
+  };
+
+  it("copies unfinished items with new ids and pending statuses", () => {
+    const current: PlannerData = {
+      topPriorities: [],
+      brainDump: "Today",
+      hourlySlots: {
+        "7 AM:00": [{ id: "today-item", text: "Existing", status: "pending" }],
+      },
+    };
+    const previous: PlannerData = {
+      topPriorities: [
+        {
+          id: "priority-1",
+          name: "Follow up",
+          completed: false,
+          subtasks: [{ id: "subtask-1", name: "Email", completed: true }],
+        },
+      ],
+      brainDump: "Yesterday",
+      hourlySlots: {
+        "7 AM:00": [{ id: "done-item", text: "Done", status: "completed" }],
+        "8 AM:00": [{ id: "blocked-item", text: "Retry", status: "error" }],
+      },
+    };
+
+    const result = copyPlannerDataFromPreviousDay(
+      current,
+      previous,
+      baseOptions
+    );
+
+    expect(result.topPriorities).toHaveLength(1);
+    expect(result.topPriorities[0]).toMatchObject({
+      name: "Follow up",
+      completed: false,
+      subtasks: [],
+    });
+    expect(result.topPriorities[0].id).not.toBe("priority-1");
+    expect(result.hourlySlots["7 AM:00"]).toEqual(current.hourlySlots["7 AM:00"]);
+    expect(result.hourlySlots["8 AM:00"][0]).toMatchObject({
+      text: "Retry",
+      status: "pending",
+    });
+    expect(result.hourlySlots["8 AM:00"][0].id).not.toBe("blocked-item");
+    expect(result.brainDump).toBe("Today");
+  });
+
+  it("replaces only the selected sections", () => {
+    const current: PlannerData = {
+      topPriorities: [
+        { id: "current-priority", name: "Current", completed: false, subtasks: [] },
+      ],
+      brainDump: "Today",
+      hourlySlots: {
+        "7 AM:00": [{ id: "today-item", text: "Existing", status: "pending" }],
+      },
+    };
+    const previous: PlannerData = {
+      topPriorities: [
+        { id: "previous-priority", name: "Previous", completed: true, subtasks: [] },
+      ],
+      brainDump: "Yesterday",
+      hourlySlots: {
+        "8 AM:00": [{ id: "old-item", text: "Old", status: "completed" }],
+      },
+    };
+
+    const result = copyPlannerDataFromPreviousDay(current, previous, {
+      ...baseOptions,
+      includeHourlySchedule: false,
+      includeBrainDump: true,
+      onlyUnfinished: false,
+      mode: "replace",
+    });
+
+    expect(result.topPriorities).toHaveLength(1);
+    expect(result.topPriorities[0].name).toBe("Previous");
+    expect(result.topPriorities[0].completed).toBe(false);
+    expect(result.brainDump).toBe("Yesterday");
+    expect(result.hourlySlots).toEqual(current.hourlySlots);
+  });
+});
+
+describe("hasCopyablePlannerData", () => {
+  const previous: PlannerData = {
+    topPriorities: [
+      { id: "priority-1", name: "Done", completed: true, subtasks: [] },
+    ],
+    brainDump: "Notes",
+    hourlySlots: {
+      "7 AM:00": [{ id: "done-item", text: "Done", status: "completed" }],
+    },
+  };
+
+  it("returns false when only completed work matches selected task sections", () => {
+    expect(
+      hasCopyablePlannerData(previous, {
+        includeTopPriorities: true,
+        includeHourlySchedule: true,
+        includeBrainDump: false,
+        onlyUnfinished: true,
+        mode: "merge",
+      })
+    ).toBe(false);
+  });
+
+  it("returns true when selected brain dump has content", () => {
+    expect(
+      hasCopyablePlannerData(previous, {
+        includeTopPriorities: false,
+        includeHourlySchedule: false,
+        includeBrainDump: true,
+        onlyUnfinished: true,
+        mode: "merge",
+      })
+    ).toBe(true);
   });
 });
 

@@ -12,14 +12,25 @@ import { CreateReminderDialog } from "./planner/components/create-reminder-dialo
 import { ReminderInfoDialog } from "./planner/components/reminder-info-dialog";
 import { DeleteReminderAlert } from "./planner/components/delete-reminder-alert";
 import { ClearDayAlert } from "./planner/components/clear-day-alert";
+import { CopyPreviousDayDialog } from "./planner/components/copy-previous-day-dialog";
 import {
+  copyPlannerDataFromPreviousDay,
   usePlannerStorage,
   getDefaultData,
+  hasCopyablePlannerData,
+  type CopyPreviousDayOptions,
   type TopPriority,
   type HourlyItem,
 } from "@/lib/use-planner-storage";
 import { Button } from "@/components/ui/button";
-import { Eraser, Settings } from "lucide-react";
+import { Copy, Eraser, Settings, SlidersHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   useReminderStorage,
   type Reminder,
@@ -36,13 +47,20 @@ import { TaskDetailDialog } from "./tasks/components/task-detail-dialog";
 import type { Task } from "@/lib/task-types";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 
+function getPreviousDate(date: Date): Date {
+  const previousDate = new Date(date);
+  previousDate.setDate(previousDate.getDate() - 1);
+  return previousDate;
+}
+
 export default function Home() {
   const router = useRouter();
   const { status } = useSession();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [leftColumnHeight, setLeftColumnHeight] = useState<number | null>(null);
   const leftColumnRef = useRef<HTMLDivElement>(null);
-  const { data, setData, isLoading, autosaveStatus } = usePlannerStorage(date);
+  const { data, setData, isLoading, autosaveStatus, loadDataForDate } =
+    usePlannerStorage(date);
 
   // Task linking
   const { tasks, updateTask: updateLinkedTask } = useTaskStorage();
@@ -76,6 +94,9 @@ export default function Home() {
   const [infoDialogOpen, setInfoDialogOpen] = useState(false);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   const [clearDayAlertOpen, setClearDayAlertOpen] = useState(false);
+  const [copyPreviousDialogOpen, setCopyPreviousDialogOpen] = useState(false);
+  const [copyPreviousLoading, setCopyPreviousLoading] = useState(false);
+  const [copyPreviousError, setCopyPreviousError] = useState<string | null>(null);
   const [scheduleConfigDialogOpen, setScheduleConfigDialogOpen] =
     useState(false);
 
@@ -240,6 +261,45 @@ export default function Home() {
     setData(getDefaultData());
   };
 
+  const handleCopyPreviousDay = async (
+    options: CopyPreviousDayOptions,
+    sourceDate: Date
+  ) => {
+    if (!date) {
+      setCopyPreviousError("Select a date before copying planner items.");
+      return;
+    }
+
+    setCopyPreviousLoading(true);
+    setCopyPreviousError(null);
+
+    try {
+      const previousData = await loadDataForDate(sourceDate);
+
+      if (!previousData) {
+        setCopyPreviousError("No planner data was found for the selected day.");
+        return;
+      }
+
+      if (!hasCopyablePlannerData(previousData, options)) {
+        setCopyPreviousError(
+          "The selected day does not have any matching items to copy."
+        );
+        return;
+      }
+
+      setData((current) =>
+        copyPlannerDataFromPreviousDay(current, previousData, options)
+      );
+      setCopyPreviousDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to copy planner data from previous day:", error);
+      setCopyPreviousError("Could not load the previous day's planner data.");
+    } finally {
+      setCopyPreviousLoading(false);
+    }
+  };
+
   // Measure left column height to sync with hourly schedule
   useEffect(() => {
     const updateHeight = () => {
@@ -281,6 +341,7 @@ export default function Home() {
               onDeletePriority={handleDeletePriority}
               onLinkTask={() => setTaskPickerOpen(true)}
               onViewLinkedTask={handleViewLinkedTask}
+              onToggleLinkedChecklistItem={handleToggleLinkedChecklistItem}
               tasksById={tasksById}
             />
             <BrainDump
@@ -293,30 +354,51 @@ export default function Home() {
           <div className="space-y-6 lg:space-y-8 pt-2">
             <div className="flex flex-wrap items-center gap-2">
               <DateSelector value={date} onChange={setDate} />
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9"
-                onClick={() => setClearDayAlertOpen(true)}
-                aria-label="Clear today's planner"
-              >
-                <Eraser className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9"
-                onClick={() => setScheduleConfigDialogOpen(true)}
-                aria-label="Schedule settings"
-              >
-                <Settings className="h-5 w-5" />
-              </Button>
               <ReminderButton
                 pastDueReminders={pastDueReminders}
                 upcomingReminders={upcomingReminders}
                 onAddReminder={handleAddReminder}
                 onViewReminder={handleViewReminder}
               />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9"
+                    aria-label="Planner actions"
+                  >
+                    <SlidersHorizontal className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    disabled={!date}
+                    onClick={() => {
+                      setCopyPreviousError(null);
+                      setCopyPreviousDialogOpen(true);
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copy from day
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setScheduleConfigDialogOpen(true)}
+                  >
+                    <Settings className="h-4 w-4" />
+                    Schedule settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => setClearDayAlertOpen(true)}
+                  >
+                    <Eraser className="h-4 w-4" />
+                    Clear day
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               {status === "authenticated" && (
                 <AutosaveIndicator status={autosaveStatus} />
               )}
@@ -361,6 +443,17 @@ export default function Home() {
         onOpenChange={setClearDayAlertOpen}
         onConfirm={handleClearDay}
       />
+
+      {copyPreviousDialogOpen && (
+        <CopyPreviousDayDialog
+          open={copyPreviousDialogOpen}
+          onOpenChange={setCopyPreviousDialogOpen}
+          onCopy={handleCopyPreviousDay}
+          initialSourceDate={date ? getPreviousDate(date) : undefined}
+          isCopying={copyPreviousLoading}
+          error={copyPreviousError}
+        />
+      )}
 
       <ScheduleConfigDialog
         open={scheduleConfigDialogOpen}

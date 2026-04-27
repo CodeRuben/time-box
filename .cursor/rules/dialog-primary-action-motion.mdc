@@ -1,0 +1,17 @@
+---
+description: Motion convention for primary dialog actions
+globs: **/*.tsx
+alwaysApply: false
+---
+
+# Dialog Primary Action Motion
+
+When adding or updating a dialog, the primary action button should use the same press-scale interaction used elsewhere in the planner UI.
+
+Use this class on primary dialog actions:
+
+```tsx
+className="active:scale-[0.97] ease-out will-change-transform motion-reduce:transition-none motion-reduce:active:scale-100"
+```
+
+Apply this to the main confirm/submit/copy/save action in dialogs. Secondary actions like Cancel, Close, or destructive confirmation buttons should only use this pattern when the surrounding UI already does.
