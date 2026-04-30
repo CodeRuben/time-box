@@ -26,7 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useDraggable, getDraggableProps } from "@/lib/use-drag-drop";
 import type { TopPriority, SubTask } from "@/lib/use-planner-storage";
-import type { Task } from "@/lib/task-types";
+import type { NewTask, Task } from "@/lib/task-types";
 
 const priorityCollapsibleAnimation =
   "overflow-hidden data-[state=open]:animate-[priority-collapsible-down_160ms_ease-out] data-[state=closed]:animate-[priority-collapsible-up_120ms_ease-out] motion-reduce:animate-none";
@@ -36,7 +36,13 @@ interface PriorityCardProps {
   onUpdate: (priority: TopPriority) => void;
   onDelete: (id: string) => void;
   onViewLinkedTask?: (taskId: string) => void;
-  onToggleLinkedChecklistItem?: (taskId: string, itemId: string) => void;
+  // Called when the user toggles a checklist item on a linked priority. The
+  // card computes the new checklist from the live `linkedTask` and hands the
+  // full updates back so the task store is the single source of truth.
+  onUpdateLinkedTask?: (
+    taskId: string,
+    updates: Partial<NewTask>
+  ) => Promise<void> | void;
   // When the priority is linked to a task, pass the resolved Task so we can
   // derive counts/completion from the live data instead of a stale subtask copy.
   linkedTask?: Task | null;
@@ -47,7 +53,7 @@ export function PriorityCard({
   onUpdate,
   onDelete,
   onViewLinkedTask,
-  onToggleLinkedChecklistItem,
+  onUpdateLinkedTask,
   linkedTask,
 }: PriorityCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -132,8 +138,11 @@ export function PriorityCard({
   };
 
   const handleToggleLinkedChecklistItem = (itemId: string) => {
-    if (!linkedTaskId || !onToggleLinkedChecklistItem) return;
-    onToggleLinkedChecklistItem(linkedTaskId, itemId);
+    if (!linkedTaskId || !linkedTask || !onUpdateLinkedTask) return;
+    const updatedChecklist = linkedTask.checklist.map((item) =>
+      item.id === itemId ? { ...item, completed: !item.completed } : item,
+    );
+    void onUpdateLinkedTask(linkedTaskId, { checklist: updatedChecklist });
   };
 
   // Name editing handlers

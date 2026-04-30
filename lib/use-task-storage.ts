@@ -100,6 +100,12 @@ export function useTaskStorage() {
   const [isLoading, setIsLoading] = useState(true);
   const storageMode = getStorageMode(status);
   const modeRef = useRef<StorageMode | null>(null);
+  // Mirror the latest tasks into a ref so async callbacks can read the
+  // current snapshot without relying on stale closures.
+  const tasksRef = useRef<Task[]>(tasks);
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
 
   useEffect(() => {
     if (!storageMode) {
@@ -164,26 +170,27 @@ export function useTaskStorage() {
   const updateTask = useCallback(
     async (id: string, updates: Partial<NewTask>): Promise<void> => {
       if (modeRef.current === "account") {
-        let previous: Task | undefined;
-        setTasks((prev) => {
-          previous = prev.find((t) => t.id === id);
-          if (!previous) return prev;
-          return prev.map((t) =>
+        // Read the previous snapshot before mutating so we can roll back if the
+        // server rejects the update. Reading from `tasksRef` avoids relying on
+        // setState updater side-effects, which can be unreliable under React
+        // concurrent rendering / StrictMode double-invocation.
+        const previous = tasksRef.current.find((t) => t.id === id);
+        if (!previous) return;
+
+        setTasks((prev) =>
+          prev.map((t) =>
             t.id === id
               ? { ...t, ...updates, updatedAt: new Date().toISOString() }
               : t
-          );
-        });
-
-        if (!previous) return;
+          )
+        );
 
         try {
           const updated = await updateAccountTask(id, updates);
           setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
         } catch (error) {
           console.error("Failed to update task:", error);
-          const snapshot = previous;
-          setTasks((prev) => prev.map((t) => (t.id === id ? snapshot : t)));
+          setTasks((prev) => prev.map((t) => (t.id === id ? previous : t)));
           throw error;
         }
         return;

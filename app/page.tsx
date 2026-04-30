@@ -341,7 +341,7 @@ export default function Home() {
               onDeletePriority={handleDeletePriority}
               onLinkTask={() => setTaskPickerOpen(true)}
               onViewLinkedTask={handleViewLinkedTask}
-              onToggleLinkedChecklistItem={handleToggleLinkedChecklistItem}
+              onUpdateLinkedTask={updateLinkedTask}
               tasksById={tasksById}
             />
             <BrainDump

@@ -5,7 +5,7 @@ import type { VariantProps } from "class-variance-authority";
 import { Plus, LinkIcon } from "lucide-react";
 import { PriorityCard } from "./priority-card";
 import type { TopPriority } from "@/lib/use-planner-storage";
-import type { Task } from "@/lib/task-types";
+import type { NewTask, Task } from "@/lib/task-types";
 
 const MAX_PRIORITIES = 3;
 
@@ -45,7 +45,10 @@ interface TopPrioritiesProps {
   onDeletePriority: (id: string) => void;
   onLinkTask?: () => void;
   onViewLinkedTask?: (taskId: string) => void;
-  onToggleLinkedChecklistItem?: (taskId: string, itemId: string) => void;
+  onUpdateLinkedTask?: (
+    taskId: string,
+    updates: Partial<NewTask>
+  ) => Promise<void> | void;
   tasksById?: Map<string, Task>;
 }
 
@@ -56,7 +59,7 @@ export function TopPriorities({
   onDeletePriority,
   onLinkTask,
   onViewLinkedTask,
-  onToggleLinkedChecklistItem,
+  onUpdateLinkedTask,
   tasksById,
 }: TopPrioritiesProps) {
   const canAddMore = priorities.length < MAX_PRIORITIES;
@@ -126,7 +129,7 @@ export function TopPriorities({
               onUpdate={onUpdatePriority}
               onDelete={onDeletePriority}
               onViewLinkedTask={onViewLinkedTask}
-              onToggleLinkedChecklistItem={onToggleLinkedChecklistItem}
+              onUpdateLinkedTask={onUpdateLinkedTask}
               linkedTask={
                 priority.linkedTaskId
                   ? (tasksById?.get(priority.linkedTaskId) ?? null)
