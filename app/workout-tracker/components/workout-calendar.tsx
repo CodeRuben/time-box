@@ -24,21 +24,6 @@ const CALENDAR_WORKOUT_ICONS: Record<WorkoutDotType, LucideIcon> = {
   hybrid: Flame,
 };
 
-function getCalendarIndicatorType(
-  workoutTypes: WorkoutDotType[],
-): WorkoutDotType | null {
-  if (workoutTypes.length === 0) {
-    return null;
-  }
-
-  const uniqueWorkoutTypes = [...new Set(workoutTypes)];
-  if (uniqueWorkoutTypes.length === 1) {
-    return uniqueWorkoutTypes[0];
-  }
-
-  return "hybrid";
-}
-
 interface WorkoutCalendarProps {
   calendarDays: Date[];
   calendarMonth: Date;
@@ -48,6 +33,47 @@ interface WorkoutCalendarProps {
   onPreviousMonth: () => void;
   onNextMonth: () => void;
   getWorkoutTypesForDate: (day: Date) => WorkoutDotType[];
+}
+
+interface WorkoutIconGroupProps {
+  dateKey: string;
+  hiddenWorkoutCount: number;
+  workoutTypes: WorkoutDotType[];
+}
+
+function WorkoutIconGroup({
+  dateKey,
+  hiddenWorkoutCount,
+  workoutTypes,
+}: WorkoutIconGroupProps) {
+  if (workoutTypes.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="absolute right-2 bottom-2 hidden items-center -space-x-2 sm:flex">
+      {workoutTypes.map((type, index) => {
+        const WorkoutIcon = CALENDAR_WORKOUT_ICONS[type];
+        const workoutMeta = WORKOUT_TYPE_META[type];
+
+        return (
+          <span
+            key={`${dateKey}-${type}-${index}`}
+            className={`relative flex h-6 w-6 items-center justify-center rounded-full shadow-sm ring-2 ring-background ${workoutMeta.calendarIconClass}`}
+            style={{ zIndex: workoutTypes.length - index }}
+            title={workoutMeta.label}
+          >
+            <WorkoutIcon className="h-3 w-3" />
+          </span>
+        );
+      })}
+      {hiddenWorkoutCount > 0 && (
+        <span className="bg-background text-muted-foreground relative z-0 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold shadow-sm ring-2 ring-background">
+          +{hiddenWorkoutCount}
+        </span>
+      )}
+    </div>
+  );
 }
 
 export function WorkoutCalendar({
@@ -108,13 +134,6 @@ export function WorkoutCalendar({
                 0,
                 workoutTypes.length - MAX_CALENDAR_DOTS,
               );
-              const calendarIndicatorType = getCalendarIndicatorType(workoutTypes);
-              const CalendarIndicatorIcon = calendarIndicatorType
-                ? CALENDAR_WORKOUT_ICONS[calendarIndicatorType]
-                : null;
-              const calendarIndicatorMeta = calendarIndicatorType
-                ? WORKOUT_TYPE_META[calendarIndicatorType]
-                : null;
               const isSelected = isSameDay(day, selectedDate);
               const isToday = isSameDay(day, today);
 
@@ -154,16 +173,11 @@ export function WorkoutCalendar({
                     )}
                   </div>
 
-                  {CalendarIndicatorIcon && calendarIndicatorMeta && (
-                    <div className="absolute right-2 bottom-2 hidden sm:flex">
-                      <span
-                        className={`flex h-6 w-6 items-center justify-center rounded-full shadow-sm ring-1 ring-background/80 ${calendarIndicatorMeta.badgeClass}`}
-                        title={calendarIndicatorMeta.label}
-                      >
-                        <CalendarIndicatorIcon className="h-3 w-3" />
-                      </span>
-                    </div>
-                  )}
+                  <WorkoutIconGroup
+                    dateKey={dateKey}
+                    hiddenWorkoutCount={hiddenWorkoutCount}
+                    workoutTypes={visibleWorkoutTypes}
+                  />
                 </button>
               );
             })}

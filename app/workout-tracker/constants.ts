@@ -5,22 +5,30 @@ export const MAX_CALENDAR_DOTS = 4;
 
 export const WORKOUT_TYPE_META: Record<
   WorkoutDotType,
-  { label: string; dotClass: string; badgeClass: string }
+  {
+    label: string;
+    dotClass: string;
+    badgeClass: string;
+    calendarIconClass: string;
+  }
 > = {
   resistance: {
     label: "Resistance training",
     dotClass: "bg-violet-500",
     badgeClass: "bg-violet-500/20 text-violet-600",
+    calendarIconClass: "bg-violet-100 text-violet-500 dark:bg-violet-950 dark:text-violet-200",
   },
   cardio: {
     label: "Cardio",
     dotClass: "bg-teal-500",
     badgeClass: "bg-teal-500/20 text-teal-600",
+    calendarIconClass: "bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300",
   },
   hybrid: {
     label: "Hybrid",
     dotClass: "bg-amber-500",
     badgeClass: "bg-amber-500/20 text-amber-700 dark:text-amber-500",
+    calendarIconClass: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
   },
 };
 
