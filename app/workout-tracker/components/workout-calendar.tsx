@@ -186,12 +186,21 @@ export function WorkoutCalendar({
       </Card>
 
       <div className="flex flex-wrap items-center gap-4 px-1">
-        {(Object.keys(WORKOUT_TYPE_META) as WorkoutDotType[]).map((type) => (
-          <div key={type} className="flex items-center gap-2 text-sm">
-            <span className={`h-3 w-3 rounded-full ${WORKOUT_TYPE_META[type].dotClass}`} />
-            <span>{WORKOUT_TYPE_META[type].label}</span>
-          </div>
-        ))}
+        {(Object.keys(WORKOUT_TYPE_META) as WorkoutDotType[]).map((type) => {
+          const WorkoutIcon = CALENDAR_WORKOUT_ICONS[type];
+          const workoutMeta = WORKOUT_TYPE_META[type];
+
+          return (
+            <div key={type} className="flex items-center gap-2 text-sm">
+              <span
+                className={`flex h-6 w-6 items-center justify-center rounded-full shadow-sm ring-1 ring-background ${workoutMeta.calendarIconClass}`}
+              >
+                <WorkoutIcon className="h-3 w-3" />
+              </span>
+              <span>{workoutMeta.label}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

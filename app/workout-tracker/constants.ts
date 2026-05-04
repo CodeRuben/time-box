@@ -14,9 +14,9 @@ export const WORKOUT_TYPE_META: Record<
 > = {
   resistance: {
     label: "Resistance training",
-    dotClass: "bg-violet-500",
-    badgeClass: "bg-violet-500/20 text-violet-600",
-    calendarIconClass: "bg-violet-100 text-violet-500 dark:bg-violet-950 dark:text-violet-200",
+    dotClass: "bg-blue-500",
+    badgeClass: "bg-blue-500/20 text-blue-700 dark:text-blue-300",
+    calendarIconClass: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200",
   },
   cardio: {
     label: "Cardio",
@@ -26,9 +26,9 @@ export const WORKOUT_TYPE_META: Record<
   },
   hybrid: {
     label: "Hybrid",
-    dotClass: "bg-amber-500",
-    badgeClass: "bg-amber-500/20 text-amber-700 dark:text-amber-500",
-    calendarIconClass: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+    dotClass: "bg-orange-500",
+    badgeClass: "bg-orange-500/20 text-orange-700 dark:text-orange-300",
+    calendarIconClass: "bg-orange-200 text-orange-800 dark:bg-orange-950 dark:text-orange-300",
   },
 };
 

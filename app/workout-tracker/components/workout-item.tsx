@@ -73,7 +73,7 @@ export function WorkoutItem({
                 "mt-0.5 flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full transition-transform ease-out will-change-transform active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100",
                 workout.type === "unknown"
                   ? "bg-muted text-muted-foreground"
-                  : WORKOUT_TYPE_META[workout.type].badgeClass,
+                  : WORKOUT_TYPE_META[workout.type].calendarIconClass,
               )}
               onClick={(event) => {
                 event.stopPropagation();
