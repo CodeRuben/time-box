@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { CircleUser, Loader2, LogIn } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { HeaderTimer } from "@/app/components/header-timer";
 import { ThemeToggle } from "@/app/planner/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,72 +14,43 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-const HOVER_CLOSE_MS = 150;
-
 function AccountHeaderControl() {
   const { data: session, status } = useSession();
-  const [open, setOpen] = useState(false);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const cancelScheduledClose = () => {
-    if (closeTimerRef.current) {
-      clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-  };
-
-  const scheduleClose = () => {
-    cancelScheduledClose();
-    closeTimerRef.current = setTimeout(() => setOpen(false), HOVER_CLOSE_MS);
-  };
-
-  const handleOpenHover = () => {
-    cancelScheduledClose();
-    setOpen(true);
-  };
-
-  useEffect(() => {
-    return () => cancelScheduledClose();
-  }, []);
 
   if (status === "loading") {
     return (
       <Button
         variant="outline"
         size="icon"
-        className="h-9 w-9"
+        className="size-9"
         disabled
         aria-label="Loading session"
       >
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+        <Loader2 className="size-4 animate-spin" aria-hidden />
       </Button>
     );
   }
 
   if (status === "unauthenticated") {
     return (
-      <Button variant="outline" size="icon" className="h-9 w-9" asChild>
+      <Button variant="outline" size="icon" className="size-9" asChild>
         <Link href="/login" aria-label="Sign in">
-          <LogIn className="h-4 w-4" aria-hidden />
+          <LogIn className="size-4" aria-hidden />
         </Link>
       </Button>
     );
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen} modal={false}>
+    <Popover modal={false}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           size="icon"
-          className="h-9 w-9"
+          className="size-9"
           aria-label="Account"
-          aria-expanded={open}
-          aria-haspopup="dialog"
-          onMouseEnter={handleOpenHover}
-          onMouseLeave={scheduleClose}
         >
-          <CircleUser className="h-4 w-4" aria-hidden />
+          <CircleUser className="size-4" aria-hidden />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -87,8 +58,6 @@ function AccountHeaderControl() {
         side="bottom"
         sideOffset={6}
         className="w-64"
-        onMouseEnter={handleOpenHover}
-        onMouseLeave={scheduleClose}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="space-y-1">
@@ -127,7 +96,7 @@ const VISIBLE_ROUTES = new Set(navItems.map((item) => item.href));
 
 function LogoMarkA() {
   return (
-    <div className="grid h-5 w-5 grid-cols-2 grid-rows-2 gap-[3px]">
+    <div className="grid size-5 grid-cols-2 grid-rows-2 gap-[3px]">
       <span className="rounded-[2px] bg-foreground" />
       <span className="rounded-[2px] bg-foreground/50" />
       <span className="rounded-[2px] bg-foreground/50" />
@@ -172,6 +141,7 @@ export function AppHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
+          <HeaderTimer />
           <AccountHeaderControl />
           <ThemeToggle />
         </div>

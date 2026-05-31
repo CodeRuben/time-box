@@ -1,8 +1,18 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  use,
+  useCallback,
+  useEffect,
+  useMemo,
+  useSyncExternalStore,
+} from "react";
 
 type Theme = "light" | "dark";
+const DEFAULT_THEME: Theme = "light";
+const THEME_STORAGE_KEY = "theme";
+const THEME_CHANGE_EVENT = "themechange";
 
 interface ThemeContextType {
   theme: Theme;
@@ -12,54 +22,98 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+function getStoredTheme() {
+  if (typeof window === "undefined") {
+    return DEFAULT_THEME;
+  }
+
+  return localStorage.getItem(THEME_STORAGE_KEY) === "dark"
+    ? "dark"
+    : DEFAULT_THEME;
+}
+
+function subscribeToThemeChanges(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(THEME_CHANGE_EVENT, onStoreChange);
+
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(THEME_CHANGE_EVENT, onStoreChange);
+  };
+}
+
+function applyTheme(newTheme: Theme) {
+  localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+  document.documentElement.classList.toggle("dark", newTheme === "dark");
+  window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
+}
+
+function isTypeableElement(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  return (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    target.isContentEditable ||
+    target.closest('[contenteditable="true"], [role="textbox"]') !== null
+  );
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
+  const theme = useSyncExternalStore(
+    subscribeToThemeChanges,
+    getStoredTheme,
+    () => DEFAULT_THEME
+  );
 
-  useEffect(() => {
-    setMounted(true);
-    // Get theme from localStorage or default to light
-    const storedTheme = localStorage.getItem("theme") as Theme | null;
-    const initialTheme = storedTheme || "light";
-    setTheme(initialTheme);
-
-    // Apply theme to document
-    if (initialTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+  const updateTheme = useCallback((newTheme: Theme) => {
+    applyTheme(newTheme);
   }, []);
 
-  const updateTheme = (newTheme: Theme) => {
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-
-    if (newTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
-
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const newTheme = theme === "light" ? "dark" : "light";
     updateTheme(newTheme);
-  };
+  }, [theme, updateTheme]);
 
-  // Always provide the context, even before mounted
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.repeat ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        event.key.toLowerCase() !== "d" ||
+        isTypeableElement(event.target)
+      ) {
+        return;
+      }
+
+      toggleTheme();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [toggleTheme]);
+
+  const contextValue = useMemo(
+    () => ({ theme, setTheme: updateTheme, toggleTheme }),
+    [theme, updateTheme, toggleTheme]
+  );
+
   // The script in layout.tsx handles the initial theme to prevent flash
   return (
-    <ThemeContext.Provider
-      value={{ theme, setTheme: updateTheme, toggleTheme }}
-    >
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
 export function useTheme() {
-  const context = useContext(ThemeContext);
+  const context = use(ThemeContext);
   if (context === undefined) {
     throw new Error("useTheme must be used within a ThemeProvider");
   }
