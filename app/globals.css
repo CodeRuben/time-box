@@ -124,6 +124,47 @@
   }
 }
 
+.page-grid-pattern {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklch, var(--foreground) 6%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--foreground) 6%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 2.5rem 2.5rem;
+}
+
+.dark .page-grid-pattern:not(.page-grid-pattern--primary) {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklch, var(--foreground) 11%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--foreground) 11%, transparent) 1px,
+      transparent 1px
+    );
+}
+
+.page-grid-pattern--primary {
+  background-image:
+    linear-gradient(to right, oklch(1 0 0 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 0.06) 1px, transparent 1px);
+}
+
+.dark .page-grid-pattern--primary {
+  background-image:
+    linear-gradient(to right, oklch(1 0 0 / 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 0.1) 1px, transparent 1px);
+}
+
 /* Hide scrollbar but keep functionality */
 .scrollbar-hide {
   -ms-overflow-style: none;

@@ -9,6 +9,13 @@ const TASKS_API = "/api/tasks";
 
 type StorageMode = "local" | "account";
 
+// Updates may be a plain patch or a function resolved against the current task,
+// letting callers compute fields (e.g. a toggled checklist) from the freshest
+// state rather than a stale render closure.
+type TaskUpdate =
+  | Partial<NewTask>
+  | ((current: Task) => Partial<NewTask>);
+
 function getStorageMode(
   status: "authenticated" | "loading" | "unauthenticated"
 ): StorageMode | null {
@@ -107,6 +114,11 @@ export function useTaskStorage() {
     tasksRef.current = tasks;
   }, [tasks]);
 
+  // Monotonic per-task request counter. Lets us ignore a server response (or
+  // rollback) once a newer update for the same task has been issued, so an
+  // out-of-order or slow response can't revert a more recent edit.
+  const updateSeqRef = useRef<Map<string, number>>(new Map());
+
   useEffect(() => {
     if (!storageMode) {
       setIsLoading(true);
@@ -168,43 +180,67 @@ export function useTaskStorage() {
   );
 
   const updateTask = useCallback(
-    async (id: string, updates: Partial<NewTask>): Promise<void> => {
-      if (modeRef.current === "account") {
-        // Read the previous snapshot before mutating so we can roll back if the
-        // server rejects the update. Reading from `tasksRef` avoids relying on
-        // setState updater side-effects, which can be unreliable under React
-        // concurrent rendering / StrictMode double-invocation.
-        const previous = tasksRef.current.find((t) => t.id === id);
-        if (!previous) return;
+    async (id: string, updates: TaskUpdate): Promise<void> => {
+      // Read the previous snapshot before mutating so we can roll back if the
+      // server rejects the update. Reading from `tasksRef` avoids relying on
+      // setState updater side-effects, which can be unreliable under React
+      // concurrent rendering / StrictMode double-invocation.
+      const previous = tasksRef.current.find((t) => t.id === id);
+      if (!previous) return;
 
-        setTasks((prev) =>
-          prev.map((t) =>
-            t.id === id
-              ? { ...t, ...updates, updatedAt: new Date().toISOString() }
-              : t
-          )
-        );
+      // Resolve functional updates against the freshest snapshot so two rapid
+      // edits (e.g. toggling two checklist items) each build their payload from
+      // the prior edit's result instead of the same stale render closure, which
+      // would otherwise drop one change at the DB level.
+      const resolved =
+        typeof updates === "function" ? updates(previous) : updates;
+      const optimistic: Task = {
+        ...previous,
+        ...resolved,
+        updatedAt: new Date().toISOString(),
+      };
+      const nextTasks = tasksRef.current.map((t) =>
+        t.id === id ? optimistic : t
+      );
+      // Keep the ref current synchronously so a follow-up call in the same tick
+      // sees this edit.
+      tasksRef.current = nextTasks;
+
+      if (modeRef.current === "account") {
+        const seq = (updateSeqRef.current.get(id) ?? 0) + 1;
+        updateSeqRef.current.set(id, seq);
+        const isLatest = () => updateSeqRef.current.get(id) === seq;
+
+        setTasks(nextTasks);
 
         try {
-          const updated = await updateAccountTask(id, updates);
-          setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+          const updated = await updateAccountTask(id, resolved);
+          // A newer update for this task superseded us mid-flight; its
+          // optimistic state is the source of truth, so don't overwrite it
+          // with our (now stale) server response.
+          if (isLatest()) {
+            tasksRef.current = tasksRef.current.map((t) =>
+              t.id === id ? updated : t
+            );
+            setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+          }
         } catch (error) {
           console.error("Failed to update task:", error);
-          setTasks((prev) => prev.map((t) => (t.id === id ? previous : t)));
+          // Only roll back if we're still the latest update; otherwise a newer
+          // edit owns the current state and must not be clobbered.
+          if (isLatest()) {
+            tasksRef.current = tasksRef.current.map((t) =>
+              t.id === id ? previous : t
+            );
+            setTasks((prev) => prev.map((t) => (t.id === id ? previous : t)));
+          }
           throw error;
         }
         return;
       }
 
-      setTasks((prev) => {
-        const next = prev.map((t) =>
-          t.id === id
-            ? { ...t, ...updates, updatedAt: new Date().toISOString() }
-            : t
-        );
-        saveLocalTasks(next);
-        return next;
-      });
+      setTasks(nextTasks);
+      saveLocalTasks(nextTasks);
     },
     []
   );

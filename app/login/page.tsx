@@ -1,8 +1,14 @@
 "use client";
 
+import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { type FormEvent, useState } from "react";
+import { AuthPageShell } from "@/app/components/auth-page-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { LOGIN_RATE_LIMIT_ERROR } from "@/lib/auth-errors";
 
 export default function LoginPage() {
@@ -10,84 +16,115 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError("");
+    setIsSubmitting(true);
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        email: email.trim().toLowerCase(),
+        password,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      setError(
-        result.error === LOGIN_RATE_LIMIT_ERROR
-          ? "Too many login attempts. Please try again in a few minutes."
-          : "Invalid email or password"
-      );
-    } else {
+      if (result?.error) {
+        setError(
+          result.error === LOGIN_RATE_LIMIT_ERROR
+            ? "Too many login attempts. Please try again in a few minutes."
+            : "Invalid email or password"
+        );
+        return;
+      }
+
       router.push("/");
       router.refresh();
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-md space-y-8 p-8">
-        <h2 className="text-3xl font-bold text-center">Sign In</h2>
-        <p className="text-center text-sm text-muted-foreground">
-          Use your admin account to sync planner and workout data to the
-          database.
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white rounded-md px-4 py-2 hover:bg-blue-700"
+    <AuthPageShell
+      title="Sign in"
+      description="Welcome back. Sign in to sync your planner and workouts."
+      footer={
+        <>
+          Need access?{" "}
+          <Link
+            className="font-medium text-primary hover:underline"
+            href="/register"
           >
-            Sign In
-          </button>
-        </form>
-        <p className="text-center text-sm text-muted-foreground">
-          Registration is disabled for now.
-        </p>
-      </div>
-    </div>
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error ? (
+          <div
+            role="alert"
+            className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          >
+            {error}
+          </div>
+        ) : null}
+
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className="h-11 bg-background"
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <div className="relative">
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="h-11 bg-background pr-16"
+              required
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground"
+              onClick={() => setShowPassword((current) => !current)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <EyeOff className="size-4" aria-hidden />
+              ) : (
+                <Eye className="size-4" aria-hidden />
+              )}
+            </Button>
+          </div>
+        </div>
+
+        <Button
+          className="h-11 w-full active:scale-[0.98] ease-out will-change-transform motion-reduce:transition-none motion-reduce:active:scale-100"
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Signing in..." : "Sign in"}
+        </Button>
+      </form>
+    </AuthPageShell>
   );
 }

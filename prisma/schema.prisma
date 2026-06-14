@@ -107,3 +107,11 @@ model Task {
   @@index([userId])
   @@index([userId, status])
 }
+
+model RegistrationRateLimitBucket {
+  key       String @id
+  attempts  Int    @default(0)
+  resetAtMs BigInt
+
+  @@index([resetAtMs])
+}

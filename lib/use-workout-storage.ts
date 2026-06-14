@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { formatDateKey } from "@/lib/date-key";
 import type { AutosaveStatus } from "@/lib/autosave-status";
 import { AUTOSAVE_DEBOUNCE_MS } from "@/lib/autosave-debounce";
+import { enqueueWrite, waitForWrites } from "@/lib/save-queue";
 
 export type WorkoutType = "unknown" | "resistance" | "cardio" | "hybrid";
 export type WorkoutDotType = Exclude<WorkoutType, "unknown">;
@@ -39,6 +40,12 @@ const STORAGE_PREFIX = "workout-tracker-";
 const WORKOUTS_API_PREFIX = "/api/workouts";
 
 type WorkoutStorageMode = "local" | "account";
+
+// Key under which a given day's account writes are serialized in the shared
+// save queue. Namespaced so it never collides with other features' keys.
+function workoutWriteKey(date: Date): string {
+  return `workout:${formatWorkoutDateKey(date)}`;
+}
 
 export function formatWorkoutDateKey(date: Date): string {
   return formatDateKey(date);
@@ -397,7 +404,9 @@ function flushWorkoutDayToStorage(
     return;
   }
 
-  void saveWorkoutDayDataToAccount(targetDate, payload).catch((error) => {
+  void enqueueWrite(workoutWriteKey(targetDate), () =>
+    saveWorkoutDayDataToAccount(targetDate, payload)
+  ).catch((error) => {
     console.error("Failed to flush workout data:", error);
   });
 }
@@ -407,6 +416,7 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
   const storageMode = getStorageMode(status);
   const [data, setData] = useState<WorkoutDayData>(getDefaultWorkoutDayData());
   const [isLoading, setIsLoading] = useState(true);
+  const [hasHydratedOnce, setHasHydratedOnce] = useState(false);
   const [autosaveStatus, setAutosaveStatus] = useState<AutosaveStatus>("idle");
   const savedResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -417,6 +427,8 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
   const currentModeRef = useRef<WorkoutStorageMode | null>(null);
   const storageModeRef = useRef<WorkoutStorageMode | null>(null);
   const persistIdRef = useRef(0);
+  const dataVersionRef = useRef(0);
+  const hasPersistableDataRef = useRef(false);
   const [summaryMap, setSummaryMap] = useState<Record<string, WorkoutDotType[]>>(
     {}
   );
@@ -481,26 +493,39 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
         return;
       }
 
-      void (async () => {
-        try {
-          if (mode === "local") {
-            saveWorkoutDayData(targetDate, snapshot);
-          } else {
-            await saveWorkoutDayDataToAccount(targetDate, snapshot);
-          }
+      const onSettled = (didSucceed: boolean) => {
+        if (id !== persistIdRef.current) {
+          return;
+        }
+        if (didSucceed) {
+          setAutosaveStatus("saved");
+          scheduleResetToIdle();
+        } else {
+          setAutosaveStatus("error");
+        }
+      };
 
-          if (id === persistIdRef.current) {
-            setAutosaveStatus("saved");
-            scheduleResetToIdle();
-          }
+      if (mode === "local") {
+        try {
+          saveWorkoutDayData(targetDate, snapshot);
+          onSettled(true);
         } catch (error) {
           console.error("Failed to persist workout data:", error);
-
-          if (id === persistIdRef.current) {
-            setAutosaveStatus("error");
-          }
+          onSettled(false);
         }
-      })();
+      } else {
+        // Serialize account writes per day so an older PUT cannot land after a
+        // newer one and clobber it (lost update).
+        void enqueueWrite(workoutWriteKey(targetDate), () =>
+          saveWorkoutDayDataToAccount(targetDate, snapshot)
+        ).then(
+          () => onSettled(true),
+          (error) => {
+            console.error("Failed to persist workout data:", error);
+            onSettled(false);
+          }
+        );
+      }
 
       saveTimeoutRef.current = null;
     }, AUTOSAVE_DEBOUNCE_MS);
@@ -527,7 +552,11 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
       saveTimeoutRef.current = null;
     }
 
-    if (currentDateRef.current && currentModeRef.current) {
+    if (
+      currentDateRef.current &&
+      currentModeRef.current &&
+      hasPersistableDataRef.current
+    ) {
       const isDateChanged =
         currentDateRef.current.getTime() !== date.getTime();
       const isModeChanged = currentModeRef.current !== storageMode;
@@ -543,39 +572,57 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
 
     currentDateRef.current = date;
     currentModeRef.current = storageMode;
+    hasPersistableDataRef.current = false;
 
     let isCancelled = false;
+    const loadStartedAtVersion = dataVersionRef.current;
     setIsLoading(true);
 
     const loadDay = async () => {
       try {
+        // Wait for any pending account write for this day to commit before
+        // reading, otherwise a fast GET can hydrate stale server state that a
+        // not-yet-finished PUT is about to overwrite.
+        if (storageMode === "account") {
+          const pendingSave = waitForWrites(workoutWriteKey(date));
+          if (pendingSave) {
+            await pendingSave;
+          }
+          if (isCancelled || dataVersionRef.current !== loadStartedAtVersion) {
+            return;
+          }
+        }
+
         const loaded =
           storageMode === "account"
             ? await loadWorkoutDayDataFromAccount(date)
             : loadWorkoutDayData(date);
         const nextData = loaded ?? getDefaultWorkoutDayData();
 
-        if (isCancelled) {
+        if (isCancelled || dataVersionRef.current !== loadStartedAtVersion) {
           return;
         }
 
         setData(nextData);
         dataRef.current = nextData;
+        hasPersistableDataRef.current = true;
         updateSummaryEntry(date, nextData);
       } catch (error) {
         console.error("Failed to hydrate workout data:", error);
 
-        if (isCancelled) {
+        if (isCancelled || dataVersionRef.current !== loadStartedAtVersion) {
           return;
         }
 
         const defaultData = getDefaultWorkoutDayData();
         setData(defaultData);
         dataRef.current = defaultData;
+        hasPersistableDataRef.current = false;
         updateSummaryEntry(date, defaultData);
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
+          setHasHydratedOnce(true);
         }
       }
     };
@@ -646,6 +693,9 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
           ],
         };
 
+        dataRef.current = updated;
+        dataVersionRef.current += 1;
+        hasPersistableDataRef.current = true;
         updateSummaryEntry(date, updated);
         debouncedPersist();
         return updated;
@@ -668,6 +718,9 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
           ),
         };
 
+        dataRef.current = updated;
+        dataVersionRef.current += 1;
+        hasPersistableDataRef.current = true;
         updateSummaryEntry(date, updated);
         debouncedPersist();
         return updated;
@@ -688,6 +741,9 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
           workouts: currentData.workouts.filter((workout) => workout.id !== workoutId),
         };
 
+        dataRef.current = updated;
+        dataVersionRef.current += 1;
+        hasPersistableDataRef.current = true;
         updateSummaryEntry(date, updated);
         debouncedPersist();
         return updated;
@@ -709,6 +765,8 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
     const defaultData = getDefaultWorkoutDayData();
     setData(defaultData);
     dataRef.current = defaultData;
+    dataVersionRef.current += 1;
+    hasPersistableDataRef.current = true;
     updateSummaryEntry(date, defaultData);
 
     if (storageMode === "local") {
@@ -722,7 +780,11 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
     setAutosaveStatus("saving");
     clearSavedReset();
 
-    void clearWorkoutDayDataFromAccount(date)
+    // Enqueue the DELETE behind any in-flight/queued PUT for this day so a
+    // late save cannot recreate the row we just cleared.
+    void enqueueWrite(workoutWriteKey(date), () =>
+      clearWorkoutDayDataFromAccount(date)
+    )
       .then(() => {
         if (id === persistIdRef.current) {
           setAutosaveStatus("saved");
@@ -755,7 +817,11 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
         clearTimeout(saveTimeoutRef.current);
       }
       clearSavedReset();
-      if (currentDateRef.current && currentModeRef.current) {
+      if (
+        currentDateRef.current &&
+        currentModeRef.current &&
+        hasPersistableDataRef.current
+      ) {
         flushWorkoutDayToStorage(
           currentModeRef.current,
           currentDateRef.current,
@@ -768,6 +834,7 @@ export function useWorkoutStorage(date: Date, summaryDates: Date[] = []) {
   return {
     data,
     isLoading,
+    isInitialLoading: isLoading && !hasHydratedOnce,
     autosaveStatus,
     addWorkout,
     updateWorkout,

@@ -6,6 +6,11 @@ import { ALL_HOURS } from "@/app/planner/constants";
 import { formatDateKey } from "@/lib/date-key";
 import type { AutosaveStatus } from "@/lib/autosave-status";
 import { AUTOSAVE_DEBOUNCE_MS } from "@/lib/autosave-debounce";
+import {
+  enqueueWrite,
+  purgeWritesExcept,
+  waitForWrites,
+} from "@/lib/save-queue";
 
 export type TaskStatus = "pending" | "completed" | "error";
 
@@ -472,8 +477,6 @@ function buildCacheKey(identity: CacheIdentity, date: Date): string {
 // In-memory cache survives SPA navigations (cleared only on full page reload
 // or when the active identity changes).
 const dataCache = new Map<string, PlannerData>();
-// Tracks in-flight account saves so a subsequent load can wait for them.
-const pendingSavesByKey = new Map<string, Promise<void>>();
 
 function clearCachesForOtherIdentities(activeIdentity: CacheIdentity): void {
   const prefix = `${activeIdentity}:`;
@@ -482,11 +485,7 @@ function clearCachesForOtherIdentities(activeIdentity: CacheIdentity): void {
       dataCache.delete(key);
     }
   }
-  for (const key of pendingSavesByKey.keys()) {
-    if (!key.startsWith(prefix)) {
-      pendingSavesByKey.delete(key);
-    }
-  }
+  purgeWritesExcept(prefix);
 }
 
 function getCachedData(
@@ -515,28 +514,21 @@ function persistPlannerData(
 
   if (mode === "local") {
     savePlannerData(date, data);
-    pendingSavesByKey.delete(key);
     return;
   }
 
-  const savePromise = savePlannerDataToAccount(date, data)
-    .catch((error) => {
+  void enqueueWrite(key, () => savePlannerDataToAccount(date, data)).catch(
+    (error) => {
       console.error("Failed to persist planner data:", error);
-    })
-    .finally(() => {
-      if (pendingSavesByKey.get(key) === savePromise) {
-        pendingSavesByKey.delete(key);
-      }
-    });
-
-  pendingSavesByKey.set(key, savePromise);
+    }
+  );
 }
 
 function waitForPendingSave(
   identity: CacheIdentity,
   date: Date
 ): Promise<void> | undefined {
-  return pendingSavesByKey.get(buildCacheKey(identity, date));
+  return waitForWrites(buildCacheKey(identity, date));
 }
 
 /**
@@ -573,6 +565,8 @@ export function usePlannerStorage(date: Date | undefined) {
   const currentModeRef = useRef<PlannerStorageMode | null>(null);
   const currentIdentityRef = useRef<CacheIdentity | null>(null);
   const dataRef = useRef<PlannerData>(cached ?? getDefaultData());
+  const dataVersionRef = useRef(0);
+  const hasPersistableDataRef = useRef(!!cached);
 
   const clearSavedReset = useCallback(() => {
     if (savedResetTimeoutRef.current) {
@@ -589,17 +583,16 @@ export function usePlannerStorage(date: Date | undefined) {
     }, 2000);
   }, [clearSavedReset]);
 
-  // Keep dataRef and module-level cache in sync with data state
+  // Keep dataRef in sync with state. The cache is updated only after a real
+  // load or user edit so initial empty state cannot masquerade as persisted data.
   useEffect(() => {
     dataRef.current = data;
-    if (identity && date) {
-      setCachedData(identity, date, data);
-    }
-  }, [data, date, identity]);
+  }, [data]);
 
   // Load data when component mounts or date changes
   useEffect(() => {
-    const hasCachedData = !!date && !!identity && !!getCachedData(identity, date);
+    const cachedData = date && identity ? getCachedData(identity, date) : undefined;
+    const hasCachedData = !!cachedData;
 
     if (!date || !storageMode || !identity) {
       if (!hasCachedData) {
@@ -632,7 +625,11 @@ export function usePlannerStorage(date: Date | undefined) {
       // Only flush pending edits for the SAME identity. If the identity
       // changed (sign-in/out), dropping is correct: the stale buffer belongs
       // to the previous user/session.
-      if ((isDateChanged || isModeChanged) && !isIdentityChanged) {
+      if (
+        (isDateChanged || isModeChanged) &&
+        !isIdentityChanged &&
+        hasPersistableDataRef.current
+      ) {
         persistPlannerData(
           currentIdentityRef.current,
           currentModeRef.current,
@@ -648,8 +645,15 @@ export function usePlannerStorage(date: Date | undefined) {
     currentDateRef.current = date;
     currentModeRef.current = storageMode;
     currentIdentityRef.current = identity;
+    hasPersistableDataRef.current = hasCachedData;
+
+    if (cachedData) {
+      setData(cachedData);
+      dataRef.current = cachedData;
+    }
 
     let isCancelled = false;
+    const loadStartedAtVersion = dataVersionRef.current;
 
     const loadData = async () => {
       try {
@@ -667,17 +671,23 @@ export function usePlannerStorage(date: Date | undefined) {
             ? await loadPlannerDataFromAccount(date)
             : loadPlannerData(date);
 
-        if (isCancelled) {
+        if (isCancelled || dataVersionRef.current !== loadStartedAtVersion) {
           return;
         }
 
         const nextData = loaded ?? getDefaultData();
         setData(nextData);
         dataRef.current = nextData;
+        hasPersistableDataRef.current = true;
+        setCachedData(identity, date, nextData);
       } catch (error) {
         console.error("Failed to hydrate planner data:", error);
 
-        if (isCancelled) {
+        if (isCancelled || dataVersionRef.current !== loadStartedAtVersion) {
+          return;
+        }
+
+        if (cachedData) {
           return;
         }
 
@@ -716,36 +726,40 @@ export function usePlannerStorage(date: Date | undefined) {
       const snapshot = dataRef.current;
       const cacheKey = buildCacheKey(identity, date);
 
-      // Held in an object so the async IIFE's finally block can refer back to
-      // its own promise identity (needed to avoid clearing a newer pending
-      // entry) without relying on `let` self-assignment.
-      const holder: { promise?: Promise<void> } = {};
-      holder.promise = (async () => {
-        try {
-          if (storageMode === "local") {
-            savePlannerData(date, snapshot);
-          } else {
-            await savePlannerDataToAccount(date, snapshot);
-          }
+      const onSettled = (didSucceed: boolean) => {
+        if (id !== persistIdRef.current) {
+          return;
+        }
+        if (didSucceed) {
+          setAutosaveStatus("saved");
+          scheduleResetToIdle();
+        } else {
+          setAutosaveStatus("error");
+        }
+      };
 
-          if (id === persistIdRef.current) {
-            setAutosaveStatus("saved");
-            scheduleResetToIdle();
-          }
+      if (storageMode === "local") {
+        try {
+          savePlannerData(date, snapshot);
+          onSettled(true);
         } catch (error) {
           console.error("Failed to persist planner data:", error);
-
-          if (id === persistIdRef.current) {
-            setAutosaveStatus("error");
-          }
-        } finally {
-          if (pendingSavesByKey.get(cacheKey) === holder.promise) {
-            pendingSavesByKey.delete(cacheKey);
-          }
+          onSettled(false);
         }
-      })();
+      } else {
+        // Serialize account writes per day so a slow earlier PUT cannot land
+        // after a newer one and clobber it (lost update).
+        void enqueueWrite(cacheKey, () =>
+          savePlannerDataToAccount(date, snapshot)
+        ).then(
+          () => onSettled(true),
+          (error) => {
+            console.error("Failed to persist planner data:", error);
+            onSettled(false);
+          }
+        );
+      }
 
-      pendingSavesByKey.set(cacheKey, holder.promise);
       saveTimeoutRef.current = null;
     }, AUTOSAVE_DEBOUNCE_MS);
   }, [date, storageMode, identity, clearSavedReset, scheduleResetToIdle]);
@@ -755,11 +769,17 @@ export function usePlannerStorage(date: Date | undefined) {
     (updater: PlannerData | ((prev: PlannerData) => PlannerData)) => {
       setData((prev) => {
         const newData = typeof updater === "function" ? updater(prev) : updater;
+        dataVersionRef.current += 1;
+        dataRef.current = newData;
+        if (identity && date) {
+          setCachedData(identity, date, newData);
+        }
+        hasPersistableDataRef.current = true;
         debouncedSave();
         return newData;
       });
     },
-    [debouncedSave]
+    [date, debouncedSave, identity]
   );
 
   const loadDataForDate = useCallback(
@@ -802,7 +822,8 @@ export function usePlannerStorage(date: Date | undefined) {
       if (
         currentDateRef.current &&
         currentModeRef.current &&
-        currentIdentityRef.current
+        currentIdentityRef.current &&
+        hasPersistableDataRef.current
       ) {
         persistPlannerData(
           currentIdentityRef.current,

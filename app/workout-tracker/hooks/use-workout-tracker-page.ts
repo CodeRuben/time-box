@@ -69,6 +69,7 @@ export function useWorkoutTrackerPage() {
   const {
     data,
     isLoading,
+    isInitialLoading,
     autosaveStatus,
     addWorkout,
     updateWorkout,
@@ -214,6 +215,7 @@ export function useWorkoutTrackerPage() {
     isAddWorkoutPopoverOpen,
     isClearDialogOpen,
     isLoading,
+    isInitialLoading,
     selectedDate,
     selectedDateLabel,
     today,

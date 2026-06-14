@@ -1,17 +1,19 @@
 "use client";
 
+import { Download } from "lucide-react";
 import { ClearWorkoutsDialog } from "./components/clear-workouts-dialog";
+import { ExportWorkoutsDialog } from "./components/export-workouts-dialog";
 import { SelectedDayCard } from "./components/selected-day-card";
 import { WorkoutCalendar } from "./components/workout-calendar";
+import { useWorkoutExport } from "./hooks/use-workout-export";
 import { useWorkoutTrackerPage } from "./hooks/use-workout-tracker-page";
 import { AutosaveIndicator } from "../components/autosave-indicator";
 import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
 import { LoadingScreen } from "@/components/ui/loading-screen";
-import { useRef } from "react";
 
 export default function WorkoutTrackerPage() {
   const { status } = useSession();
-  const hasLoadedOnceRef = useRef(false);
   const {
     calendarDays,
     calendarMonth,
@@ -21,6 +23,7 @@ export default function WorkoutTrackerPage() {
     isAddWorkoutPopoverOpen,
     isClearDialogOpen,
     isLoading,
+    isInitialLoading,
     selectedDate,
     selectedDateLabel,
     today,
@@ -47,17 +50,20 @@ export default function WorkoutTrackerPage() {
     setIsClearDialogOpen,
     toggleWorkoutExpanded,
   } = useWorkoutTrackerPage();
+  const {
+    isDialogOpen: isExportDialogOpen,
+    setIsDialogOpen: setIsExportDialogOpen,
+    isExporting,
+    exportWorkouts,
+    isReady: isExportReady,
+  } = useWorkoutExport();
 
-  if (!isLoading) {
-    hasLoadedOnceRef.current = true;
-  }
-
-  if (isLoading && !hasLoadedOnceRef.current) {
+  if (isInitialLoading) {
     return <LoadingScreen />;
   }
 
   return (
-    <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 lg:mb-8 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -68,9 +74,20 @@ export default function WorkoutTrackerPage() {
               Track workouts by day and review past activity.
             </p>
           </div>
-          {status === "authenticated" && (
-            <AutosaveIndicator status={autosaveStatus} />
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsExportDialogOpen(true)}
+              disabled={!isExportReady}
+            >
+              <Download className="h-4 w-4" aria-hidden />
+              Export
+            </Button>
+            {status === "authenticated" && (
+              <AutosaveIndicator status={autosaveStatus} />
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:gap-8 xl:grid-cols-[2fr_1fr]">
@@ -119,6 +136,15 @@ export default function WorkoutTrackerPage() {
         selectedDateLabel={selectedDateLabel}
         onOpenChange={setIsClearDialogOpen}
         onConfirmClear={handleClearSelectedDate}
+      />
+
+      <ExportWorkoutsDialog
+        isOpen={isExportDialogOpen}
+        isExporting={isExporting}
+        onOpenChange={setIsExportDialogOpen}
+        onConfirmExport={() => {
+          void exportWorkouts();
+        }}
       />
     </div>
   );

@@ -48,7 +48,7 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 lg:mb-8 flex flex-wrap items-center justify-between gap-3">
           <div>

@@ -32,8 +32,9 @@ export const authOptions: NextAuthOptions = {
           throw new Error(LOGIN_RATE_LIMIT_ERROR);
         }
 
+        const email = credentials.email.trim().toLowerCase();
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email },
         });
 
         if (!user || !user.password) {

@@ -90,14 +90,26 @@ export function useTasksPage() {
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return;
 
-      const updatedChecklist = task.checklist.map((item) =>
-        item.id === itemId ? { ...item, completed: !item.completed } : item
-      );
-      await updateTask(taskId, { checklist: updatedChecklist });
+      // Compute against the freshest task state inside updateTask so toggling
+      // multiple items quickly doesn't drop changes built from a stale closure.
+      await updateTask(taskId, (current) => ({
+        checklist: current.checklist.map((item) =>
+          item.id === itemId ? { ...item, completed: !item.completed } : item
+        ),
+      }));
 
       if (selectedTask?.id === taskId) {
         setSelectedTask((prev) =>
-          prev ? { ...prev, checklist: updatedChecklist } : null
+          prev
+            ? {
+                ...prev,
+                checklist: prev.checklist.map((item) =>
+                  item.id === itemId
+                    ? { ...item, completed: !item.completed }
+                    : item
+                ),
+              }
+            : null
         );
       }
     },

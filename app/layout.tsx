@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProviderWrapper } from "./components/theme-provider-wrapper";
 import { Providers } from "./components/providers";
 import { AppHeader } from "./components/app-header";
+import { SiteShell } from "./components/site-shell";
 import { version } from "../package.json";
 
 const geistSans = Geist({
@@ -47,13 +48,15 @@ export default function RootLayout({
       >
         <Providers>
           <ThemeProviderWrapper>
-            <AppHeader />
-            {children}
+            <SiteShell>
+              <AppHeader />
+              {children}
+              <footer className="text-center text-gray-400 text-sm py-4">
+                v{version}
+              </footer>
+            </SiteShell>
           </ThemeProviderWrapper>
         </Providers>
-        <footer className="text-center text-gray-400 text-sm py-4">
-          v{version}
-        </footer>
       </body>
     </html>
   );
