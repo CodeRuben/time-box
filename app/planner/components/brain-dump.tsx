@@ -105,7 +105,7 @@ export function BrainDump({ value, onChange }: BrainDumpProps) {
         placeholder="Write down all your thoughts, tasks, and ideas here..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="scrollbar-themed w-full flex-1 resize-none min-h-[300px] md:min-h-[400px] lg:min-h-[500px] max-h-[min(60vh,28rem)] md:max-h-[min(65vh,32rem)] lg:max-h-[min(70vh,36rem)] overflow-y-auto"
+        className="scrollbar-themed w-full flex-1 resize-none min-h-[300px] md:min-h-[400px] lg:min-h-[500px] max-h-[min(60vh,28rem)] md:max-h-[min(65vh,32rem)] lg:max-h-[min(70vh,36rem)] overflow-y-auto bg-card dark:bg-card"
       />
     </div>
   );

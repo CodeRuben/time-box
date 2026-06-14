@@ -96,7 +96,7 @@ export function TopPriorities({
 
       <div className="space-y-3">
         {priorities.length === 0 ? (
-          <div className="w-full border-2 border-dashed border-muted-foreground/30 rounded-lg py-6 px-4 text-center text-muted-foreground bg-accent/30">
+          <div className="w-full border-2 border-dashed border-muted-foreground/30 rounded-lg py-6 px-4 text-center text-muted-foreground bg-card">
             <p className="text-sm font-medium">No priorities yet</p>
             <p className="text-xs mb-3">
               Up to {MAX_PRIORITIES} top priorities for today
