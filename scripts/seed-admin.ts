@@ -40,6 +40,7 @@ async function main() {
         data: {
           name,
           password: hashedPassword,
+          role: "ADMIN",
         },
       });
 
@@ -52,6 +53,7 @@ async function main() {
         email,
         name,
         password: hashedPassword,
+        role: "ADMIN",
       },
     });
 

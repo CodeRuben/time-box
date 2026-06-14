@@ -17,13 +17,37 @@ model User {
   emailVerified DateTime?
   password      String
   image         String?
+  role          String    @default("USER")
   accounts      Account[]
   sessions      Session[]
   plannerDays   PlannerDay[]
   workoutDays   WorkoutDay[]
   tasks         Task[]
+  featurePreferences UserFeaturePreference[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+model FeatureFlag {
+  key          String   @id
+  adminEnabled Boolean  @default(true)
+  userEnabled  Boolean  @default(true)
+  guestEnabled Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model UserFeaturePreference {
+  id         String   @id @default(cuid())
+  userId     String
+  featureKey String
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, featureKey])
+  @@index([userId])
 }
 
 model Account {

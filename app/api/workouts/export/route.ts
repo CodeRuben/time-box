@@ -1,23 +1,15 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedUserId } from "@/lib/auth-session";
+import { requireFeatureUser } from "@/lib/auth-session";
 import { prisma } from "@/lib/prisma";
 
-function unauthorizedResponse() {
-  return NextResponse.json(
-    { error: "Authentication required" },
-    { status: 401 },
-  );
-}
-
 export async function GET() {
-  const userId = await getAuthenticatedUserId();
-
-  if (!userId) {
-    return unauthorizedResponse();
+  const access = await requireFeatureUser("workouts", "Workouts are disabled");
+  if (access.response) {
+    return access.response;
   }
 
   const workoutDays = await prisma.workoutDay.findMany({
-    where: { userId },
+    where: { userId: access.userId },
     orderBy: { date: "asc" },
     select: { date: true, data: true },
   });

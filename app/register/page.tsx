@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { AuthPageShell } from "@/app/components/auth-page-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,11 @@ type RegisterResponse = {
   error?: string;
 };
 
+type AccessResponse = {
+  allowed?: boolean;
+  error?: string;
+};
+
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -28,8 +33,43 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingRegistration, setIsCheckingRegistration] = useState(true);
+  const [registrationEnabled, setRegistrationEnabled] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkRegistrationAccess() {
+      setIsCheckingRegistration(true);
+
+      try {
+        const response = await fetch("/api/settings/access?feature=registration");
+        const result = (await response.json()) as AccessResponse;
+
+        if (!cancelled) {
+          setRegistrationEnabled(response.ok && result.allowed === true);
+          setError(response.ok ? "" : result.error ?? "Unable to check registration");
+        }
+      } catch {
+        if (!cancelled) {
+          setRegistrationEnabled(false);
+          setError("Unable to check registration");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsCheckingRegistration(false);
+        }
+      }
+    }
+
+    void checkRegistrationAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -82,6 +122,51 @@ export default function RegisterPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (isCheckingRegistration) {
+    return (
+      <AuthPageShell
+        title="Create account"
+        description="Checking whether registration is open."
+        footer={
+          <>
+            Already have an account?{" "}
+            <Link className="font-medium text-primary hover:underline" href="/login">
+              Sign in
+            </Link>
+          </>
+        }
+      >
+        <div className="rounded-lg border px-4 py-3 text-sm text-muted-foreground">
+          Loading registration settings...
+        </div>
+      </AuthPageShell>
+    );
+  }
+
+  if (!registrationEnabled) {
+    return (
+      <AuthPageShell
+        title="Registration closed"
+        description="New user registration is currently disabled."
+        footer={
+          <>
+            Already have an account?{" "}
+            <Link className="font-medium text-primary hover:underline" href="/login">
+              Sign in
+            </Link>
+          </>
+        }
+      >
+        <div
+          role="alert"
+          className="rounded-lg border border-muted px-4 py-3 text-sm text-muted-foreground"
+        >
+          Please check back later or ask an administrator to reopen registration.
+        </div>
+      </AuthPageShell>
+    );
+  }
 
   return (
     <AuthPageShell

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedUserId } from "@/lib/auth-session";
+import { requireFeatureUser } from "@/lib/auth-session";
 import { isDateKey } from "@/lib/date-key";
 import { prisma } from "@/lib/prisma";
 
@@ -7,10 +7,6 @@ interface WorkoutRouteContext {
   params: Promise<{
     date: string;
   }>;
-}
-
-function unauthorizedResponse() {
-  return NextResponse.json({ error: "Authentication required" }, { status: 401 });
 }
 
 function badRequestResponse() {
@@ -25,10 +21,9 @@ export async function GET(
   _request: Request,
   { params }: WorkoutRouteContext
 ) {
-  const userId = await getAuthenticatedUserId();
-
-  if (!userId) {
-    return unauthorizedResponse();
+  const access = await requireFeatureUser("workouts", "Workouts are disabled");
+  if (access.response) {
+    return access.response;
   }
 
   const { date } = await params;
@@ -40,7 +35,7 @@ export async function GET(
   const workoutDay = await prisma.workoutDay.findUnique({
     where: {
       userId_date: {
-        userId,
+        userId: access.userId,
         date,
       },
     },
@@ -57,10 +52,9 @@ export async function PUT(
   request: Request,
   { params }: WorkoutRouteContext
 ) {
-  const userId = await getAuthenticatedUserId();
-
-  if (!userId) {
-    return unauthorizedResponse();
+  const access = await requireFeatureUser("workouts", "Workouts are disabled");
+  if (access.response) {
+    return access.response;
   }
 
   const { date } = await params;
@@ -85,7 +79,7 @@ export async function PUT(
   const workoutDay = await prisma.workoutDay.upsert({
     where: {
       userId_date: {
-        userId,
+        userId: access.userId,
         date,
       },
     },
@@ -93,7 +87,7 @@ export async function PUT(
       data: JSON.stringify(data),
     },
     create: {
-      userId,
+      userId: access.userId,
       date,
       data: JSON.stringify(data),
     },
@@ -106,10 +100,9 @@ export async function DELETE(
   _request: Request,
   { params }: WorkoutRouteContext
 ) {
-  const userId = await getAuthenticatedUserId();
-
-  if (!userId) {
-    return unauthorizedResponse();
+  const access = await requireFeatureUser("workouts", "Workouts are disabled");
+  if (access.response) {
+    return access.response;
   }
 
   const { date } = await params;
@@ -120,7 +113,7 @@ export async function DELETE(
 
   await prisma.workoutDay.deleteMany({
     where: {
-      userId,
+      userId: access.userId,
       date,
     },
   });

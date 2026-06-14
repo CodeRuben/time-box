@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedUserId } from "@/lib/auth-session";
+import { requireFeatureUser } from "@/lib/auth-session";
 import { prisma } from "@/lib/prisma";
 import {
   formatTask,
@@ -7,22 +7,14 @@ import {
   validateTaskBody,
 } from "@/lib/task-api-helpers";
 
-function unauthorizedResponse() {
-  return NextResponse.json(
-    { error: "Authentication required" },
-    { status: 401 }
-  );
-}
-
 export async function GET() {
-  const userId = await getAuthenticatedUserId();
-
-  if (!userId) {
-    return unauthorizedResponse();
+  const access = await requireFeatureUser("tasks", "Tasks are disabled");
+  if (access.response) {
+    return access.response;
   }
 
   const tasks = await prisma.task.findMany({
-    where: { userId },
+    where: { userId: access.userId },
     orderBy: { createdAt: "desc" },
   });
 
@@ -30,10 +22,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const userId = await getAuthenticatedUserId();
-
-  if (!userId) {
-    return unauthorizedResponse();
+  const access = await requireFeatureUser("tasks", "Tasks are disabled");
+  if (access.response) {
+    return access.response;
   }
 
   let raw: unknown;
@@ -53,7 +44,7 @@ export async function POST(request: Request) {
 
   const task = await prisma.task.create({
     data: {
-      userId,
+      userId: access.userId,
       name: result.name!,
       description: result.description ?? "",
       checklist: JSON.stringify(result.checklist ?? []),

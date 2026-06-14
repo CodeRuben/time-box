@@ -11,8 +11,9 @@ import { AutosaveIndicator } from "../components/autosave-indicator";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import { FeatureGate } from "../components/feature-gate";
 
-export default function WorkoutTrackerPage() {
+function WorkoutTrackerPageContent() {
   const { status } = useSession();
   const {
     calendarDays,
@@ -147,5 +148,13 @@ export default function WorkoutTrackerPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function WorkoutTrackerPage() {
+  return (
+    <FeatureGate featureKey="workouts">
+      <WorkoutTrackerPageContent />
+    </FeatureGate>
   );
 }

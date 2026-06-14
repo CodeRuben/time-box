@@ -6,7 +6,7 @@ type AuthPageShellProps = {
   title: string;
   description?: string;
   children: ReactNode;
-  footer: ReactNode;
+  footer?: ReactNode;
 };
 
 export function AuthPageShell({
@@ -33,9 +33,11 @@ export function AuthPageShell({
 
             {children}
 
-            <div className="text-center text-sm text-muted-foreground">
-              {footer}
-            </div>
+            {footer ? (
+              <div className="text-center text-sm text-muted-foreground">
+                {footer}
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </div>

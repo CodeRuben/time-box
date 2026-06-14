@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { getServerAuthSession } from "@/lib/auth";
+import { getSessionFeatureAccess } from "@/lib/feature-access";
 import { getClientIpFromHeaders } from "@/lib/login-rate-limit";
 import { prisma } from "@/lib/prisma";
 import { consumeRegistrationRateLimit } from "@/lib/registration-rate-limit";
@@ -84,6 +86,18 @@ async function readJsonBody(request: Request): Promise<JsonBodyResult> {
 }
 
 export async function POST(request: Request) {
+  const registrationEnabled = await getSessionFeatureAccess(
+    await getServerAuthSession(),
+    "registration"
+  );
+
+  if (!registrationEnabled) {
+    return NextResponse.json(
+      { error: "New user registration is currently closed" },
+      { status: 403 }
+    );
+  }
+
   const raw = await readJsonBody(request);
   if ("error" in raw) {
     return NextResponse.json({ error: raw.error }, { status: raw.status });

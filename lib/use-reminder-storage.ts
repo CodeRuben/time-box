@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { HOURS } from "@/app/planner/constants";
 
 export interface Reminder {
@@ -81,8 +81,6 @@ export function isReminderPastDue(reminder: Reminder): boolean {
   if (reminder.dismissed) return false;
 
   const now = new Date();
-  const reminderDate = new Date(reminder.date);
-  
   // Compare dates first
   const todayKey = formatDateKey(now);
   
@@ -165,15 +163,8 @@ function saveReminders(reminders: Reminder[]): void {
  * Hook to manage reminders with localStorage persistence
  */
 export function useReminderStorage() {
-  const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Load reminders on mount
-  useEffect(() => {
-    const loaded = loadReminders();
-    setReminders(loaded);
-    setIsLoading(false);
-  }, []);
+  const [reminders, setReminders] = useState<Reminder[]>(() => loadReminders());
+  const [isLoading] = useState(false);
 
   // Add a new reminder
   const addReminder = useCallback((newReminder: NewReminder) => {

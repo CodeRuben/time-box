@@ -1,9 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { CircleUser, Loader2, LogIn } from "lucide-react";
+import { CircleUser, Loader2, LogIn, Settings } from "lucide-react";
 import { HeaderTimer } from "@/app/components/header-timer";
 import { ThemeToggle } from "@/app/planner/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+
+type NavItem = {
+  href: string;
+  label: string;
+  key: string;
+};
+
+type NavigationResponse = {
+  items?: NavItem[];
+};
 
 function AccountHeaderControl() {
   const { data: session, status } = useSession();
@@ -72,6 +83,19 @@ function AccountHeaderControl() {
           <p className="pt-1 text-xs text-muted-foreground">
             Planner and workouts are saved to your account.
           </p>
+          <div className="pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start"
+              asChild
+            >
+              <Link href="/settings">
+                <Settings className="size-4" aria-hidden />
+                Settings
+              </Link>
+            </Button>
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -86,13 +110,26 @@ function AccountHeaderControl() {
   );
 }
 
-const navItems = [
-  { href: "/", label: "Planner" },
-  { href: "/tasks", label: "Tasks" },
-  { href: "/workout-tracker", label: "Workouts" },
+const fallbackNavItems = [
+  { href: "/", label: "Planner", key: "planner" },
+  { href: "/tasks", label: "Tasks", key: "tasks" },
+  { href: "/workout-tracker", label: "Workouts", key: "workouts" },
 ];
 
-const VISIBLE_ROUTES = new Set(navItems.map((item) => item.href));
+const VISIBLE_ROUTES = new Set([
+  ...fallbackNavItems.map((item) => item.href),
+  "/settings",
+]);
+
+function NavigationLoadingLinks() {
+  return (
+    <div className="flex items-center gap-2" aria-hidden>
+      <span className="h-4 w-11 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+      <span className="h-4 w-8 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+      <span className="h-4 w-14 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+    </div>
+  );
+}
 
 function LogoMarkA() {
   return (
@@ -107,6 +144,37 @@ function LogoMarkA() {
 
 export function AppHeader() {
   const pathname = usePathname();
+  const { status } = useSession();
+  const [navItems, setNavItems] = useState<NavItem[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadNavigation() {
+      try {
+        const response = await fetch("/api/settings/navigation");
+        const result = (await response.json()) as NavigationResponse;
+
+        if (!response.ok) {
+          throw new Error("Unable to load navigation");
+        }
+
+        if (!cancelled && response.ok) {
+          setNavItems(result.items ?? []);
+        }
+      } catch {
+        if (!cancelled) {
+          setNavItems(fallbackNavItems);
+        }
+      }
+    }
+
+    void loadNavigation();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [status]);
 
   if (!pathname || !VISIBLE_ROUTES.has(pathname)) {
     return null;
@@ -119,25 +187,29 @@ export function AppHeader() {
           <LogoMarkA />
         </Link>
 
-        <nav className="flex items-center gap-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
+        <nav className="flex items-center gap-1" aria-label="Primary">
+          {navItems === null ? (
+            <NavigationLoadingLinks />
+          ) : (
+            navItems.map((item) => {
+              const isActive = pathname === item.href;
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "px-3 py-1.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "px-3 py-1.5 text-sm font-medium transition-colors",
+                    isActive
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })
+          )}
         </nav>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">

@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedUserId } from "@/lib/auth-session";
+import { requireFeatureUser } from "@/lib/auth-session";
 import { isDateKey } from "@/lib/date-key";
 import { prisma } from "@/lib/prisma";
-
-function unauthorizedResponse() {
-  return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-}
 
 function extractWorkoutTypes(
   value: string
@@ -39,10 +35,9 @@ function extractWorkoutTypes(
 }
 
 export async function GET(request: Request) {
-  const userId = await getAuthenticatedUserId();
-
-  if (!userId) {
-    return unauthorizedResponse();
+  const access = await requireFeatureUser("workouts", "Workouts are disabled");
+  if (access.response) {
+    return access.response;
   }
 
   const { searchParams } = new URL(request.url);
@@ -58,7 +53,7 @@ export async function GET(request: Request) {
 
   const workoutDays = await prisma.workoutDay.findMany({
     where: {
-      userId,
+      userId: access.userId,
       date: {
         gte: start,
         lte: end,

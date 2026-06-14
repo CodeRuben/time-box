@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 
 export interface ScheduleConfig {
   startHour: number; // 5-11 (5 AM to 11 AM)
@@ -68,15 +68,10 @@ function saveScheduleConfig(config: ScheduleConfig): void {
  * Hook to manage schedule configuration with localStorage persistence
  */
 export function useScheduleConfig() {
-  const [config, setConfig] = useState<ScheduleConfig>(DEFAULT_CONFIG);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Load config on mount
-  useEffect(() => {
-    const loaded = loadScheduleConfig();
-    setConfig(loaded);
-    setIsLoading(false);
-  }, []);
+  const [config, setConfig] = useState<ScheduleConfig>(() =>
+    loadScheduleConfig()
+  );
+  const [isLoading] = useState(false);
 
   // Update config and save to localStorage
   const updateConfig = useCallback((newConfig: ScheduleConfig) => {

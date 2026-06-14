@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -44,14 +44,6 @@ export function ScheduleConfigDialog({
 }: ScheduleConfigDialogProps) {
   const [startHour, setStartHour] = useState(config.startHour);
   const [endHour, setEndHour] = useState(config.endHour);
-
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (open) {
-      setStartHour(config.startHour);
-      setEndHour(config.endHour);
-    }
-  }, [open, config]);
 
   const handleSave = () => {
     onSave({ startHour, endHour });

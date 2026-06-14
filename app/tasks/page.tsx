@@ -9,8 +9,9 @@ import { TaskDetailDialog } from "./components/task-detail-dialog";
 import { DeleteTaskAlert } from "./components/delete-task-alert";
 import { useTasksPage } from "./hooks/use-tasks-page";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import { FeatureGate } from "../components/feature-gate";
 
-export default function TasksPage() {
+function TasksPageContent() {
   const {
     isLoading,
     filteredTasks,
@@ -119,5 +120,13 @@ export default function TasksPage() {
         onConfirm={handleDeleteTask}
       />
     </div>
+  );
+}
+
+export default function TasksPage() {
+  return (
+    <FeatureGate featureKey="tasks">
+      <TasksPageContent />
+    </FeatureGate>
   );
 }

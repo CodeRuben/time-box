@@ -46,6 +46,7 @@ import { TaskPickerDialog } from "./planner/components/task-picker-dialog";
 import { TaskDetailDialog } from "./tasks/components/task-detail-dialog";
 import type { Task } from "@/lib/task-types";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import { FeatureGate } from "./components/feature-gate";
 
 function getPreviousDate(date: Date): Date {
   const previousDate = new Date(date);
@@ -53,7 +54,7 @@ function getPreviousDate(date: Date): Date {
   return previousDate;
 }
 
-export default function Home() {
+function PlannerPageContent() {
   const router = useRouter();
   const { status } = useSession();
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -479,5 +480,13 @@ export default function Home() {
         onNavigateToTask={handleNavigateToTask}
       />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <FeatureGate featureKey="planner">
+      <PlannerPageContent />
+    </FeatureGate>
   );
 }

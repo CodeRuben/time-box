@@ -11,6 +11,7 @@ import {
   recordFailedLoginAttempt,
   resetLoginAttempts,
 } from "./login-rate-limit";
+import { normalizeUserRole } from "./feature-access-rules";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as Adapter,
@@ -58,6 +59,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
+          role: normalizeUserRole(user.role),
         };
       },
     }),
@@ -71,11 +73,22 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
       }
 
+      if (user?.role) {
+        token.role = normalizeUserRole(user.role);
+      } else if (token.sub) {
+        const currentUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true },
+        });
+        token.role = normalizeUserRole(currentUser?.role);
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
+        session.user.role = normalizeUserRole(token.role);
       }
 
       return session;

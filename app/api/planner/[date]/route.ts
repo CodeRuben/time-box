@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedUserId } from "@/lib/auth-session";
+import { requireFeatureUser } from "@/lib/auth-session";
 import { isDateKey } from "@/lib/date-key";
 import { prisma } from "@/lib/prisma";
 
@@ -7,10 +7,6 @@ interface PlannerRouteContext {
   params: Promise<{
     date: string;
   }>;
-}
-
-function unauthorizedResponse() {
-  return NextResponse.json({ error: "Authentication required" }, { status: 401 });
 }
 
 function badRequestResponse() {
@@ -25,10 +21,9 @@ export async function GET(
   _request: Request,
   { params }: PlannerRouteContext
 ) {
-  const userId = await getAuthenticatedUserId();
-
-  if (!userId) {
-    return unauthorizedResponse();
+  const access = await requireFeatureUser("planner", "Planner is disabled");
+  if (access.response) {
+    return access.response;
   }
 
   const { date } = await params;
@@ -40,7 +35,7 @@ export async function GET(
   const plannerDay = await prisma.plannerDay.findUnique({
     where: {
       userId_date: {
-        userId,
+        userId: access.userId,
         date,
       },
     },
@@ -57,10 +52,9 @@ export async function PUT(
   request: Request,
   { params }: PlannerRouteContext
 ) {
-  const userId = await getAuthenticatedUserId();
-
-  if (!userId) {
-    return unauthorizedResponse();
+  const access = await requireFeatureUser("planner", "Planner is disabled");
+  if (access.response) {
+    return access.response;
   }
 
   const { date } = await params;
@@ -85,7 +79,7 @@ export async function PUT(
   const plannerDay = await prisma.plannerDay.upsert({
     where: {
       userId_date: {
-        userId,
+        userId: access.userId,
         date,
       },
     },
@@ -93,7 +87,7 @@ export async function PUT(
       data: JSON.stringify(data),
     },
     create: {
-      userId,
+      userId: access.userId,
       date,
       data: JSON.stringify(data),
     },

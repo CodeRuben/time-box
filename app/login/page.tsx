@@ -10,9 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LOGIN_RATE_LIMIT_ERROR } from "@/lib/auth-errors";
+import { useRegistrationAccess } from "@/lib/use-registration-access";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { isLoading: isCheckingRegistration, isEnabled: registrationEnabled } =
+    useRegistrationAccess();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -52,15 +55,17 @@ export default function LoginPage() {
       title="Sign in"
       description="Welcome back. Sign in to sync your planner and workouts."
       footer={
-        <>
-          Need access?{" "}
-          <Link
-            className="font-medium text-primary hover:underline"
-            href="/register"
-          >
-            Create an account
-          </Link>
-        </>
+        !isCheckingRegistration && registrationEnabled ? (
+          <>
+            Need access?{" "}
+            <Link
+              className="font-medium text-primary hover:underline"
+              href="/register"
+            >
+              Create an account
+            </Link>
+          </>
+        ) : undefined
       }
     >
       <form onSubmit={handleSubmit} className="space-y-5">

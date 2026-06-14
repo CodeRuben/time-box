@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedUserId } from "@/lib/auth-session";
+import { requireFeatureUser } from "@/lib/auth-session";
 import { prisma } from "@/lib/prisma";
 import {
   formatTask,
@@ -11,28 +11,20 @@ interface TaskRouteContext {
   params: Promise<{ id: string }>;
 }
 
-function unauthorizedResponse() {
-  return NextResponse.json(
-    { error: "Authentication required" },
-    { status: 401 }
-  );
-}
-
 function notFoundResponse() {
   return NextResponse.json({ error: "Task not found" }, { status: 404 });
 }
 
 export async function PUT(request: Request, { params }: TaskRouteContext) {
-  const userId = await getAuthenticatedUserId();
-
-  if (!userId) {
-    return unauthorizedResponse();
+  const access = await requireFeatureUser("tasks", "Tasks are disabled");
+  if (access.response) {
+    return access.response;
   }
 
   const { id } = await params;
 
   const existing = await prisma.task.findFirst({
-    where: { id, userId },
+    where: { id, userId: access.userId },
   });
 
   if (!existing) {
@@ -73,16 +65,15 @@ export async function PUT(request: Request, { params }: TaskRouteContext) {
 }
 
 export async function DELETE(_request: Request, { params }: TaskRouteContext) {
-  const userId = await getAuthenticatedUserId();
-
-  if (!userId) {
-    return unauthorizedResponse();
+  const access = await requireFeatureUser("tasks", "Tasks are disabled");
+  if (access.response) {
+    return access.response;
   }
 
   const { id } = await params;
 
   const existing = await prisma.task.findFirst({
-    where: { id, userId },
+    where: { id, userId: access.userId },
   });
 
   if (!existing) {
