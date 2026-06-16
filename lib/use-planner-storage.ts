@@ -567,6 +567,7 @@ export function usePlannerStorage(date: Date | undefined) {
   const dataRef = useRef<PlannerData>(cached ?? getDefaultData());
   const dataVersionRef = useRef(0);
   const hasPersistableDataRef = useRef(!!cached);
+  const hasHydratedOnceRef = useRef(!!cached);
 
   const clearSavedReset = useCallback(() => {
     if (savedResetTimeoutRef.current) {
@@ -594,8 +595,16 @@ export function usePlannerStorage(date: Date | undefined) {
     const cachedData = date && identity ? getCachedData(identity, date) : undefined;
     const hasCachedData = !!cachedData;
 
-    if (!date || !storageMode || !identity) {
-      if (!hasCachedData) {
+    if (!date) {
+      setIsLoading(false);
+      setAutosaveStatus("idle");
+      clearSavedReset();
+      persistIdRef.current += 1;
+      return;
+    }
+
+    if (!storageMode || !identity) {
+      if (!hasHydratedOnceRef.current && !hasCachedData) {
         setIsLoading(true);
       }
       setAutosaveStatus("idle");
@@ -639,7 +648,7 @@ export function usePlannerStorage(date: Date | undefined) {
       }
     }
 
-    if (!hasCachedData) {
+    if (!hasCachedData && !hasHydratedOnceRef.current) {
       setIsLoading(true);
     }
     currentDateRef.current = date;
@@ -650,6 +659,12 @@ export function usePlannerStorage(date: Date | undefined) {
     if (cachedData) {
       setData(cachedData);
       dataRef.current = cachedData;
+      hasHydratedOnceRef.current = true;
+      setIsLoading(false);
+    } else if (hasHydratedOnceRef.current) {
+      const defaultData = getDefaultData();
+      setData(defaultData);
+      dataRef.current = defaultData;
     }
 
     let isCancelled = false;
@@ -679,6 +694,7 @@ export function usePlannerStorage(date: Date | undefined) {
         setData(nextData);
         dataRef.current = nextData;
         hasPersistableDataRef.current = true;
+        hasHydratedOnceRef.current = true;
         setCachedData(identity, date, nextData);
       } catch (error) {
         console.error("Failed to hydrate planner data:", error);
@@ -694,6 +710,7 @@ export function usePlannerStorage(date: Date | undefined) {
         const defaultData = getDefaultData();
         setData(defaultData);
         dataRef.current = defaultData;
+        hasHydratedOnceRef.current = true;
       } finally {
         if (!isCancelled) {
           setIsLoading(false);

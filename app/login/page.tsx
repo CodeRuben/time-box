@@ -53,7 +53,7 @@ export default function LoginPage() {
   return (
     <AuthPageShell
       title="Sign in"
-      description="Welcome back. Sign in to sync your planner and workouts."
+      description="Welcome back. Sign in to sync your data across devices."
       footer={
         !isCheckingRegistration && registrationEnabled ? (
           <>

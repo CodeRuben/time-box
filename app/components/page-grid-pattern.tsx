@@ -25,7 +25,7 @@ export function PageGridPattern({
   return (
     <div
       className={cn(
-        "pointer-events-none absolute inset-0 overflow-hidden opacity-40 dark:opacity-55",
+        "pointer-events-none absolute inset-0 overflow-hidden opacity-40 dark:opacity-34",
         className,
       )}
       aria-hidden
