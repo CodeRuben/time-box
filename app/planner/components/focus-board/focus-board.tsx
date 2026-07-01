@@ -121,11 +121,12 @@ export function FocusBoard({
 
   const getItemDescription = useCallback(
     (item: FocusListItem) => {
-      if (item.source.type !== "task") {
+      const source = item.source;
+      if (source.type !== "task") {
         return undefined;
       }
 
-      const task = tasks.find((entry) => entry.id === item.source.taskId);
+      const task = tasks.find((entry) => entry.id === source.taskId);
       return task?.description.trim() || undefined;
     },
     [tasks]

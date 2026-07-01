@@ -11,10 +11,11 @@ export type WorkoutType = "unknown" | "resistance" | "cardio" | "hybrid";
 export type WorkoutDotType = Exclude<WorkoutType, "unknown">;
 export type WorkoutSubtaskStatus = "pending" | "completed" | "error";
 
-interface WorkoutSubtask {
+export interface WorkoutSubtask {
   id: string;
   name: string;
   status: WorkoutSubtaskStatus;
+  fields?: Record<string, string>;
 }
 
 export interface Workout {
@@ -128,6 +129,9 @@ function normalizeWorkout(raw: unknown): Workout | null {
           : (parsed as { completed?: boolean }).completed
             ? "completed"
             : "pending",
+        ...(parsed.fields && typeof parsed.fields === "object"
+          ? { fields: parsed.fields }
+          : {}),
       };
     })
     .filter((subtask): subtask is WorkoutSubtask => subtask !== null);
