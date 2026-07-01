@@ -28,6 +28,7 @@ const DEFAULT_OPTIONS: CopyPreviousDayOptions = {
   includeTopPriorities: true,
   includeHourlySchedule: false,
   includeBrainDump: false,
+  includeFocusList: true,
   onlyUnfinished: true,
   mode: "merge",
 };
@@ -49,7 +50,8 @@ export function CopyPreviousDayDialog({
   const hasSelectedSection =
     options.includeTopPriorities ||
     options.includeHourlySchedule ||
-    options.includeBrainDump;
+    options.includeBrainDump ||
+    options.includeFocusList;
 
   const updateOption = <Key extends keyof CopyPreviousDayOptions>(
     key: Key,
@@ -82,7 +84,7 @@ export function CopyPreviousDayDialog({
 
           <div className="space-y-3">
             <p className="text-sm font-medium">What should be copied?</p>
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="grid gap-2 sm:grid-cols-2">
               <Label className="items-start gap-3 rounded-md border bg-card p-3 cursor-pointer transition-colors hover:bg-accent/40 dark:border-muted-foreground/30 dark:bg-muted/20 dark:hover:bg-muted/30">
                 <Checkbox
                   checked={options.includeTopPriorities}
@@ -94,6 +96,20 @@ export function CopyPreviousDayDialog({
                   <span>Top priorities</span>
                   <span className="text-xs font-normal text-muted-foreground">
                     Up to three priorities and subtasks.
+                  </span>
+                </span>
+              </Label>
+              <Label className="items-start gap-3 rounded-md border bg-card p-3 cursor-pointer transition-colors hover:bg-accent/40 dark:border-muted-foreground/30 dark:bg-muted/20 dark:hover:bg-muted/30">
+                <Checkbox
+                  checked={options.includeFocusList}
+                  onCheckedChange={(checked) =>
+                    updateOption("includeFocusList", checked === true)
+                  }
+                />
+                <span className="grid gap-1">
+                  <span>Focus list</span>
+                  <span className="text-xs font-normal text-muted-foreground">
+                    Queued and completed focus items.
                   </span>
                 </span>
               </Label>
@@ -174,7 +190,8 @@ export function CopyPreviousDayDialog({
             <span className="grid gap-0.5">
               <span>Only copy unfinished items</span>
               <span className="text-xs font-normal text-muted-foreground">
-                Completed priorities and completed schedule items are skipped.
+                Completed priorities, focus list items, and schedule items are
+                skipped.
               </span>
             </span>
           </Label>

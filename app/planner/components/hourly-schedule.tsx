@@ -82,82 +82,78 @@ export function HourlySchedule({
   };
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl sm:text-2xl font-semibold text-foreground">
-        Hourly Schedule
-      </h2>
-      <div className="relative">
-        {/* Scroll up indicator */}
-        {canScrollUp && (
-          <button
-            onClick={scrollUp}
-            className="absolute -top-1 left-1/2 -translate-x-1/2 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm hover:bg-accent transition-colors"
-            aria-label="Scroll up"
-          >
-            <ChevronUp className="h-5 w-5 text-muted-foreground" />
-          </button>
-        )}
-
-        <div
-          ref={scrollContainerRef}
-          className="space-y-2.5 overflow-y-auto scrollbar-hide"
-          style={{
-            maxHeight: maxHeight ? `${maxHeight}px` : "calc(100vh - 14rem)",
-          }}
+    <div className="relative h-full min-h-0">
+      {canScrollUp && (
+        <button
+          onClick={scrollUp}
+          className="absolute -top-1 left-1/2 -translate-x-1/2 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm hover:bg-accent transition-colors"
+          aria-label="Scroll up"
         >
-          {visibleHours.map((hour) => {
-            const slot00Key = `${hour}:00`;
-            const slot30Key = `${hour}:30`;
+          <ChevronUp className="h-5 w-5 text-muted-foreground" />
+        </button>
+      )}
 
-            return (
-              <div
-                key={hour}
-                className="grid grid-cols-[3rem_1fr] sm:grid-cols-[4rem_1fr_1fr] gap-1.5 sm:gap-2 items-stretch"
-              >
-                {/* Hour label */}
-                <div className="row-span-2 sm:row-span-1 flex items-center justify-center rounded-lg bg-muted/50">
-                  <span className="hidden sm:inline text-sm font-medium text-muted-foreground">
-                    {hour}
+      <div
+        ref={scrollContainerRef}
+        className="h-full max-h-full space-y-2.5 overflow-y-auto scrollbar-hide"
+        style={{
+          maxHeight: maxHeight
+            ? `${maxHeight}px`
+            : "calc(100vh - 14rem)",
+        }}
+      >
+        {visibleHours.map((hour) => {
+          const slot00Key = `${hour}:00`;
+          const slot30Key = `${hour}:30`;
+
+          return (
+            <div
+              key={hour}
+              className="grid grid-cols-[3rem_1fr] sm:grid-cols-[4rem_1fr_1fr] gap-1.5 sm:gap-2 items-stretch"
+            >
+              <div className="row-span-2 sm:row-span-1 flex items-center justify-center rounded-lg bg-muted/50">
+                <span className="hidden sm:inline text-sm font-medium text-muted-foreground">
+                  {hour}
+                </span>
+                <span className="flex sm:hidden flex-col items-center leading-tight text-muted-foreground">
+                  <span className="text-lg font-semibold">
+                    {hour.split(" ")[0]}
                   </span>
-                  <span className="flex sm:hidden flex-col items-center leading-tight text-muted-foreground">
-                    <span className="text-lg font-semibold">{hour.split(" ")[0]}</span>
-                    <span className="text-xs font-medium uppercase">{hour.split(" ")[1]}</span>
+                  <span className="text-xs font-medium uppercase">
+                    {hour.split(" ")[1]}
                   </span>
-                </div>
-
-                {/* :00 slot */}
-                <TimeSlotCard
-                  items={hourlySlots[slot00Key] || []}
-                  reminders={getRemindersForSlot(slot00Key)}
-                  onUpdateItems={(items) => onUpdateSlot(slot00Key, items)}
-                  onViewReminder={onViewReminder}
-                  timeSlot={slot00Key}
-                />
-
-                {/* :30 slot */}
-                <TimeSlotCard
-                  items={hourlySlots[slot30Key] || []}
-                  reminders={getRemindersForSlot(slot30Key)}
-                  onUpdateItems={(items) => onUpdateSlot(slot30Key, items)}
-                  onViewReminder={onViewReminder}
-                  timeSlot={slot30Key}
-                />
+                </span>
               </div>
-            );
-          })}
-        </div>
 
-        {/* Scroll down indicator */}
-        {canScrollDown && (
-          <button
-            onClick={scrollDown}
-            className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm hover:bg-accent transition-colors"
-            aria-label="Scroll down"
-          >
-            <ChevronDown className="h-5 w-5 text-muted-foreground" />
-          </button>
-        )}
+              <TimeSlotCard
+                items={hourlySlots[slot00Key] || []}
+                reminders={getRemindersForSlot(slot00Key)}
+                onUpdateItems={(items) => onUpdateSlot(slot00Key, items)}
+                onViewReminder={onViewReminder}
+                timeSlot={slot00Key}
+              />
+
+              <TimeSlotCard
+                items={hourlySlots[slot30Key] || []}
+                reminders={getRemindersForSlot(slot30Key)}
+                onUpdateItems={(items) => onUpdateSlot(slot30Key, items)}
+                onViewReminder={onViewReminder}
+                timeSlot={slot30Key}
+              />
+            </div>
+          );
+        })}
       </div>
+
+      {canScrollDown && (
+        <button
+          onClick={scrollDown}
+          className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm border shadow-sm hover:bg-accent transition-colors"
+          aria-label="Scroll down"
+        >
+          <ChevronDown className="h-5 w-5 text-muted-foreground" />
+        </button>
+      )}
     </div>
   );
 }

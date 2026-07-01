@@ -11,6 +11,13 @@ import {
   purgeWritesExcept,
   waitForWrites,
 } from "@/lib/save-queue";
+import {
+  appendCopiedFocusListItems,
+  copyFocusListItems,
+  parseFocusListItems,
+  renormalizeFocusListOrders,
+  type FocusListItem,
+} from "@/lib/focus-list";
 
 export type TaskStatus = "pending" | "completed" | "error";
 
@@ -28,6 +35,24 @@ export interface TopPriority {
   linkedTaskId?: string;
 }
 
+export const MAX_TOP_PRIORITIES = 3;
+
+export function createTopPriorityFromBrainDumpCandidate(candidate: {
+  name: string;
+  subtasks: string[];
+}): TopPriority {
+  return {
+    id: crypto.randomUUID(),
+    name: candidate.name,
+    completed: false,
+    subtasks: candidate.subtasks.map((name) => ({
+      id: crypto.randomUUID(),
+      name,
+      completed: false,
+    })),
+  };
+}
+
 export interface HourlyItem {
   id: string;
   text: string;
@@ -38,6 +63,7 @@ export interface PlannerData {
   topPriorities: TopPriority[];
   brainDump: string;
   hourlySlots: Record<string, HourlyItem[]>;
+  focusList: FocusListItem[];
   lastSaved?: string;
 }
 
@@ -45,6 +71,7 @@ export interface CopyPreviousDayOptions {
   includeTopPriorities: boolean;
   includeHourlySchedule: boolean;
   includeBrainDump: boolean;
+  includeFocusList: boolean;
   onlyUnfinished: boolean;
   mode: "replace" | "merge";
 }
@@ -83,6 +110,7 @@ export function getDefaultData(): PlannerData {
   return {
     topPriorities: [],
     brainDump: "",
+    focusList: [],
     hourlySlots: ALL_HOURS.reduce(
       (acc, hour) => ({
         ...acc,
@@ -283,6 +311,15 @@ export function hasCopyablePlannerData(
     return true;
   }
 
+  if (
+    options.includeFocusList &&
+    (previous.focusList ?? []).some(
+      (item) => !options.onlyUnfinished || item.status === "todo"
+    )
+  ) {
+    return true;
+  }
+
   return options.includeBrainDump && previous.brainDump.trim().length > 0;
 }
 
@@ -294,6 +331,9 @@ export function copyPlannerDataFromPreviousDay(
   const copiedPriorities = getCopiedTopPriorities(
     previous,
     options.onlyUnfinished
+  );
+  const copiedFocusList = renormalizeFocusListOrders(
+    copyFocusListItems(previous.focusList ?? [], options.onlyUnfinished)
   );
 
   return {
@@ -311,6 +351,11 @@ export function copyPlannerDataFromPreviousDay(
     hourlySlots: options.includeHourlySchedule
       ? copyHourlySlots(current.hourlySlots, previous.hourlySlots, options)
       : current.hourlySlots,
+    focusList: options.includeFocusList
+      ? options.mode === "replace"
+        ? copiedFocusList
+        : appendCopiedFocusListItems(current.focusList, copiedFocusList)
+      : current.focusList,
   };
 }
 
@@ -359,6 +404,7 @@ function hydratePlannerData(raw: unknown): PlannerData | null {
     brainDump: parsed.brainDump || defaultData.brainDump,
     hourlySlots,
     topPriorities,
+    focusList: parseFocusListItems(parsed.focusList),
     lastSaved: parsed.lastSaved,
   };
 }

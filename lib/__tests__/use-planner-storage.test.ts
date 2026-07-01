@@ -7,6 +7,7 @@ import {
   migrateFromLegacy,
   ensurePriorityFields,
   copyPlannerDataFromPreviousDay,
+  createTopPriorityFromBrainDumpCandidate,
   hasCopyablePlannerData,
   loadPlannerData,
   savePlannerData,
@@ -42,6 +43,11 @@ describe("getDefaultData", () => {
   it("returns empty brain dump", () => {
     const data = getDefaultData();
     expect(data.brainDump).toBe("");
+  });
+
+  it("returns empty focus list", () => {
+    const data = getDefaultData();
+    expect(data.focusList).toEqual([]);
   });
 
   it("generates hourly slots for all hours with :00 and :30 slots as empty arrays", () => {
@@ -219,6 +225,7 @@ describe("copyPlannerDataFromPreviousDay", () => {
     includeTopPriorities: true,
     includeHourlySchedule: true,
     includeBrainDump: false,
+    includeFocusList: false,
     onlyUnfinished: true,
     mode: "merge",
   };
@@ -227,6 +234,7 @@ describe("copyPlannerDataFromPreviousDay", () => {
     const current: PlannerData = {
       topPriorities: [],
       brainDump: "Today",
+      focusList: [],
       hourlySlots: {
         "7 AM:00": [{ id: "today-item", text: "Existing", status: "pending" }],
       },
@@ -241,6 +249,7 @@ describe("copyPlannerDataFromPreviousDay", () => {
         },
       ],
       brainDump: "Yesterday",
+      focusList: [],
       hourlySlots: {
         "7 AM:00": [{ id: "done-item", text: "Done", status: "completed" }],
         "8 AM:00": [{ id: "blocked-item", text: "Retry", status: "error" }],
@@ -275,6 +284,7 @@ describe("copyPlannerDataFromPreviousDay", () => {
         { id: "current-priority", name: "Current", completed: false, subtasks: [] },
       ],
       brainDump: "Today",
+      focusList: [],
       hourlySlots: {
         "7 AM:00": [{ id: "today-item", text: "Existing", status: "pending" }],
       },
@@ -284,6 +294,7 @@ describe("copyPlannerDataFromPreviousDay", () => {
         { id: "previous-priority", name: "Previous", completed: true, subtasks: [] },
       ],
       brainDump: "Yesterday",
+      focusList: [],
       hourlySlots: {
         "8 AM:00": [{ id: "old-item", text: "Old", status: "completed" }],
       },
@@ -303,6 +314,100 @@ describe("copyPlannerDataFromPreviousDay", () => {
     expect(result.brainDump).toBe("Yesterday");
     expect(result.hourlySlots).toEqual(current.hourlySlots);
   });
+
+  it("copies unfinished focus list items with new ids and dedupes on merge", () => {
+    const current: PlannerData = {
+      ...getDefaultData(),
+      focusList: [
+        {
+          id: "current-focus",
+          status: "todo",
+          order: 0,
+          source: { type: "brain_dump", text: "Already here" },
+        },
+      ],
+    };
+    const previous: PlannerData = {
+      ...getDefaultData(),
+      focusList: [
+        {
+          id: "todo-focus",
+          status: "todo",
+          order: 0,
+          source: { type: "brain_dump", text: "Carry over" },
+        },
+        {
+          id: "done-focus",
+          status: "complete",
+          order: 0,
+          source: { type: "brain_dump", text: "Finished" },
+        },
+        {
+          id: "duplicate-focus",
+          status: "todo",
+          order: 1,
+          source: { type: "brain_dump", text: "Already here" },
+        },
+      ],
+    };
+
+    const result = copyPlannerDataFromPreviousDay(current, previous, {
+      includeTopPriorities: false,
+      includeHourlySchedule: false,
+      includeBrainDump: false,
+      includeFocusList: true,
+      onlyUnfinished: true,
+      mode: "merge",
+    });
+
+    expect(result.focusList).toHaveLength(2);
+    expect(result.focusList.map((item) => item.source)).toEqual([
+      { type: "brain_dump", text: "Already here" },
+      { type: "brain_dump", text: "Carry over" },
+    ]);
+    expect(result.focusList[1]?.id).not.toBe("todo-focus");
+  });
+
+  it("replaces the focus list when mode is replace", () => {
+    const current: PlannerData = {
+      ...getDefaultData(),
+      focusList: [
+        {
+          id: "current-focus",
+          status: "todo",
+          order: 0,
+          source: { type: "brain_dump", text: "Current item" },
+        },
+      ],
+    };
+    const previous: PlannerData = {
+      ...getDefaultData(),
+      focusList: [
+        {
+          id: "previous-focus",
+          status: "todo",
+          order: 0,
+          source: { type: "brain_dump", text: "Previous item" },
+        },
+      ],
+    };
+
+    const result = copyPlannerDataFromPreviousDay(current, previous, {
+      includeTopPriorities: false,
+      includeHourlySchedule: false,
+      includeBrainDump: false,
+      includeFocusList: true,
+      onlyUnfinished: true,
+      mode: "replace",
+    });
+
+    expect(result.focusList).toHaveLength(1);
+    expect(result.focusList[0]?.source).toEqual({
+      type: "brain_dump",
+      text: "Previous item",
+    });
+    expect(result.focusList[0]?.id).not.toBe("previous-focus");
+  });
 });
 
 describe("hasCopyablePlannerData", () => {
@@ -311,6 +416,14 @@ describe("hasCopyablePlannerData", () => {
       { id: "priority-1", name: "Done", completed: true, subtasks: [] },
     ],
     brainDump: "Notes",
+    focusList: [
+      {
+        id: "done-focus",
+        status: "complete",
+        order: 0,
+        source: { type: "brain_dump", text: "Done item" },
+      },
+    ],
     hourlySlots: {
       "7 AM:00": [{ id: "done-item", text: "Done", status: "completed" }],
     },
@@ -322,10 +435,50 @@ describe("hasCopyablePlannerData", () => {
         includeTopPriorities: true,
         includeHourlySchedule: true,
         includeBrainDump: false,
+        includeFocusList: false,
         onlyUnfinished: true,
         mode: "merge",
       })
     ).toBe(false);
+  });
+
+  it("returns false when focus list has only completed items", () => {
+    expect(
+      hasCopyablePlannerData(previous, {
+        includeTopPriorities: false,
+        includeHourlySchedule: false,
+        includeBrainDump: false,
+        includeFocusList: true,
+        onlyUnfinished: true,
+        mode: "merge",
+      })
+    ).toBe(false);
+  });
+
+  it("returns true when selected focus list has todo items", () => {
+    expect(
+      hasCopyablePlannerData(
+        {
+          ...previous,
+          focusList: [
+            {
+              id: "todo-focus",
+              status: "todo",
+              order: 0,
+              source: { type: "brain_dump", text: "Carry over" },
+            },
+          ],
+        },
+        {
+          includeTopPriorities: false,
+          includeHourlySchedule: false,
+          includeBrainDump: false,
+          includeFocusList: true,
+          onlyUnfinished: true,
+          mode: "merge",
+        }
+      )
+    ).toBe(true);
   });
 
   it("returns true when selected brain dump has content", () => {
@@ -334,6 +487,7 @@ describe("hasCopyablePlannerData", () => {
         includeTopPriorities: false,
         includeHourlySchedule: false,
         includeBrainDump: true,
+        includeFocusList: false,
         onlyUnfinished: true,
         mode: "merge",
       })
@@ -369,6 +523,45 @@ describe("loadPlannerData", () => {
     expect(result?.topPriorities[0].name).toBe("Test");
     expect(result?.hourlySlots["7 AM:00"][0].text).toBe("Meeting");
     expect(result?.hourlySlots["7 AM:00"][0].status).toBe("completed");
+  });
+
+  it("defaults missing focusList to an empty array", () => {
+    const date = new Date(2026, 0, 31);
+    const testData = {
+      topPriorities: [],
+      brainDump: "",
+      hourlySlots: {},
+    };
+    localStorage.setItem("planner-2026-01-31", JSON.stringify(testData));
+
+    const result = loadPlannerData(date);
+    expect(result?.focusList).toEqual([]);
+  });
+
+  it("loads persisted focus list items", () => {
+    const date = new Date(2026, 0, 31);
+    const testData = {
+      topPriorities: [],
+      brainDump: "",
+      hourlySlots: {},
+      focusList: [
+        {
+          id: "focus-1",
+          status: "todo",
+          order: 0,
+          source: { type: "brain_dump", text: "Ship it" },
+        },
+      ],
+    };
+    localStorage.setItem("planner-2026-01-31", JSON.stringify(testData));
+
+    const result = loadPlannerData(date);
+    expect(result?.focusList).toHaveLength(1);
+    expect(result?.focusList[0]).toMatchObject({
+      id: "focus-1",
+      status: "todo",
+      source: { type: "brain_dump", text: "Ship it" },
+    });
   });
 
   it("migrates legacy hourlyPlans + hourlyStatuses to hourlySlots", () => {
@@ -453,9 +646,8 @@ describe("savePlannerData", () => {
   it("saves data to localStorage with correct key", () => {
     const date = new Date(2026, 0, 31);
     const data = {
-      topPriorities: [],
+      ...getDefaultData(),
       brainDump: "Test",
-      hourlySlots: {},
     };
 
     savePlannerData(date, data);
@@ -468,11 +660,7 @@ describe("savePlannerData", () => {
 
   it("adds lastSaved timestamp", () => {
     const date = new Date(2026, 0, 31);
-    const data = {
-      topPriorities: [],
-      brainDump: "",
-      hourlySlots: {},
-    };
+    const data = getDefaultData();
 
     savePlannerData(date, data);
 
@@ -487,8 +675,7 @@ describe("savePlannerData", () => {
   it("saves hourlySlots correctly", () => {
     const date = new Date(2026, 0, 31);
     const data = {
-      topPriorities: [],
-      brainDump: "",
+      ...getDefaultData(),
       hourlySlots: {
         "7 AM:00": [{ id: "1", text: "Meeting", status: "completed" as const }],
       },
@@ -500,5 +687,25 @@ describe("savePlannerData", () => {
     const parsed = JSON.parse(stored!);
     expect(parsed.hourlySlots["7 AM:00"][0].text).toBe("Meeting");
     expect(parsed.hourlySlots["7 AM:00"][0].status).toBe("completed");
+  });
+});
+
+describe("createTopPriorityFromBrainDumpCandidate", () => {
+  it("creates a priority with subtasks from a brain dump candidate", () => {
+    const priority = createTopPriorityFromBrainDumpCandidate({
+      name: "Ship login flow",
+      subtasks: ["Design mockups", "Write tests"],
+    });
+
+    expect(priority).toMatchObject({
+      name: "Ship login flow",
+      completed: false,
+      subtasks: [
+        { name: "Design mockups", completed: false },
+        { name: "Write tests", completed: false },
+      ],
+    });
+    expect(priority.id).toEqual(expect.any(String));
+    expect(priority.subtasks.every((subtask) => subtask.id)).toBe(true);
   });
 });

@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, type SetStateAction } from "react";
 import { useRouter } from "next/navigation";
 import { PlannerHeader } from "./planner/components/planner-header";
 import { TopPriorities } from "./planner/components/top-priorities";
 import { BrainDump } from "./planner/components/brain-dump";
 import { DateSelector } from "./planner/components/date-selector";
 import { HourlySchedule } from "./planner/components/hourly-schedule";
+import { RightColumnViewToggle } from "./planner/components/right-column-view-toggle";
+import { FocusBoard } from "./planner/components/focus-board";
 import { ReminderButton } from "./planner/components/reminder-button";
 import { CreateReminderDialog } from "./planner/components/create-reminder-dialog";
 import { ReminderInfoDialog } from "./planner/components/reminder-info-dialog";
@@ -15,11 +17,12 @@ import { ClearDayAlert } from "./planner/components/clear-day-alert";
 import { CopyPreviousDayDialog } from "./planner/components/copy-previous-day-dialog";
 import {
   copyPlannerDataFromPreviousDay,
-  usePlannerStorage,
+  createTopPriorityFromBrainDumpCandidate,
   getDefaultData,
   hasCopyablePlannerData,
+  MAX_TOP_PRIORITIES,
+  usePlannerStorage,
   type CopyPreviousDayOptions,
-  type TopPriority,
   type HourlyItem,
 } from "@/lib/use-planner-storage";
 import { Button } from "@/components/ui/button";
@@ -47,6 +50,18 @@ import { TaskDetailDialog } from "./tasks/components/task-detail-dialog";
 import type { Task } from "@/lib/task-types";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { FeatureGate } from "./components/feature-gate";
+import {
+  AppCommandPalette,
+  type CommandPaletteView,
+} from "./components/app-command-palette";
+import { useCommandPaletteShortcut } from "@/hooks/use-command-palette-shortcut";
+import { useRightColumnLayout } from "@/hooks/use-right-column-layout";
+import type { BrainDumpPriorityCandidate } from "@/lib/parse-brain-dump-priorities";
+import { parseBrainDumpPriorityCandidates } from "@/lib/parse-brain-dump-priorities";
+import type { FocusListItem } from "@/lib/focus-list";
+import { addFocusListItem } from "@/lib/focus-list";
+import { getFocusItemSourceKey } from "@/lib/focus-item-source";
+import type { TopPriority } from "@/lib/use-planner-storage";
 
 function getPreviousDate(date: Date): Date {
   const previousDate = new Date(date);
@@ -58,10 +73,13 @@ function PlannerPageContent() {
   const router = useRouter();
   const { status } = useSession();
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [leftColumnHeight, setLeftColumnHeight] = useState<number | null>(null);
   const leftColumnRef = useRef<HTMLDivElement>(null);
   const { data, setData, isLoading, autosaveStatus, loadDataForDate } =
     usePlannerStorage(date);
+  const { rightColumnHeight, hourlyMaxHeight } = useRightColumnLayout(
+    leftColumnRef,
+    !isLoading
+  );
 
   // Task linking
   const { tasks, updateTask: updateLinkedTask } = useTaskStorage();
@@ -100,6 +118,19 @@ function PlannerPageContent() {
   const [copyPreviousError, setCopyPreviousError] = useState<string | null>(null);
   const [scheduleConfigDialogOpen, setScheduleConfigDialogOpen] =
     useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [commandPaletteStartView, setCommandPaletteStartView] =
+    useState<CommandPaletteView>("root");
+  const [rightColumnView, setRightColumnView] = useState<"queue" | "hourly">(
+    "queue"
+  );
+
+  const openCommandPalette = useCallback((view: CommandPaletteView = "root") => {
+    setCommandPaletteStartView(view);
+    setCommandPaletteOpen(true);
+  }, []);
+
+  useCommandPaletteShortcut(openCommandPalette);
 
   // Get reminders for current date
   const currentDateReminders = date ? getRemindersForDate(date) : [];
@@ -257,7 +288,55 @@ function PlannerPageContent() {
     dismissReminder(id);
   };
 
-  // Handle clearing all data for the current day
+  const handleFocusItemsChange = useCallback(
+    (updater: SetStateAction<FocusListItem[]>) => {
+      setData((prev) => ({
+        ...prev,
+        focusList:
+          typeof updater === "function" ? updater(prev.focusList) : updater,
+      }));
+    },
+    [setData]
+  );
+
+  const handleAddToFocusFromBrainDump = useCallback(
+    (candidate: BrainDumpPriorityCandidate) => {
+      handleFocusItemsChange((current) =>
+        addFocusListItem(current, {
+          type: "brain_dump",
+          text: candidate.name,
+        })
+      );
+    },
+    [handleFocusItemsChange]
+  );
+
+  const handleAddToTopPriorityFromBrainDump = useCallback(
+    (candidate: BrainDumpPriorityCandidate) => {
+      setData((prev) => {
+        if (prev.topPriorities.length >= MAX_TOP_PRIORITIES) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          topPriorities: [
+            ...prev.topPriorities,
+            createTopPriorityFromBrainDumpCandidate(candidate),
+          ],
+        };
+      });
+    },
+    [setData]
+  );
+
+  const currentPriorityNames = useMemo(
+    () => data.topPriorities.map((priority) => priority.name),
+    [data.topPriorities]
+  );
+
+  const canAddTopPriority = data.topPriorities.length < MAX_TOP_PRIORITIES;
+
   const handleClearDay = () => {
     setData(getDefaultData());
   };
@@ -301,28 +380,18 @@ function PlannerPageContent() {
     }
   };
 
-  // Measure left column height to sync with hourly schedule
-  useEffect(() => {
-    const updateHeight = () => {
-      if (leftColumnRef.current) {
-        setLeftColumnHeight(leftColumnRef.current.offsetHeight);
-      }
-    };
+  const existingFocusSourceKeys = useMemo(
+    () =>
+      new Set(
+        data.focusList.map((item) => getFocusItemSourceKey(item.source))
+      ),
+    [data.focusList]
+  );
 
-    updateHeight();
-    window.addEventListener("resize", updateHeight);
-
-    // Use ResizeObserver for content changes
-    const resizeObserver = new ResizeObserver(updateHeight);
-    if (leftColumnRef.current) {
-      resizeObserver.observe(leftColumnRef.current);
-    }
-
-    return () => {
-      window.removeEventListener("resize", updateHeight);
-      resizeObserver.disconnect();
-    };
-  }, [data]);
+  const brainDumpCandidates = useMemo(
+    () => parseBrainDumpPriorityCandidates(data.brainDump),
+    [data.brainDump]
+  );
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -331,7 +400,7 @@ function PlannerPageContent() {
   return (
     <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2 lg:gap-8">
           {/* First Column */}
           <div ref={leftColumnRef} className="flex flex-col gap-6 lg:gap-8">
             <PlannerHeader />
@@ -352,8 +421,17 @@ function PlannerPageContent() {
           </div>
 
           {/* Second Column */}
-          <div className="space-y-6 lg:space-y-8 pt-2">
-            <div className="flex flex-wrap items-center gap-2">
+          <div
+            className="flex min-h-0 flex-col gap-6 pt-2 lg:gap-8"
+            style={{
+              height:
+                rightColumnHeight !== undefined
+                  ? `${rightColumnHeight}px`
+                  : undefined,
+            }}
+          >
+            <div className="shrink-0">
+              <div className="flex flex-wrap items-center gap-2">
               <DateSelector value={date} onChange={setDate} />
               <ReminderButton
                 pastDueReminders={pastDueReminders}
@@ -403,15 +481,41 @@ function PlannerPageContent() {
               {status === "authenticated" && (
                 <AutosaveIndicator status={autosaveStatus} />
               )}
+              </div>
             </div>
-            <HourlySchedule
-              hourlySlots={data.hourlySlots}
-              onUpdateSlot={handleUpdateSlot}
-              reminders={currentDateReminders}
-              onViewReminder={handleViewReminder}
-              maxHeight={leftColumnHeight ? leftColumnHeight - 80 : undefined}
-              visibleHours={visibleHours}
-            />
+            <div className="flex min-h-0 flex-1 flex-col gap-2.5">
+              <div className="flex shrink-0 items-center justify-between gap-3">
+                <h2 className="text-xl sm:text-2xl font-semibold text-foreground">
+                  {rightColumnView === "queue"
+                    ? "Focus List"
+                    : "Hourly Schedule"}
+                </h2>
+                <RightColumnViewToggle
+                  value={rightColumnView}
+                  onChange={setRightColumnView}
+                />
+              </div>
+              <div className="min-h-0 flex-1">
+              {rightColumnView === "queue" ? (
+                <FocusBoard
+                  items={data.focusList}
+                  onItemsChange={handleFocusItemsChange}
+                  priorities={data.topPriorities}
+                  tasks={tasks}
+                  brainDumpCandidates={brainDumpCandidates}
+                />
+              ) : (
+                <HourlySchedule
+                  hourlySlots={data.hourlySlots}
+                  onUpdateSlot={handleUpdateSlot}
+                  reminders={currentDateReminders}
+                  onViewReminder={handleViewReminder}
+                  maxHeight={hourlyMaxHeight}
+                  visibleHours={visibleHours}
+                />
+              )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -478,6 +582,23 @@ function PlannerPageContent() {
         onToggleChecklistItem={handleToggleLinkedChecklistItem}
         hideActions
         onNavigateToTask={handleNavigateToTask}
+      />
+
+      <AppCommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={(open) => {
+          setCommandPaletteOpen(open);
+          if (!open) {
+            setCommandPaletteStartView("root");
+          }
+        }}
+        startView={commandPaletteStartView}
+        brainDumpCandidates={brainDumpCandidates}
+        existingFocusSourceKeys={existingFocusSourceKeys}
+        existingPriorityNames={currentPriorityNames}
+        canAddTopPriority={canAddTopPriority}
+        onAddToFocusFromBrainDump={handleAddToFocusFromBrainDump}
+        onAddToTopPriorityFromBrainDump={handleAddToTopPriorityFromBrainDump}
       />
     </div>
   );
