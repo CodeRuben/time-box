@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { ALL_HOURS } from "@/app/planner/constants";
 import { formatDateKey } from "@/lib/date-key";
 import type { AutosaveStatus } from "@/lib/autosave-status";
 import { AUTOSAVE_DEBOUNCE_MS } from "@/lib/autosave-debounce";
@@ -18,8 +17,6 @@ import {
   renormalizeFocusListOrders,
   type FocusListItem,
 } from "@/lib/focus-list";
-
-export type TaskStatus = "pending" | "completed" | "error";
 
 export interface SubTask {
   id: string;
@@ -53,23 +50,15 @@ export function createTopPriorityFromBrainDumpCandidate(candidate: {
   };
 }
 
-export interface HourlyItem {
-  id: string;
-  text: string;
-  status: TaskStatus;
-}
-
 export interface PlannerData {
   topPriorities: TopPriority[];
   brainDump: string;
-  hourlySlots: Record<string, HourlyItem[]>;
   focusList: FocusListItem[];
   lastSaved?: string;
 }
 
 export interface CopyPreviousDayOptions {
   includeTopPriorities: boolean;
-  includeHourlySchedule: boolean;
   includeBrainDump: boolean;
   includeFocusList: boolean;
   onlyUnfinished: boolean;
@@ -81,10 +70,6 @@ export interface LegacyPlannerData {
   priorities?: string[];
   priorityCompleted?: boolean[];
   brainDump?: string;
-  hourlyPlans?: Record<string, string>;
-  hourlyCompleted?: Record<string, boolean>;
-  hourlyStatuses?: Record<string, TaskStatus>;
-  hourlySlots?: Record<string, HourlyItem[]>;
   lastSaved?: string;
 }
 
@@ -103,62 +88,13 @@ export function getStorageKey(date: Date): string {
 
 /**
  * Get default/empty planner data
- * Uses ALL_HOURS to ensure all possible time slots are initialized,
- * even if the user has configured a narrower visible range
  */
 export function getDefaultData(): PlannerData {
   return {
     topPriorities: [],
     brainDump: "",
     focusList: [],
-    hourlySlots: ALL_HOURS.reduce(
-      (acc, hour) => ({
-        ...acc,
-        [`${hour}:00`]: [],
-        [`${hour}:30`]: [],
-      }),
-      {} as Record<string, HourlyItem[]>
-    ),
   };
-}
-
-/**
- * Migrate hourlyCompleted (boolean) to hourlyStatuses (TaskStatus)
- */
-export function migrateHourlyCompleted(
-  completed: Record<string, boolean>
-): Record<string, TaskStatus> {
-  const statuses: Record<string, TaskStatus> = {};
-  for (const [key, value] of Object.entries(completed)) {
-    statuses[key] = value ? "completed" : "pending";
-  }
-  return statuses;
-}
-
-/**
- * Migrate legacy hourlyPlans + hourlyStatuses to new hourlySlots format
- */
-export function migrateToHourlySlots(
-  hourlyPlans: Record<string, string>,
-  hourlyStatuses: Record<string, TaskStatus>
-): Record<string, HourlyItem[]> {
-  const hourlySlots: Record<string, HourlyItem[]> = {};
-
-  for (const [key, text] of Object.entries(hourlyPlans)) {
-    if (text && text.trim() !== "") {
-      hourlySlots[key] = [
-        {
-          id: crypto.randomUUID(),
-          text: text.trim(),
-          status: hourlyStatuses[key] || "pending",
-        },
-      ];
-    } else {
-      hourlySlots[key] = [];
-    }
-  }
-
-  return hourlySlots;
 }
 
 /**
@@ -229,19 +165,6 @@ function copyTopPriority(
   };
 }
 
-function copyHourlyItems(
-  items: HourlyItem[] | undefined,
-  onlyUnfinished: boolean
-): HourlyItem[] {
-  return (items ?? [])
-    .filter((item) => !onlyUnfinished || item.status !== "completed")
-    .map((item) => ({
-      ...item,
-      id: crypto.randomUUID(),
-      status: "pending",
-    }));
-}
-
 function mergeBrainDump(current: string, previous: string): string {
   const currentText = current.trim();
   const previousText = previous.trim();
@@ -266,29 +189,6 @@ function getCopiedTopPriorities(
     .map((priority) => copyTopPriority(priority, onlyUnfinished));
 }
 
-function copyHourlySlots(
-  current: Record<string, HourlyItem[]>,
-  previous: Record<string, HourlyItem[]>,
-  options: CopyPreviousDayOptions
-): Record<string, HourlyItem[]> {
-  const allSlotKeys = new Set([...Object.keys(current), ...Object.keys(previous)]);
-  const nextSlots: Record<string, HourlyItem[]> = {};
-
-  for (const slotKey of allSlotKeys) {
-    const copiedItems = copyHourlyItems(
-      previous[slotKey],
-      options.onlyUnfinished
-    );
-
-    nextSlots[slotKey] =
-      options.mode === "replace"
-        ? copiedItems
-        : [...(current[slotKey] ?? []), ...copiedItems];
-  }
-
-  return nextSlots;
-}
-
 export function hasCopyablePlannerData(
   previous: PlannerData,
   options: CopyPreviousDayOptions
@@ -297,15 +197,6 @@ export function hasCopyablePlannerData(
     options.includeTopPriorities &&
     previous.topPriorities.some(
       (priority) => !options.onlyUnfinished || !priority.completed
-    )
-  ) {
-    return true;
-  }
-
-  if (
-    options.includeHourlySchedule &&
-    Object.values(previous.hourlySlots).some((items) =>
-      items.some((item) => !options.onlyUnfinished || item.status !== "completed")
     )
   ) {
     return true;
@@ -348,9 +239,6 @@ export function copyPlannerDataFromPreviousDay(
         ? previous.brainDump
         : mergeBrainDump(current.brainDump, previous.brainDump)
       : current.brainDump,
-    hourlySlots: options.includeHourlySchedule
-      ? copyHourlySlots(current.hourlySlots, previous.hourlySlots, options)
-      : current.hourlySlots,
     focusList: options.includeFocusList
       ? options.mode === "replace"
         ? copiedFocusList
@@ -381,28 +269,9 @@ function hydratePlannerData(raw: unknown): PlannerData | null {
     topPriorities = [];
   }
 
-  let hourlySlots: Record<string, HourlyItem[]>;
-  if (parsed.hourlySlots) {
-    hourlySlots = { ...defaultData.hourlySlots, ...parsed.hourlySlots };
-  } else if (parsed.hourlyPlans) {
-    let hourlyStatuses: Record<string, TaskStatus> = {};
-    if (parsed.hourlyStatuses) {
-      hourlyStatuses = parsed.hourlyStatuses;
-    } else if (parsed.hourlyCompleted) {
-      hourlyStatuses = migrateHourlyCompleted(parsed.hourlyCompleted);
-    }
-    hourlySlots = {
-      ...defaultData.hourlySlots,
-      ...migrateToHourlySlots(parsed.hourlyPlans, hourlyStatuses),
-    };
-  } else {
-    hourlySlots = defaultData.hourlySlots;
-  }
-
   return {
     ...defaultData,
     brainDump: parsed.brainDump || defaultData.brainDump,
-    hourlySlots,
     topPriorities,
     focusList: parseFocusListItems(parsed.focusList),
     lastSaved: parsed.lastSaved,

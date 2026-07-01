@@ -20,11 +20,9 @@ import {
   Plus,
   X,
   ChevronDown,
-  GripVertical,
   LinkIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useDraggable, getDraggableProps } from "@/lib/use-drag-drop";
 import type { TopPriority, SubTask } from "@/lib/use-planner-storage";
 import type { NewTask, Task } from "@/lib/task-types";
 
@@ -227,9 +225,6 @@ export function PriorityCard({
     onUpdate({ ...priority, subtasks: updatedSubtasks });
   };
 
-  // Drag functionality for priority
-  const priorityDragProps = useDraggable(priority.name, !isEditingName);
-
   const handleHeaderClick = () => {
     if (isLinked && !canExpandLinkedChecklist) return;
     setIsExpanded(!isExpanded);
@@ -263,19 +258,6 @@ export function PriorityCard({
           )}
           onClick={handleHeaderClick}
         >
-          {/* Drag Handle for Priority */}
-          <div
-            {...priorityDragProps}
-            onClick={(e) => e.stopPropagation()}
-            className={cn(
-              "shrink-0 cursor-grab active:cursor-grabbing",
-              !priorityDragProps.draggable && "opacity-30 cursor-not-allowed",
-            )}
-            title={priority.name ? "Drag to schedule" : "Add a name first"}
-          >
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
-          </div>
-
           {/* Status Indicator */}
           {isLinked ? (
             <span
@@ -396,29 +378,11 @@ export function PriorityCard({
           <CollapsibleContent className={priorityCollapsibleAnimation}>
             <div className="border-t px-5 py-2 space-y-1">
               {priority.subtasks.map((subtask) => {
-                const subtaskDragProps = getDraggableProps(
-                  subtask.name,
-                  editingSubtaskId !== subtask.id,
-                );
                 return (
                   <div
                     key={subtask.id}
                     className="animate-in fade-in-0 slide-in-from-top-1 flex items-center gap-2 py-1 duration-150 ease-out-cubic motion-reduce:animate-none"
                   >
-                    <div
-                      {...subtaskDragProps}
-                      className={cn(
-                        "shrink-0 cursor-grab active:cursor-grabbing",
-                        !subtaskDragProps.draggable &&
-                          "opacity-30 cursor-not-allowed",
-                      )}
-                      title={
-                        subtask.name ? "Drag to schedule" : "Add a name first"
-                      }
-                    >
-                      <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
-                    </div>
-
                     <Button
                       type="button"
                       variant="ghost"

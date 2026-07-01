@@ -6,8 +6,6 @@ import { PlannerHeader } from "./planner/components/planner-header";
 import { TopPriorities } from "./planner/components/top-priorities";
 import { BrainDump } from "./planner/components/brain-dump";
 import { DateSelector } from "./planner/components/date-selector";
-import { HourlySchedule } from "./planner/components/hourly-schedule";
-import { RightColumnViewToggle } from "./planner/components/right-column-view-toggle";
 import { FocusBoard } from "./planner/components/focus-board";
 import { ReminderButton } from "./planner/components/reminder-button";
 import { CreateReminderDialog } from "./planner/components/create-reminder-dialog";
@@ -23,10 +21,9 @@ import {
   MAX_TOP_PRIORITIES,
   usePlannerStorage,
   type CopyPreviousDayOptions,
-  type HourlyItem,
 } from "@/lib/use-planner-storage";
 import { Button } from "@/components/ui/button";
-import { Copy, Eraser, Settings, SlidersHorizontal } from "lucide-react";
+import { Copy, Eraser, SlidersHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,9 +36,6 @@ import {
   type Reminder,
   type NewReminder,
 } from "@/lib/use-reminder-storage";
-import { useScheduleConfig } from "@/lib/use-schedule-config";
-import { ScheduleConfigDialog } from "./planner/components/schedule-config-dialog";
-import { getHoursInRange } from "./planner/constants";
 import { AutosaveIndicator } from "./components/autosave-indicator";
 import { useSession } from "next-auth/react";
 import { useTaskStorage } from "@/lib/use-task-storage";
@@ -76,7 +70,7 @@ function PlannerPageContent() {
   const leftColumnRef = useRef<HTMLDivElement>(null);
   const { data, setData, isLoading, autosaveStatus, loadDataForDate } =
     usePlannerStorage(date);
-  const { rightColumnHeight, hourlyMaxHeight } = useRightColumnLayout(
+  const { rightColumnHeight } = useRightColumnLayout(
     leftColumnRef,
     !isLoading
   );
@@ -92,18 +86,9 @@ function PlannerPageContent() {
     addReminder,
     deleteReminder,
     dismissReminder,
-    getRemindersForDate,
     getPastDueReminders,
     getUpcomingReminders,
   } = useReminderStorage();
-
-  // Schedule config
-  const { config: scheduleConfig, updateConfig: updateScheduleConfig } =
-    useScheduleConfig();
-  const visibleHours = getHoursInRange(
-    scheduleConfig.startHour,
-    scheduleConfig.endHour
-  );
 
   // Dialog state
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -116,14 +101,9 @@ function PlannerPageContent() {
   const [copyPreviousDialogOpen, setCopyPreviousDialogOpen] = useState(false);
   const [copyPreviousLoading, setCopyPreviousLoading] = useState(false);
   const [copyPreviousError, setCopyPreviousError] = useState<string | null>(null);
-  const [scheduleConfigDialogOpen, setScheduleConfigDialogOpen] =
-    useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [commandPaletteStartView, setCommandPaletteStartView] =
     useState<CommandPaletteView>("root");
-  const [rightColumnView, setRightColumnView] = useState<"queue" | "hourly">(
-    "queue"
-  );
 
   const openCommandPalette = useCallback((view: CommandPaletteView = "root") => {
     setCommandPaletteStartView(view);
@@ -132,8 +112,6 @@ function PlannerPageContent() {
 
   useCommandPaletteShortcut(openCommandPalette);
 
-  // Get reminders for current date
-  const currentDateReminders = date ? getRemindersForDate(date) : [];
   const pastDueReminders = getPastDueReminders();
   const upcomingReminders = getUpcomingReminders();
 
@@ -246,17 +224,6 @@ function PlannerPageContent() {
   // Handle brain dump change
   const handleBrainDumpChange = (value: string) => {
     setData((prev) => ({ ...prev, brainDump: value }));
-  };
-
-  // Handle hourly slot update
-  const handleUpdateSlot = (slotKey: string, items: HourlyItem[]) => {
-    setData((prev) => ({
-      ...prev,
-      hourlySlots: {
-        ...prev.hourlySlots,
-        [slotKey]: items,
-      },
-    }));
   };
 
   // Reminder handlers
@@ -462,12 +429,6 @@ function PlannerPageContent() {
                     <Copy className="h-4 w-4" />
                     Copy from day
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setScheduleConfigDialogOpen(true)}
-                  >
-                    <Settings className="h-4 w-4" />
-                    Schedule settings
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     variant="destructive"
@@ -484,19 +445,10 @@ function PlannerPageContent() {
               </div>
             </div>
             <div className="flex min-h-0 flex-1 flex-col gap-2.5">
-              <div className="flex shrink-0 items-center justify-between gap-3">
-                <h2 className="text-xl sm:text-2xl font-semibold text-foreground">
-                  {rightColumnView === "queue"
-                    ? "Focus List"
-                    : "Hourly Schedule"}
-                </h2>
-                <RightColumnViewToggle
-                  value={rightColumnView}
-                  onChange={setRightColumnView}
-                />
-              </div>
+              <h2 className="shrink-0 text-xl font-semibold text-foreground sm:text-2xl">
+                Focus List
+              </h2>
               <div className="min-h-0 flex-1">
-              {rightColumnView === "queue" ? (
                 <FocusBoard
                   items={data.focusList}
                   onItemsChange={handleFocusItemsChange}
@@ -504,16 +456,6 @@ function PlannerPageContent() {
                   tasks={tasks}
                   brainDumpCandidates={brainDumpCandidates}
                 />
-              ) : (
-                <HourlySchedule
-                  hourlySlots={data.hourlySlots}
-                  onUpdateSlot={handleUpdateSlot}
-                  reminders={currentDateReminders}
-                  onViewReminder={handleViewReminder}
-                  maxHeight={hourlyMaxHeight}
-                  visibleHours={visibleHours}
-                />
-              )}
               </div>
             </div>
           </div>
@@ -559,13 +501,6 @@ function PlannerPageContent() {
           error={copyPreviousError}
         />
       )}
-
-      <ScheduleConfigDialog
-        open={scheduleConfigDialogOpen}
-        onOpenChange={setScheduleConfigDialogOpen}
-        config={scheduleConfig}
-        onSave={updateScheduleConfig}
-      />
 
       {/* Task linking dialogs */}
       <TaskPickerDialog

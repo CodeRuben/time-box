@@ -93,7 +93,7 @@ export function FocusStatusColumn({
 
       <div className="space-y-2">
         {items.length === 0 && exitingItems.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border/40 px-4 py-6 text-center text-sm text-muted-foreground">
+          <div className="rounded-xl border-2 border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground dark:border-muted-foreground/30">
             Nothing queued yet.
           </div>
         ) : (

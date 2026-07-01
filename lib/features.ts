@@ -7,7 +7,7 @@ export const FEATURES = [
   {
     key: "planner",
     label: "Planner",
-    description: "Daily timeboxing, priorities, reminders, and schedule planning.",
+    description: "Daily timeboxing, priorities, focus list, and reminders.",
     href: "/",
     kind: "page",
     defaults: {

@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   getStorageKey,
   getDefaultData,
-  migrateHourlyCompleted,
-  migrateToHourlySlots,
   migrateFromLegacy,
   ensurePriorityFields,
   copyPlannerDataFromPreviousDay,
@@ -50,84 +48,6 @@ describe("getDefaultData", () => {
     expect(data.focusList).toEqual([]);
   });
 
-  it("generates hourly slots for all hours with :00 and :30 slots as empty arrays", () => {
-    const data = getDefaultData();
-    // Check a sample of expected keys
-    expect(data.hourlySlots["7 AM:00"]).toEqual([]);
-    expect(data.hourlySlots["7 AM:30"]).toEqual([]);
-    expect(data.hourlySlots["12 PM:00"]).toEqual([]);
-    expect(data.hourlySlots["11 PM:30"]).toEqual([]);
-  });
-});
-
-describe("migrateHourlyCompleted", () => {
-  it("converts true to 'completed'", () => {
-    const result = migrateHourlyCompleted({ "7 AM:00": true });
-    expect(result["7 AM:00"]).toBe("completed");
-  });
-
-  it("converts false to 'pending'", () => {
-    const result = migrateHourlyCompleted({ "7 AM:00": false });
-    expect(result["7 AM:00"]).toBe("pending");
-  });
-
-  it("handles multiple entries", () => {
-    const result = migrateHourlyCompleted({
-      "7 AM:00": true,
-      "8 AM:00": false,
-      "9 AM:30": true,
-    });
-    expect(result).toEqual({
-      "7 AM:00": "completed",
-      "8 AM:00": "pending",
-      "9 AM:30": "completed",
-    });
-  });
-
-  it("returns empty object for empty input", () => {
-    const result = migrateHourlyCompleted({});
-    expect(result).toEqual({});
-  });
-});
-
-describe("migrateToHourlySlots", () => {
-  it("converts hourlyPlans + hourlyStatuses to hourlySlots", () => {
-    const result = migrateToHourlySlots(
-      { "7 AM:00": "Meeting" },
-      { "7 AM:00": "completed" }
-    );
-    expect(result["7 AM:00"]).toHaveLength(1);
-    expect(result["7 AM:00"][0].text).toBe("Meeting");
-    expect(result["7 AM:00"][0].status).toBe("completed");
-    expect(result["7 AM:00"][0].id).toBeDefined();
-  });
-
-  it("uses pending status when no status exists", () => {
-    const result = migrateToHourlySlots({ "7 AM:00": "Meeting" }, {});
-    expect(result["7 AM:00"][0].status).toBe("pending");
-  });
-
-  it("creates empty array for empty text", () => {
-    const result = migrateToHourlySlots({ "7 AM:00": "" }, {});
-    expect(result["7 AM:00"]).toEqual([]);
-  });
-
-  it("trims whitespace-only text to empty array", () => {
-    const result = migrateToHourlySlots({ "7 AM:00": "   " }, {});
-    expect(result["7 AM:00"]).toEqual([]);
-  });
-
-  it("handles multiple slots", () => {
-    const result = migrateToHourlySlots(
-      { "7 AM:00": "Meeting", "8 AM:30": "Lunch", "9 AM:00": "" },
-      { "7 AM:00": "completed", "8 AM:30": "error" }
-    );
-    expect(result["7 AM:00"][0].text).toBe("Meeting");
-    expect(result["7 AM:00"][0].status).toBe("completed");
-    expect(result["8 AM:30"][0].text).toBe("Lunch");
-    expect(result["8 AM:30"][0].status).toBe("error");
-    expect(result["9 AM:00"]).toEqual([]);
-  });
 });
 
 describe("migrateFromLegacy", () => {
@@ -223,7 +143,6 @@ describe("ensurePriorityFields", () => {
 describe("copyPlannerDataFromPreviousDay", () => {
   const baseOptions: CopyPreviousDayOptions = {
     includeTopPriorities: true,
-    includeHourlySchedule: true,
     includeBrainDump: false,
     includeFocusList: false,
     onlyUnfinished: true,
@@ -235,9 +154,6 @@ describe("copyPlannerDataFromPreviousDay", () => {
       topPriorities: [],
       brainDump: "Today",
       focusList: [],
-      hourlySlots: {
-        "7 AM:00": [{ id: "today-item", text: "Existing", status: "pending" }],
-      },
     };
     const previous: PlannerData = {
       topPriorities: [
@@ -250,10 +166,6 @@ describe("copyPlannerDataFromPreviousDay", () => {
       ],
       brainDump: "Yesterday",
       focusList: [],
-      hourlySlots: {
-        "7 AM:00": [{ id: "done-item", text: "Done", status: "completed" }],
-        "8 AM:00": [{ id: "blocked-item", text: "Retry", status: "error" }],
-      },
     };
 
     const result = copyPlannerDataFromPreviousDay(
@@ -269,12 +181,6 @@ describe("copyPlannerDataFromPreviousDay", () => {
       subtasks: [],
     });
     expect(result.topPriorities[0].id).not.toBe("priority-1");
-    expect(result.hourlySlots["7 AM:00"]).toEqual(current.hourlySlots["7 AM:00"]);
-    expect(result.hourlySlots["8 AM:00"][0]).toMatchObject({
-      text: "Retry",
-      status: "pending",
-    });
-    expect(result.hourlySlots["8 AM:00"][0].id).not.toBe("blocked-item");
     expect(result.brainDump).toBe("Today");
   });
 
@@ -285,9 +191,6 @@ describe("copyPlannerDataFromPreviousDay", () => {
       ],
       brainDump: "Today",
       focusList: [],
-      hourlySlots: {
-        "7 AM:00": [{ id: "today-item", text: "Existing", status: "pending" }],
-      },
     };
     const previous: PlannerData = {
       topPriorities: [
@@ -295,14 +198,10 @@ describe("copyPlannerDataFromPreviousDay", () => {
       ],
       brainDump: "Yesterday",
       focusList: [],
-      hourlySlots: {
-        "8 AM:00": [{ id: "old-item", text: "Old", status: "completed" }],
-      },
     };
 
     const result = copyPlannerDataFromPreviousDay(current, previous, {
       ...baseOptions,
-      includeHourlySchedule: false,
       includeBrainDump: true,
       onlyUnfinished: false,
       mode: "replace",
@@ -312,7 +211,6 @@ describe("copyPlannerDataFromPreviousDay", () => {
     expect(result.topPriorities[0].name).toBe("Previous");
     expect(result.topPriorities[0].completed).toBe(false);
     expect(result.brainDump).toBe("Yesterday");
-    expect(result.hourlySlots).toEqual(current.hourlySlots);
   });
 
   it("copies unfinished focus list items with new ids and dedupes on merge", () => {
@@ -353,7 +251,6 @@ describe("copyPlannerDataFromPreviousDay", () => {
 
     const result = copyPlannerDataFromPreviousDay(current, previous, {
       includeTopPriorities: false,
-      includeHourlySchedule: false,
       includeBrainDump: false,
       includeFocusList: true,
       onlyUnfinished: true,
@@ -394,7 +291,6 @@ describe("copyPlannerDataFromPreviousDay", () => {
 
     const result = copyPlannerDataFromPreviousDay(current, previous, {
       includeTopPriorities: false,
-      includeHourlySchedule: false,
       includeBrainDump: false,
       includeFocusList: true,
       onlyUnfinished: true,
@@ -424,16 +320,12 @@ describe("hasCopyablePlannerData", () => {
         source: { type: "brain_dump", text: "Done item" },
       },
     ],
-    hourlySlots: {
-      "7 AM:00": [{ id: "done-item", text: "Done", status: "completed" }],
-    },
   };
 
   it("returns false when only completed work matches selected task sections", () => {
     expect(
       hasCopyablePlannerData(previous, {
         includeTopPriorities: true,
-        includeHourlySchedule: true,
         includeBrainDump: false,
         includeFocusList: false,
         onlyUnfinished: true,
@@ -446,7 +338,6 @@ describe("hasCopyablePlannerData", () => {
     expect(
       hasCopyablePlannerData(previous, {
         includeTopPriorities: false,
-        includeHourlySchedule: false,
         includeBrainDump: false,
         includeFocusList: true,
         onlyUnfinished: true,
@@ -471,7 +362,6 @@ describe("hasCopyablePlannerData", () => {
         },
         {
           includeTopPriorities: false,
-          includeHourlySchedule: false,
           includeBrainDump: false,
           includeFocusList: true,
           onlyUnfinished: true,
@@ -485,7 +375,6 @@ describe("hasCopyablePlannerData", () => {
     expect(
       hasCopyablePlannerData(previous, {
         includeTopPriorities: false,
-        includeHourlySchedule: false,
         includeBrainDump: true,
         includeFocusList: false,
         onlyUnfinished: true,
@@ -505,24 +394,20 @@ describe("loadPlannerData", () => {
     expect(result).toBeNull();
   });
 
-  it("loads and parses existing data with new hourlySlots format", () => {
+  it("loads and parses existing planner data", () => {
     const date = new Date(2026, 0, 31);
     const testData = {
       topPriorities: [
         { id: "1", name: "Test", completed: false, subtasks: [] },
       ],
       brainDump: "Test dump",
-      hourlySlots: {
-        "7 AM:00": [{ id: "item1", text: "Meeting", status: "completed" }],
-      },
+      focusList: [],
     };
     localStorage.setItem("planner-2026-01-31", JSON.stringify(testData));
 
     const result = loadPlannerData(date);
     expect(result?.brainDump).toBe("Test dump");
     expect(result?.topPriorities[0].name).toBe("Test");
-    expect(result?.hourlySlots["7 AM:00"][0].text).toBe("Meeting");
-    expect(result?.hourlySlots["7 AM:00"][0].status).toBe("completed");
   });
 
   it("defaults missing focusList to an empty array", () => {
@@ -530,7 +415,6 @@ describe("loadPlannerData", () => {
     const testData = {
       topPriorities: [],
       brainDump: "",
-      hourlySlots: {},
     };
     localStorage.setItem("planner-2026-01-31", JSON.stringify(testData));
 
@@ -543,7 +427,6 @@ describe("loadPlannerData", () => {
     const testData = {
       topPriorities: [],
       brainDump: "",
-      hourlySlots: {},
       focusList: [
         {
           id: "focus-1",
@@ -564,42 +447,11 @@ describe("loadPlannerData", () => {
     });
   });
 
-  it("migrates legacy hourlyPlans + hourlyStatuses to hourlySlots", () => {
-    const date = new Date(2026, 0, 31);
-    const legacyData = {
-      brainDump: "Test",
-      hourlyPlans: { "7 AM:00": "Meeting", "8 AM:00": "Lunch" },
-      hourlyStatuses: { "7 AM:00": "completed" },
-    };
-    localStorage.setItem("planner-2026-01-31", JSON.stringify(legacyData));
-
-    const result = loadPlannerData(date);
-    expect(result?.hourlySlots["7 AM:00"]).toHaveLength(1);
-    expect(result?.hourlySlots["7 AM:00"][0].text).toBe("Meeting");
-    expect(result?.hourlySlots["7 AM:00"][0].status).toBe("completed");
-    expect(result?.hourlySlots["8 AM:00"][0].text).toBe("Lunch");
-    expect(result?.hourlySlots["8 AM:00"][0].status).toBe("pending");
-  });
-
-  it("migrates legacy hourlyCompleted to hourlySlots", () => {
-    const date = new Date(2026, 0, 31);
-    const legacyData = {
-      brainDump: "Test",
-      hourlyPlans: { "7 AM:00": "Meeting" },
-      hourlyCompleted: { "7 AM:00": true },
-    };
-    localStorage.setItem("planner-2026-01-31", JSON.stringify(legacyData));
-
-    const result = loadPlannerData(date);
-    expect(result?.hourlySlots["7 AM:00"][0].status).toBe("completed");
-  });
-
   it("migrates legacy priorities format", () => {
     const date = new Date(2026, 0, 31);
     const legacyData = {
       priorities: ["Task 1", "Task 2"],
       brainDump: "Notes",
-      hourlyPlans: {},
     };
     localStorage.setItem("planner-2026-01-31", JSON.stringify(legacyData));
 
@@ -629,7 +481,6 @@ describe("loadPlannerData", () => {
         { id: "4", name: "Four", completed: false, subtasks: [] },
       ],
       brainDump: "",
-      hourlySlots: {},
     };
     localStorage.setItem("planner-2026-01-31", JSON.stringify(testData));
 
@@ -670,23 +521,6 @@ describe("savePlannerData", () => {
     expect(new Date(parsed.lastSaved).getTime()).toBeLessThanOrEqual(
       Date.now()
     );
-  });
-
-  it("saves hourlySlots correctly", () => {
-    const date = new Date(2026, 0, 31);
-    const data = {
-      ...getDefaultData(),
-      hourlySlots: {
-        "7 AM:00": [{ id: "1", text: "Meeting", status: "completed" as const }],
-      },
-    };
-
-    savePlannerData(date, data);
-
-    const stored = localStorage.getItem("planner-2026-01-31");
-    const parsed = JSON.parse(stored!);
-    expect(parsed.hourlySlots["7 AM:00"][0].text).toBe("Meeting");
-    expect(parsed.hourlySlots["7 AM:00"][0].status).toBe("completed");
   });
 });
 

@@ -3,7 +3,6 @@
 import { useEffect, useState, type RefObject } from "react";
 
 const LARGE_SCREEN_QUERY = "(min-width: 1024px)";
-const RIGHT_COLUMN_CHROME_PX = 80;
 
 export function useRightColumnLayout(
   leftColumnRef: RefObject<HTMLElement | null>,
@@ -54,14 +53,8 @@ export function useRightColumnLayout(
   const rightColumnHeight =
     isLargeScreen && leftColumnHeight ? leftColumnHeight : undefined;
 
-  const hourlyMaxHeight =
-    rightColumnHeight !== undefined
-      ? rightColumnHeight - RIGHT_COLUMN_CHROME_PX
-      : undefined;
-
   return {
     isLargeScreen,
     rightColumnHeight,
-    hourlyMaxHeight,
   };
 }

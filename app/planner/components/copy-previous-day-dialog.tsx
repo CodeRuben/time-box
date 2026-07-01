@@ -26,7 +26,6 @@ interface CopyPreviousDayDialogProps {
 
 const DEFAULT_OPTIONS: CopyPreviousDayOptions = {
   includeTopPriorities: true,
-  includeHourlySchedule: false,
   includeBrainDump: false,
   includeFocusList: true,
   onlyUnfinished: true,
@@ -49,7 +48,6 @@ export function CopyPreviousDayDialog({
 
   const hasSelectedSection =
     options.includeTopPriorities ||
-    options.includeHourlySchedule ||
     options.includeBrainDump ||
     options.includeFocusList;
 
@@ -110,20 +108,6 @@ export function CopyPreviousDayDialog({
                   <span>Focus list</span>
                   <span className="text-xs font-normal text-muted-foreground">
                     Queued and completed focus items.
-                  </span>
-                </span>
-              </Label>
-              <Label className="items-start gap-3 rounded-md border bg-card p-3 cursor-pointer transition-colors hover:bg-accent/40 dark:border-muted-foreground/30 dark:bg-muted/20 dark:hover:bg-muted/30">
-                <Checkbox
-                  checked={options.includeHourlySchedule}
-                  onCheckedChange={(checked) =>
-                    updateOption("includeHourlySchedule", checked === true)
-                  }
-                />
-                <span className="grid gap-1">
-                  <span>Hourly schedule</span>
-                  <span className="text-xs font-normal text-muted-foreground">
-                    Items inside each time slot.
                   </span>
                 </span>
               </Label>
@@ -190,8 +174,7 @@ export function CopyPreviousDayDialog({
             <span className="grid gap-0.5">
               <span>Only copy unfinished items</span>
               <span className="text-xs font-normal text-muted-foreground">
-                Completed priorities, focus list items, and schedule items are
-                skipped.
+                Completed priorities and focus list items are skipped.
               </span>
             </span>
           </Label>
