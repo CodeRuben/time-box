@@ -136,11 +136,10 @@ export function FocusBoard({
     () =>
       getFocusAddOptions({
         priorities,
-        tasks,
         brainDumpCandidates,
         existingSourceKeys,
       }),
-    [priorities, tasks, brainDumpCandidates, existingSourceKeys]
+    [priorities, brainDumpCandidates, existingSourceKeys]
   );
 
   const handleAddSource = useCallback(
@@ -209,7 +208,6 @@ export function FocusBoard({
   const renderAddItemsButton = (variant: "footer" | "empty") => (
     <AddToFocusMenu
       priorities={priorities}
-      tasks={tasks}
       brainDumpCandidates={brainDumpCandidates}
       existingSourceKeys={existingSourceKeys}
       onAdd={handleAddSource}

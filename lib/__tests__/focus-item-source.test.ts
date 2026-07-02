@@ -42,7 +42,6 @@ describe("getFocusAddOptions", () => {
           subtasks: [],
         },
       ],
-      tasks: [],
       brainDumpCandidates: [
         { name: "Already added", subtasks: [] },
         { name: "New line", subtasks: [] },

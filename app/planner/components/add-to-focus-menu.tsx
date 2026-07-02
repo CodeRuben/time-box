@@ -16,18 +16,15 @@ import {
 } from "@/lib/focus-item-source";
 import type { BrainDumpPriorityCandidate } from "@/lib/parse-brain-dump-priorities";
 import type { TopPriority } from "@/lib/use-planner-storage";
-import type { Task } from "@/lib/task-types";
 
 interface FocusAddOptionsInput {
   priorities: TopPriority[];
-  tasks: Task[];
   brainDumpCandidates: BrainDumpPriorityCandidate[];
   existingSourceKeys: Set<string>;
 }
 
 export function getFocusAddOptions({
   priorities,
-  tasks,
   brainDumpCandidates,
   existingSourceKeys,
 }: FocusAddOptionsInput) {
@@ -42,16 +39,6 @@ export function getFocusAddOptions({
         })
       )
   );
-  const availableTasks = tasks.filter(
-    (task) =>
-      !existingSourceKeys.has(
-        getFocusItemSourceKey({
-          type: "task",
-          taskId: task.id,
-          label: task.name,
-        })
-      )
-  );
   const availableBrainDump = brainDumpCandidates.filter(
     (candidate) =>
       !existingSourceKeys.has(
@@ -63,13 +50,10 @@ export function getFocusAddOptions({
   );
 
   const hasOptions =
-    availablePriorities.length > 0 ||
-    availableTasks.length > 0 ||
-    availableBrainDump.length > 0;
+    availablePriorities.length > 0 || availableBrainDump.length > 0;
 
   return {
     availablePriorities,
-    availableTasks,
     availableBrainDump,
     hasOptions,
   };
@@ -82,23 +66,17 @@ interface AddToFocusMenuProps extends FocusAddOptionsInput {
 
 export function AddToFocusMenu({
   priorities,
-  tasks,
   brainDumpCandidates,
   existingSourceKeys,
   onAdd,
   children,
 }: AddToFocusMenuProps) {
-  const {
-    availablePriorities,
-    availableTasks,
-    availableBrainDump,
-    hasOptions,
-  } = getFocusAddOptions({
-    priorities,
-    tasks,
-    brainDumpCandidates,
-    existingSourceKeys,
-  });
+  const { availablePriorities, availableBrainDump, hasOptions } =
+    getFocusAddOptions({
+      priorities,
+      brainDumpCandidates,
+      existingSourceKeys,
+    });
 
   const [open, setOpen] = useState(false);
 
@@ -138,32 +116,9 @@ export function AddToFocusMenu({
           </DropdownMenuGroup>
         )}
 
-        {availableTasks.length > 0 && (
-          <>
-            {availablePriorities.length > 0 && <DropdownMenuSeparator />}
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>Tasks</DropdownMenuLabel>
-              {availableTasks.map((task) => (
-                <DropdownMenuItem
-                  key={task.id}
-                  onSelect={handleSelect({
-                    type: "task",
-                    taskId: task.id,
-                    label: task.name,
-                  })}
-                >
-                  {task.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuGroup>
-          </>
-        )}
-
         {availableBrainDump.length > 0 && (
           <>
-            {(availablePriorities.length > 0 || availableTasks.length > 0) && (
-              <DropdownMenuSeparator />
-            )}
+            {availablePriorities.length > 0 && <DropdownMenuSeparator />}
             <DropdownMenuGroup>
               <DropdownMenuLabel>Brain dump</DropdownMenuLabel>
               {availableBrainDump.map((candidate) => (
