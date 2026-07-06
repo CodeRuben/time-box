@@ -114,12 +114,35 @@ const fallbackNavItems = [
   { href: "/", label: "Planner", key: "planner" },
   { href: "/tasks", label: "Tasks", key: "tasks" },
   { href: "/workout-tracker", label: "Workouts", key: "workouts" },
+  { href: "/reading-journal", label: "Book log", key: "reading-journal" },
 ];
 
 const VISIBLE_ROUTES = new Set([
   ...fallbackNavItems.map((item) => item.href),
   "/settings",
 ]);
+
+function isHeaderVisible(pathname: string): boolean {
+  if (VISIBLE_ROUTES.has(pathname)) {
+    return true;
+  }
+
+  for (const href of VISIBLE_ROUTES) {
+    if (href !== "/" && pathname.startsWith(`${href}/`)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isNavItemActive(pathname: string, href: string): boolean {
+  if (href === "/") {
+    return pathname === "/";
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 function NavigationLoadingLinks() {
   return (
@@ -176,7 +199,7 @@ export function AppHeader() {
     };
   }, [status]);
 
-  if (!pathname || !VISIBLE_ROUTES.has(pathname)) {
+  if (!pathname || !isHeaderVisible(pathname)) {
     return null;
   }
 
@@ -192,7 +215,7 @@ export function AppHeader() {
             <NavigationLoadingLinks />
           ) : (
             navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = isNavItemActive(pathname, item.href);
 
               return (
                 <Link

@@ -41,6 +41,18 @@ export const FEATURES = [
     },
   },
   {
+    key: "reading-journal",
+    label: "Book log",
+    description: "Track books, daily reading entries, and progress.",
+    href: "/reading-journal",
+    kind: "page",
+    defaults: {
+      adminEnabled: true,
+      userEnabled: true,
+      guestEnabled: false, // signed-in only — see docs/adr/0001
+    },
+  },
+  {
     key: "registration",
     label: "New user registration",
     description: "Allow visitors to create new accounts.",

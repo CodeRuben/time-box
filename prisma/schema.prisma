@@ -23,6 +23,7 @@ model User {
   plannerDays   PlannerDay[]
   workoutDays   WorkoutDay[]
   tasks         Task[]
+  books         Book[]
   featurePreferences UserFeaturePreference[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -130,6 +131,62 @@ model Task {
 
   @@index([userId])
   @@index([userId, status])
+}
+
+model Book {
+  id             String   @id @default(cuid())
+  userId         String
+  title          String
+  author         String   @default("")
+  coverUrl       String   @default("")
+  totalPages     Int?
+  publishedYear  Int?
+  openLibraryKey String   @default("")
+  // Enum-like values validated at the API boundary: "reading" | "finished" | "abandoned".
+  status         String   @default("reading")
+  // Half-star rating stored as 1-10 (7 = 3.5 stars). Null = unrated.
+  rating         Int?
+  notes          String   @default("")
+  // Local dates as YYYY-MM-DD strings, matching PlannerDay/WorkoutDay.
+  startedOn      String?
+  finishedOn     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries        ReadingEntry[]
+  readingDays    ReadingDay[]
+
+  @@index([userId])
+  @@index([userId, status])
+}
+
+model ReadingEntry {
+  id          String   @id @default(cuid())
+  bookId      String
+  userId      String
+  date        String
+  currentPage Int?
+  summary     String   @default("")
+  analysis    String   @default("")
+  thoughts    String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, date])
+  @@index([userId, date])
+}
+
+model ReadingDay {
+  id        String   @id @default(cuid())
+  bookId    String
+  userId    String
+  date      String
+  createdAt DateTime @default(now())
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, date])
+  @@index([userId])
 }
 
 model RegistrationRateLimitBucket {

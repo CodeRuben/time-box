@@ -3,6 +3,7 @@
 import * as React from "react"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
+import type { Matcher } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -18,6 +19,7 @@ interface DatePickerProps {
   onSelect?: (date: Date | undefined) => void
   placeholder?: string
   className?: string
+  disabled?: Matcher | Matcher[]
 }
 
 export function DatePicker({
@@ -25,6 +27,7 @@ export function DatePicker({
   onSelect,
   placeholder = "Pick a date",
   className,
+  disabled,
 }: DatePickerProps) {
   return (
     <Popover>
@@ -46,6 +49,7 @@ export function DatePicker({
           mode="single"
           selected={date}
           onSelect={onSelect}
+          disabled={disabled}
           initialFocus
         />
       </PopoverContent>
