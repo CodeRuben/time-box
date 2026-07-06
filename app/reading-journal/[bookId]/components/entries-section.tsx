@@ -37,8 +37,8 @@ export function EntriesSection({
   const pagesReadByDate = getPagesReadByDate(entries);
 
   return (
-    <section className="overflow-hidden rounded-xl border border-border/60 bg-card/40">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 px-4 py-4 sm:px-5">
+    <section>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 pb-4">
         <div>
           <h2 className="journal-heading text-xs uppercase tracking-[0.2em]">
             Reflections
@@ -72,7 +72,7 @@ export function EntriesSection({
       </div>
 
       {entries.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 px-4 py-12 text-center sm:px-5">
+        <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
           <PenLine className="size-8 text-muted-foreground/40" />
           <div className="space-y-1">
             <p className="text-sm font-medium text-foreground">No reflections yet</p>
@@ -90,7 +90,7 @@ export function EntriesSection({
           </Button>
         </div>
       ) : (
-        <div className="px-4 pt-4 sm:px-5 sm:pt-5">
+        <div className="pt-5">
           {entries.map((entry, index) => (
             <EntryCard
               key={entry.date}

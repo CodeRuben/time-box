@@ -62,41 +62,47 @@ function BookDetailContent({ bookId }: { bookId: string }) {
 
   return (
     <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-      <div className="mx-auto max-w-5xl space-y-8">
-        <Link
-          href="/reading-journal"
-          className="inline-flex items-center gap-1 text-sm text-(color:--journal-muted-ink) hover:text-(color:--journal-ink)"
-        >
-          <ArrowLeft className="size-4" />
-          All books
-        </Link>
+      <div className="mx-auto max-w-5xl">
+        <Card className="gap-0 py-0 shadow-sm">
+          <CardContent className="space-y-8 px-4 py-5 sm:px-6">
+            <Link
+              href="/reading-journal"
+              className="inline-flex items-center gap-1 text-sm text-(color:--journal-muted-ink) hover:text-(color:--journal-ink)"
+            >
+              <ArrowLeft className="size-4" />
+              All books
+            </Link>
 
-        <div className="space-y-3">
-          <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
-            <BookInfoHeader book={book} onUpdate={updateBook} onDelete={deleteBook} />
-            <ReadingDaysGrid
-              readingDays={book.readingDays}
-              onTick={tickDay}
-              onUntick={untickDay}
-            />
-          </div>
+            <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
+              <BookInfoHeader book={book} onUpdate={updateBook} onDelete={deleteBook} />
+              <ReadingDaysGrid
+                readingDays={book.readingDays}
+                onTick={tickDay}
+                onUntick={untickDay}
+              />
+            </div>
 
-          <ProgressBar currentPage={book.currentPage} totalPages={book.totalPages} />
-        </div>
+            <ProgressBar currentPage={book.currentPage} totalPages={book.totalPages} />
 
-        <BookNotes
-          notes={book.notes}
-          onChange={updateNotes}
-          isSaving={isSavingNotes}
-          isSaved={notesSaved}
-        />
+            <div className="border-t border-border pt-8">
+              <BookNotes
+                notes={book.notes}
+                onChange={updateNotes}
+                isSaving={isSavingNotes}
+                isSaved={notesSaved}
+              />
+            </div>
 
-        <EntriesSection
-          entries={book.entries}
-          latestKnownPage={book.currentPage}
-          onSave={saveEntry}
-          onDelete={deleteEntry}
-        />
+            <div className="border-t border-border pt-8">
+              <EntriesSection
+                entries={book.entries}
+                latestKnownPage={book.currentPage}
+                onSave={saveEntry}
+                onDelete={deleteEntry}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
