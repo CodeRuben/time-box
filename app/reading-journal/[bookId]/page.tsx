@@ -62,17 +62,17 @@ function BookDetailContent({ bookId }: { bookId: string }) {
 
   return (
     <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-5xl space-y-6">
+        <Link
+          href="/reading-journal"
+          className="inline-flex items-center gap-1 text-sm text-(color:--journal-muted-ink) hover:text-(color:--journal-ink)"
+        >
+          <ArrowLeft className="size-4" />
+          All books
+        </Link>
+
         <Card className="gap-0 py-0 shadow-sm">
           <CardContent className="space-y-8 px-4 py-5 sm:px-6">
-            <Link
-              href="/reading-journal"
-              className="inline-flex items-center gap-1 text-sm text-(color:--journal-muted-ink) hover:text-(color:--journal-ink)"
-            >
-              <ArrowLeft className="size-4" />
-              All books
-            </Link>
-
             <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
               <BookInfoHeader book={book} onUpdate={updateBook} onDelete={deleteBook} />
               <ReadingDaysGrid
