@@ -29,7 +29,6 @@ export interface TopPriority {
   name: string;
   completed: boolean;
   subtasks: SubTask[];
-  linkedTaskId?: string;
 }
 
 export const MAX_TOP_PRIORITIES = 3;
@@ -132,7 +131,6 @@ export function ensurePriorityFields(
     name: priority.name,
     completed: priority.completed ?? false,
     subtasks: priority.subtasks ?? [],
-    linkedTaskId: priority.linkedTaskId,
   };
 }
 

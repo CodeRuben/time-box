@@ -162,10 +162,6 @@ export function getFocusListItemSubitems(
       id: string;
       subtasks: ReadonlyArray<{ name: string; completed: boolean }>;
     }>;
-    tasks: ReadonlyArray<{
-      id: string;
-      checklist: ReadonlyArray<{ name: string; completed: boolean }>;
-    }>;
     brainDumpCandidates: ReadonlyArray<{ name: string; subtasks: string[] }>;
   }
 ): FocusListSubitem[] {
@@ -181,13 +177,6 @@ export function getFocusListItemSubitems(
         completed: subtask.completed,
       }));
     }
-    case "task": {
-      const task = context.tasks.find((entry) => entry.id === source.taskId);
-      return (task?.checklist ?? []).map((entry) => ({
-        name: entry.name,
-        completed: entry.completed,
-      }));
-    }
     case "brain_dump": {
       const key = source.text.trim().toLowerCase();
       const candidate = context.brainDumpCandidates.find(
@@ -200,8 +189,7 @@ export function getFocusListItemSubitems(
 
 export function getFocusListItemLabel(
   item: FocusListItem,
-  priorities: ReadonlyArray<{ id: string; name: string }>,
-  tasks: ReadonlyArray<{ id: string; name: string }>
+  priorities: ReadonlyArray<{ id: string; name: string }>
 ): string {
   const { source } = item;
 
@@ -209,10 +197,6 @@ export function getFocusListItemLabel(
     case "priority": {
       const priority = priorities.find((entry) => entry.id === source.priorityId);
       return priority?.name.trim() || source.label;
-    }
-    case "task": {
-      const task = tasks.find((entry) => entry.id === source.taskId);
-      return task?.name.trim() || source.label;
     }
     case "brain_dump":
       return source.text;
@@ -246,11 +230,6 @@ export function isValidFocusListItem(value: unknown): value is FocusListItem {
     case "priority":
       return (
         typeof item.source.priorityId === "string" &&
-        typeof item.source.label === "string"
-      );
-    case "task":
-      return (
-        typeof item.source.taskId === "string" &&
         typeof item.source.label === "string"
       );
     case "brain_dump":

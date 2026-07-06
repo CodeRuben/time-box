@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useCallback, useMemo, type SetStateAction } from "react";
-import { useRouter } from "next/navigation";
 import { PlannerHeader } from "./planner/components/planner-header";
 import { TopPriorities } from "./planner/components/top-priorities";
 import { BrainDump } from "./planner/components/brain-dump";
@@ -38,10 +37,6 @@ import {
 } from "@/lib/use-reminder-storage";
 import { AutosaveIndicator } from "./components/autosave-indicator";
 import { useSession } from "next-auth/react";
-import { useTaskStorage } from "@/lib/use-task-storage";
-import { TaskPickerDialog } from "./planner/components/task-picker-dialog";
-import { TaskDetailDialog } from "./tasks/components/task-detail-dialog";
-import type { Task } from "@/lib/task-types";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { FeatureGate } from "./components/feature-gate";
 import {
@@ -64,7 +59,6 @@ function getPreviousDate(date: Date): Date {
 }
 
 function PlannerPageContent() {
-  const router = useRouter();
   const { status } = useSession();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const leftColumnRef = useRef<HTMLDivElement>(null);
@@ -74,12 +68,6 @@ function PlannerPageContent() {
     leftColumnRef,
     !isLoading
   );
-
-  // Task linking
-  const { tasks, updateTask: updateLinkedTask } = useTaskStorage();
-  const [taskPickerOpen, setTaskPickerOpen] = useState(false);
-  const [linkedTaskDetailOpen, setLinkedTaskDetailOpen] = useState(false);
-  const [viewedLinkedTask, setViewedLinkedTask] = useState<Task | null>(null);
 
   // Reminder state and hooks
   const {
@@ -146,80 +134,6 @@ function PlannerPageContent() {
       topPriorities: prev.topPriorities.filter((p) => p.id !== id),
     }));
   };
-
-  // Tasks indexed by id so priority cards can derive live state without O(n)
-  // lookups each render.
-  const tasksById = useMemo(() => {
-    const map = new Map<string, Task>();
-    for (const task of tasks) map.set(task.id, task);
-    return map;
-  }, [tasks]);
-
-  // Tasks not already linked to a priority for the current day.
-  const availableTasksForPicker = useMemo(
-    () =>
-      tasks.filter(
-        (t) => !data.topPriorities.some((p) => p.linkedTaskId === t.id)
-      ),
-    [tasks, data.topPriorities]
-  );
-
-  // Link an existing task as a new priority. We deliberately keep `subtasks`
-  // empty — the linked task's checklist is the source of truth and is shown
-  // via the detail dialog, so storing a stale copy here would only drift.
-  const handleLinkTask = (task: Task) => {
-    setData((prev) => {
-      if (prev.topPriorities.length >= 3) return prev;
-      const newPriority: TopPriority = {
-        id: crypto.randomUUID(),
-        name: task.name,
-        completed: false,
-        subtasks: [],
-        linkedTaskId: task.id,
-      };
-      return { ...prev, topPriorities: [...prev.topPriorities, newPriority] };
-    });
-  };
-
-  const handleViewLinkedTask = (taskId: string) => {
-    const task = tasksById.get(taskId);
-    if (task) {
-      setViewedLinkedTask(task);
-      setLinkedTaskDetailOpen(true);
-    }
-  };
-
-  const handleToggleLinkedChecklistItem = async (
-    taskId: string,
-    itemId: string
-  ) => {
-    const task = tasksById.get(taskId);
-    if (!task) return;
-
-    const updatedChecklist = task.checklist.map((item) =>
-      item.id === itemId ? { ...item, completed: !item.completed } : item
-    );
-
-    // Optimistically update the dialog so the checkbox feels responsive. The
-    // underlying task store is the source of truth for the priority card.
-    setViewedLinkedTask((prev) =>
-      prev?.id === taskId ? { ...prev, checklist: updatedChecklist } : prev
-    );
-
-    try {
-      await updateLinkedTask(taskId, { checklist: updatedChecklist });
-    } catch (error) {
-      console.error("Failed to update linked task checklist:", error);
-      // Roll the dialog back to the previous checklist on failure.
-      setViewedLinkedTask((prev) =>
-        prev?.id === taskId ? { ...prev, checklist: task.checklist } : prev
-      );
-    }
-  };
-
-  const handleNavigateToTask = useCallback(() => {
-    router.push("/tasks");
-  }, [router]);
 
   // Handle brain dump change
   const handleBrainDumpChange = (value: string) => {
@@ -376,10 +290,6 @@ function PlannerPageContent() {
               onAddPriority={handleAddPriority}
               onUpdatePriority={handleUpdatePriority}
               onDeletePriority={handleDeletePriority}
-              onLinkTask={() => setTaskPickerOpen(true)}
-              onViewLinkedTask={handleViewLinkedTask}
-              onUpdateLinkedTask={updateLinkedTask}
-              tasksById={tasksById}
             />
             <BrainDump
               value={data.brainDump}
@@ -453,7 +363,6 @@ function PlannerPageContent() {
                   items={data.focusList}
                   onItemsChange={handleFocusItemsChange}
                   priorities={data.topPriorities}
-                  tasks={tasks}
                   brainDumpCandidates={brainDumpCandidates}
                 />
               </div>
@@ -501,23 +410,6 @@ function PlannerPageContent() {
           error={copyPreviousError}
         />
       )}
-
-      {/* Task linking dialogs */}
-      <TaskPickerDialog
-        open={taskPickerOpen}
-        onOpenChange={setTaskPickerOpen}
-        tasks={availableTasksForPicker}
-        onSelect={handleLinkTask}
-      />
-
-      <TaskDetailDialog
-        task={viewedLinkedTask}
-        open={linkedTaskDetailOpen}
-        onOpenChange={setLinkedTaskDetailOpen}
-        onToggleChecklistItem={handleToggleLinkedChecklistItem}
-        hideActions
-        onNavigateToTask={handleNavigateToTask}
-      />
 
       <AppCommandPalette
         open={commandPaletteOpen}

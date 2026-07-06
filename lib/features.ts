@@ -17,18 +17,6 @@ export const FEATURES = [
     },
   },
   {
-    key: "tasks",
-    label: "Tasks",
-    description: "Task board, checklists, and priority linking.",
-    href: "/tasks",
-    kind: "page",
-    defaults: {
-      adminEnabled: true,
-      userEnabled: true,
-      guestEnabled: true,
-    },
-  },
-  {
     key: "workouts",
     label: "Workouts",
     description: "Workout tracking, history, summaries, and exports.",

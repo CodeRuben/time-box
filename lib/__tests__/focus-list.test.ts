@@ -145,18 +145,8 @@ describe("getFocusListItemLabel", () => {
     })[0]!;
 
     expect(
-      getFocusListItemLabel(item, [{ id: "priority-1", name: "New name" }], [])
+      getFocusListItemLabel(item, [{ id: "priority-1", name: "New name" }])
     ).toBe("New name");
-  });
-
-  it("falls back to the stored label when the source is gone", () => {
-    const item = addFocusListItem([], {
-      type: "task",
-      taskId: "task-1",
-      label: "Stored label",
-    })[0]!;
-
-    expect(getFocusListItemLabel(item, [], [])).toBe("Stored label");
   });
 });
 
@@ -288,15 +278,6 @@ describe("getFocusListItemSubitems", () => {
         ],
       },
     ],
-    tasks: [
-      {
-        id: "task-1",
-        checklist: [
-          { name: "Buy milk", completed: false },
-          { name: "Buy bread", completed: true },
-        ],
-      },
-    ],
     brainDumpCandidates: [
       {
         name: "Ship login flow",
@@ -320,24 +301,6 @@ describe("getFocusListItemSubitems", () => {
     expect(getFocusListItemSubitems(item, context)).toEqual([
       { name: "Draft outline", completed: true },
       { name: "Send review", completed: false },
-    ]);
-  });
-
-  it("returns task checklist items", () => {
-    const item = {
-      id: "focus-2",
-      status: "todo" as const,
-      order: 0,
-      source: {
-        type: "task" as const,
-        taskId: "task-1",
-        label: "Groceries",
-      },
-    };
-
-    expect(getFocusListItemSubitems(item, context)).toEqual([
-      { name: "Buy milk", completed: false },
-      { name: "Buy bread", completed: true },
     ]);
   });
 

@@ -32,7 +32,6 @@ import {
 import { getFocusItemSourceKey, type FocusItemSource } from "@/lib/focus-item-source";
 import type { BrainDumpPriorityCandidate } from "@/lib/parse-brain-dump-priorities";
 import type { TopPriority } from "@/lib/use-planner-storage";
-import type { Task } from "@/lib/task-types";
 import { AddToFocusMenu, getFocusAddOptions } from "../add-to-focus-menu";
 import {
   persistFocusItemComplete,
@@ -46,7 +45,6 @@ interface FocusBoardProps {
   items: FocusListItem[];
   onItemsChange: Dispatch<SetStateAction<FocusListItem[]>>;
   priorities: TopPriority[];
-  tasks: Task[];
   brainDumpCandidates: BrainDumpPriorityCandidate[];
 }
 
@@ -54,7 +52,6 @@ export function FocusBoard({
   items,
   onItemsChange,
   priorities,
-  tasks,
   brainDumpCandidates,
 }: FocusBoardProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -105,31 +102,17 @@ export function FocusBoard({
   );
 
   const getItemLabel = useCallback(
-    (item: FocusListItem) => getFocusListItemLabel(item, priorities, tasks),
-    [priorities, tasks]
+    (item: FocusListItem) => getFocusListItemLabel(item, priorities),
+    [priorities]
   );
 
   const getItemSubitems = useCallback(
     (item: FocusListItem) =>
       getFocusListItemSubitems(item, {
         priorities,
-        tasks,
         brainDumpCandidates,
       }),
-    [priorities, tasks, brainDumpCandidates]
-  );
-
-  const getItemDescription = useCallback(
-    (item: FocusListItem) => {
-      const source = item.source;
-      if (source.type !== "task") {
-        return undefined;
-      }
-
-      const task = tasks.find((entry) => entry.id === source.taskId);
-      return task?.description.trim() || undefined;
-    },
-    [tasks]
+    [priorities, brainDumpCandidates]
   );
 
   const { hasOptions: hasAddOptions } = useMemo(
@@ -254,7 +237,7 @@ export function FocusBoard({
                 }
                 getItemLabel={getItemLabel}
                 getItemSubitems={getItemSubitems}
-                getItemDescription={getItemDescription}
+                getItemDescription={() => undefined}
                 isExiting={isExiting}
                 enteringCompleteIds={enteringCompleteIds}
                 dropTargetIndex={null}

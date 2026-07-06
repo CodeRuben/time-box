@@ -112,7 +112,6 @@ function AccountHeaderControl() {
 
 const fallbackNavItems = [
   { href: "/", label: "Planner", key: "planner" },
-  { href: "/tasks", label: "Tasks", key: "tasks" },
   { href: "/workout-tracker", label: "Workouts", key: "workouts" },
   { href: "/reading-journal", label: "Book log", key: "reading-journal" },
 ];

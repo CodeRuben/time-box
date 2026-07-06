@@ -1,6 +1,6 @@
 # Timeboxing Planner
 
-A personal productivity web app with daily-cadence modules: a timeboxing planner, a task board, a workout tracker, and a reading journal. Each module tracks what the user does on a given day.
+A personal productivity web app with daily-cadence modules: a timeboxing planner, a workout tracker, and a reading journal. Each module tracks what the user does on a given day.
 
 ## Language
 

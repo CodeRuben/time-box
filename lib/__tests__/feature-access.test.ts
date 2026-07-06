@@ -17,7 +17,7 @@ describe("canAccessFeature", () => {
     expect(
       canAccessFeature({
         feature: {
-          ...getDefaultFeatureFlag("tasks"),
+          ...getDefaultFeatureFlag("workouts"),
           userEnabled: false,
         },
         role: "USER",
