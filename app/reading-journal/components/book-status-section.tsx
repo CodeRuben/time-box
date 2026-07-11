@@ -1,12 +1,17 @@
-import { BookCard } from "./book-card";
 import type { BookSummaryView } from "@/lib/reading-journal-types";
+import { BookTable } from "./book-table";
 
 interface BookStatusSectionProps {
   title: string;
   books: BookSummaryView[];
+  showFinishedOn?: boolean;
 }
 
-export function BookStatusSection({ title, books }: BookStatusSectionProps) {
+export function BookStatusSection({
+  title,
+  books,
+  showFinishedOn = false,
+}: BookStatusSectionProps) {
   if (books.length === 0) {
     return null;
   }
@@ -14,11 +19,7 @@ export function BookStatusSection({ title, books }: BookStatusSectionProps) {
   return (
     <section className="space-y-3">
       <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-      <div className="flex flex-wrap gap-3">
-        {books.map((book) => (
-          <BookCard key={book.id} book={book} />
-        ))}
-      </div>
+      <BookTable books={books} showFinishedOn={showFinishedOn} />
     </section>
   );
 }

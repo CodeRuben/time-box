@@ -54,7 +54,11 @@ function ReadingJournalContent() {
         ) : (
           <div className="space-y-8">
             <BookStatusSection title="Reading" books={booksByStatus.reading} />
-            <BookStatusSection title="Finished" books={booksByStatus.finished} />
+            <BookStatusSection
+              title="Finished"
+              books={booksByStatus.finished}
+              showFinishedOn
+            />
             <BookStatusSection title="Abandoned" books={booksByStatus.abandoned} />
           </div>
         )}
