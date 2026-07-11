@@ -124,47 +124,6 @@
   }
 }
 
-.page-grid-pattern {
-  background-image:
-    linear-gradient(
-      to right,
-      color-mix(in oklch, var(--foreground) 6%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      to bottom,
-      color-mix(in oklch, var(--foreground) 6%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: 2.5rem 2.5rem;
-}
-
-.dark .page-grid-pattern:not(.page-grid-pattern--primary) {
-  background-image:
-    linear-gradient(
-      to right,
-      color-mix(in oklch, var(--foreground) 5%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      to bottom,
-      color-mix(in oklch, var(--foreground) 5%, transparent) 1px,
-      transparent 1px
-    );
-}
-
-.page-grid-pattern--primary {
-  background-image:
-    linear-gradient(to right, oklch(1 0 0 / 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(1 0 0 / 0.06) 1px, transparent 1px);
-}
-
-.dark .page-grid-pattern--primary {
-  background-image:
-    linear-gradient(to right, oklch(1 0 0 / 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(1 0 0 / 0.07) 1px, transparent 1px);
-}
-
 /* Reading journal — shares the app's design tokens (colors + font) so it
    matches every other page in both themes. See plans/reading-journal/README.md
    "Visual design" for the notebook-inspired layout details that remain
