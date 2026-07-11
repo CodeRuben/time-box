@@ -126,7 +126,7 @@ export function FocusBoardItemRow({
       <div className="flex min-w-0 flex-1 items-center gap-1.5">
         <p
           className={cn(
-            "min-w-0 flex-1 truncate text-sm font-medium leading-snug text-foreground transition-opacity duration-100 ease-out motion-reduce:transition-none",
+            "min-w-0 flex-1 truncate text-sm font-medium capitalize leading-snug text-foreground transition-opacity duration-100 ease-out motion-reduce:transition-none",
             showCompletedCheck && "line-through opacity-60"
           )}
         >
