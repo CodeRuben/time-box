@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Star } from "lucide-react";
@@ -10,11 +10,26 @@ import {
   type BookSortColumn,
   type BookSortDirection,
 } from "@/lib/book-table-sort";
+import {
+  BOOK_TABLE_PAGE_SIZE,
+  getPageCount,
+  getPaginationItems,
+  paginateItems,
+} from "@/lib/book-table-pagination";
 import { formatRating, getProgressPercent } from "@/lib/reading-progress";
 import {
   BOOK_STATUS_OPTIONS,
   type BookSummaryView,
 } from "@/lib/reading-journal-types";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { BookCoverImage } from "./book-cover-image";
 
 interface BookTableProps {
@@ -219,94 +234,148 @@ function BookTableRow({
 export function BookTable({ books, showFinishedOn = false }: BookTableProps) {
   const [column, setColumn] = useState<BookSortColumn>("title");
   const [direction, setDirection] = useState<BookSortDirection>("asc");
+  const [page, setPage] = useState(1);
 
   function handleSort(nextColumn: BookSortColumn) {
     if (nextColumn === column) {
       setDirection((current) => (current === "asc" ? "desc" : "asc"));
-      return;
+    } else {
+      setColumn(nextColumn);
+      setDirection(
+        nextColumn === "rating" ||
+          nextColumn === "startedOn" ||
+          nextColumn === "finishedOn"
+          ? "desc"
+          : "asc"
+      );
     }
-
-    setColumn(nextColumn);
-    setDirection(
-      nextColumn === "rating" ||
-        nextColumn === "startedOn" ||
-        nextColumn === "finishedOn"
-        ? "desc"
-        : "asc"
-    );
+    setPage(1);
   }
 
   const sortedBooks = sortBooks(books, column, direction);
+  const pageCount = getPageCount(sortedBooks.length, BOOK_TABLE_PAGE_SIZE);
+  const currentPage = Math.min(page, pageCount);
+  const pageItems = paginateItems(
+    sortedBooks,
+    currentPage,
+    BOOK_TABLE_PAGE_SIZE
+  );
+  const paginationItems = getPaginationItems(currentPage, pageCount);
+
+  useEffect(() => {
+    if (page > pageCount) {
+      setPage(pageCount);
+    }
+  }, [page, pageCount]);
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[28rem] border-collapse text-left">
-        <thead>
-          <tr className="border-b border-border/70">
-            <SortableHeader
-              label="Book"
-              column="title"
-              activeColumn={column}
-              direction={direction}
-              onSort={handleSort}
-              className="py-2 pl-1 pr-3 sm:pl-2"
-            />
-            <SortableHeader
-              label="Author"
-              column="author"
-              activeColumn={column}
-              direction={direction}
-              onSort={handleSort}
-              className="hidden px-3 py-2 sm:table-cell"
-            />
-            <SortableHeader
-              label="Progress"
-              column="progress"
-              activeColumn={column}
-              direction={direction}
-              onSort={handleSort}
-              className="px-3 py-2"
-            />
-            <SortableHeader
-              label="Rating"
-              column="rating"
-              activeColumn={column}
-              direction={direction}
-              onSort={handleSort}
-              className="px-3 py-2"
-            />
-            <SortableHeader
-              label="Started"
-              column="startedOn"
-              activeColumn={column}
-              direction={direction}
-              onSort={handleSort}
-              className="hidden px-3 py-2 md:table-cell"
-              align="right"
-            />
-            {showFinishedOn && (
+    <div className="space-y-4">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[28rem] border-collapse text-left">
+          <thead>
+            <tr className="border-b border-border/70">
               <SortableHeader
-                label="Finished"
-                column="finishedOn"
+                label="Book"
+                column="title"
+                activeColumn={column}
+                direction={direction}
+                onSort={handleSort}
+                className="py-2 pl-1 pr-3 sm:pl-2"
+              />
+              <SortableHeader
+                label="Author"
+                column="author"
+                activeColumn={column}
+                direction={direction}
+                onSort={handleSort}
+                className="hidden px-3 py-2 sm:table-cell"
+              />
+              <SortableHeader
+                label="Progress"
+                column="progress"
+                activeColumn={column}
+                direction={direction}
+                onSort={handleSort}
+                className="px-3 py-2"
+              />
+              <SortableHeader
+                label="Rating"
+                column="rating"
+                activeColumn={column}
+                direction={direction}
+                onSort={handleSort}
+                className="px-3 py-2"
+              />
+              <SortableHeader
+                label="Started"
+                column="startedOn"
                 activeColumn={column}
                 direction={direction}
                 onSort={handleSort}
                 className="hidden px-3 py-2 md:table-cell"
                 align="right"
               />
+              {showFinishedOn && (
+                <SortableHeader
+                  label="Finished"
+                  column="finishedOn"
+                  activeColumn={column}
+                  direction={direction}
+                  onSort={handleSort}
+                  className="hidden px-3 py-2 md:table-cell"
+                  align="right"
+                />
+              )}
+            </tr>
+          </thead>
+          <tbody className="[&_tr]:border-b [&_tr]:border-border/50 [&_tr:last-child]:border-b-0">
+            {pageItems.map((book) => (
+              <BookTableRow
+                key={book.id}
+                book={book}
+                showFinishedOn={showFinishedOn}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {pageCount > 1 && (
+        <Pagination className="justify-end">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                disabled={currentPage <= 1}
+              />
+            </PaginationItem>
+            {paginationItems.map((item, index) =>
+              item === "ellipsis" ? (
+                <PaginationItem key={`ellipsis-${index}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={item}>
+                  <PaginationLink
+                    isActive={item === currentPage}
+                    onClick={() => setPage(item)}
+                  >
+                    {item}
+                  </PaginationLink>
+                </PaginationItem>
+              )
             )}
-          </tr>
-        </thead>
-        <tbody className="[&_tr]:border-b [&_tr]:border-border/50 [&_tr:last-child]:border-b-0">
-          {sortedBooks.map((book) => (
-            <BookTableRow
-              key={book.id}
-              book={book}
-              showFinishedOn={showFinishedOn}
-            />
-          ))}
-        </tbody>
-      </table>
+            <PaginationItem>
+              <PaginationNext
+                onClick={() =>
+                  setPage((current) => Math.min(pageCount, current + 1))
+                }
+                disabled={currentPage >= pageCount}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 }
