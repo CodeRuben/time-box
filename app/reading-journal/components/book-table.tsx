@@ -232,8 +232,12 @@ function BookTableRow({
 }
 
 export function BookTable({ books, showFinishedOn = false }: BookTableProps) {
-  const [column, setColumn] = useState<BookSortColumn>("title");
-  const [direction, setDirection] = useState<BookSortDirection>("asc");
+  const [column, setColumn] = useState<BookSortColumn>(
+    showFinishedOn ? "finishedOn" : "title"
+  );
+  const [direction, setDirection] = useState<BookSortDirection>(
+    showFinishedOn ? "desc" : "asc"
+  );
   const [page, setPage] = useState(1);
 
   function handleSort(nextColumn: BookSortColumn) {
