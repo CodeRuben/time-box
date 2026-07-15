@@ -54,7 +54,10 @@ export function getPagesReadByDate(entries: DatedPage[]): Map<string, number> {
   return result;
 }
 
+export const RATING_UNITS_PER_STAR = 4;
+export const MAX_RATING = 5 * RATING_UNITS_PER_STAR;
+
 export function formatRating(rating: number | null): string {
   if (rating === null) return "";
-  return (rating / 2).toString();
+  return (rating / RATING_UNITS_PER_STAR).toString();
 }

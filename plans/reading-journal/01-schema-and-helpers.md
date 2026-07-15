@@ -47,7 +47,7 @@ export interface BookSummaryView {
   coverUrl: string;
   totalPages: number | null;
   status: BookStatus;
-  rating: number | null; // 1-10 half-star scale, null = unrated
+  rating: number | null; // 1-20 quarter-star scale, null = unrated
   currentPage: number | null; // derived from latest entry
   startedOn: string | null;
   finishedOn: string | null;

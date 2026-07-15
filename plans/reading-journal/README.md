@@ -47,7 +47,7 @@ model Book {
   openLibraryKey String   @default("")
   // Enum-like values validated at the API boundary: "reading" | "finished" | "abandoned".
   status         String   @default("reading")
-  // Half-star rating stored as 1-10 (7 = 3.5 stars). Null = unrated.
+  // Quarter-star rating stored as 1-20 (15 = 3.75 stars). Null = unrated.
   rating         Int?
   notes          String   @default("")
   // Local dates as YYYY-MM-DD strings, matching PlannerDay/WorkoutDay.

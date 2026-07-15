@@ -80,7 +80,7 @@ describe("sortBooks", () => {
     const books = [
       createBook({ id: "mid", title: "Mid", rating: 6 }),
       createBook({ id: "none", title: "None", rating: null }),
-      createBook({ id: "high", title: "High", rating: 10 }),
+      createBook({ id: "high", title: "High", rating: 20 }),
     ];
 
     expect(sortBooks(books, "rating", "desc").map((book) => book.id)).toEqual([

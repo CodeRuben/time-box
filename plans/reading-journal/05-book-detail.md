@@ -41,12 +41,12 @@ Left: cover image (same placeholder rules as the card, roughly `w-32`–`w-40`).
 
 ## 4. `star-rating.tsx`
 
-Interactive 5-star widget with half-star precision (rating stored 1–10):
+Interactive 5-star widget with quarter-star precision (rating stored 1–20):
 
-- Render 5 stars; each star has two hit-zones (left half / right half) setting rating to `i*2-1` or `i*2`.
-- Display: full / half / empty via lucide `Star` + `StarHalf` (or CSS-clipped overlay).
+- Render 5 stars; each star has four hit-zones setting quarter-star values.
+- Display partial fills with a CSS-clipped `Star` overlay.
 - Clicking the currently-set value clears the rating (PATCH `{ rating: null }`).
-- Keyboard accessible: `role="radiogroup"` of 10 radio options with `aria-label`s like "3.5 stars"; visible focus ring.
+- Keyboard accessible: `role="radiogroup"` of 20 radio options with `aria-label`s like "3.75 stars"; visible focus ring.
 - Usable anytime, regardless of status.
 
 ## 5. `progress-bar.tsx`

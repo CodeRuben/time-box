@@ -100,11 +100,11 @@ describe("getPagesReadByDate", () => {
 
 describe("formatRating", () => {
   it("formats a whole-star rating", () => {
-    expect(formatRating(10)).toBe("5");
+    expect(formatRating(20)).toBe("5");
   });
 
-  it("formats a half-star rating", () => {
-    expect(formatRating(7)).toBe("3.5");
+  it("formats a quarter-star rating", () => {
+    expect(formatRating(15)).toBe("3.75");
   });
 
   it("formats null as an empty string", () => {

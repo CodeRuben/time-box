@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Prisma } from "../generated/prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getCurrentPage } from "@/lib/reading-progress";
+import { getCurrentPage, MAX_RATING } from "@/lib/reading-progress";
 import type {
   BookDetailView,
   BookEntry,
@@ -136,9 +136,12 @@ export function validateBookBody(
       body.rating !== null &&
       (!Number.isInteger(body.rating) ||
         (body.rating as number) < 1 ||
-        (body.rating as number) > 10)
+        (body.rating as number) > MAX_RATING)
     ) {
-      return { error: "Rating must be an integer from 1 to 10, or null", status: 400 };
+      return {
+        error: `Rating must be an integer from 1 to ${MAX_RATING}, or null`,
+        status: 400,
+      };
     }
     result.rating = body.rating as number | null;
   }

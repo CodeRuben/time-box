@@ -41,9 +41,14 @@ describe("validateBookBody", () => {
     expect(isValidationError(result)).toBe(true);
   });
 
-  it("rejects a rating of 11", () => {
-    const result = validateBookBody({ rating: 11 }, { requireTitle: false });
+  it("rejects a rating above 5 stars", () => {
+    const result = validateBookBody({ rating: 21 }, { requireTitle: false });
     expect(isValidationError(result)).toBe(true);
+  });
+
+  it("accepts a quarter-star rating", () => {
+    const result = validateBookBody({ rating: 15 }, { requireTitle: false });
+    expect(isValidationError(result)).toBe(false);
   });
 
   it("accepts a null rating", () => {
@@ -69,7 +74,7 @@ describe("validateBookBody", () => {
         publishedYear: 1965,
         openLibraryKey: "/works/OL893415W",
         status: "reading",
-        rating: 9,
+        rating: 18,
         notes: "Great so far.",
         startedOn: "2026-07-01",
         finishedOn: null,

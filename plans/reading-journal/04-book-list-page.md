@@ -53,7 +53,7 @@ Not a table row — a cover-first card, the whole card a link to `/reading-journ
 - Use a plain `<img>` tag (external Open Library URLs; avoids configuring `next/image` remote patterns) with `alt={title}` and `loading="lazy"`.
 - Below the cover: title (truncate to 2 lines with `line-clamp-2`), author in muted small text.
 - For `reading` books with a derivable percentage (`getProgressPercent(currentPage, totalPages)`), a thin progress bar at the card's bottom edge (simple `div` with width %, `bg-primary`) plus `"p. X of Y"` micro-text. Skip when not derivable.
-- For rated books, a small star display (filled/half/empty stars from lucide `Star`; half via CSS clip or the `StarHalf` icon). Rating is 1–10 → divide by 2.
+- For rated books, a small star display. Rating is 1–20 → divide by 4.
 - Hover: slight scale/shadow transition consistent with the app's press-scale motion rule (`.cursor/rules/dialog-primary-action-motion.mdc` for the pattern's feel; keep `motion-reduce` variants).
 
 ## 6. `add-book-dialog.tsx`
