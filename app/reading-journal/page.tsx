@@ -6,6 +6,7 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 import { FeatureGate } from "../components/feature-gate";
 import { AddBookDialog } from "./components/add-book-dialog";
 import { BookStatusSection } from "./components/book-status-section";
+import { YearRecap } from "./components/year-recap";
 import { useBookList } from "./hooks/use-book-list";
 
 function ReadingJournalContent() {
@@ -40,6 +41,10 @@ function ReadingJournalContent() {
             Add book
           </Button>
         </div>
+
+        {books.length > 0 && (
+          <YearRecap books={books} year={new Date().getFullYear()} />
+        )}
 
         {books.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border py-16 text-center">

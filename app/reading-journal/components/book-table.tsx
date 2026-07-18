@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Star } from "lucide-react";
@@ -265,12 +265,11 @@ export function BookTable({ books, showFinishedOn = false }: BookTableProps) {
     BOOK_TABLE_PAGE_SIZE
   );
   const paginationItems = getPaginationItems(currentPage, pageCount);
-
-  useEffect(() => {
-    if (page > pageCount) {
-      setPage(pageCount);
-    }
-  }, [page, pageCount]);
+  const firstVisibleBook = (currentPage - 1) * BOOK_TABLE_PAGE_SIZE + 1;
+  const lastVisibleBook = Math.min(
+    currentPage * BOOK_TABLE_PAGE_SIZE,
+    sortedBooks.length
+  );
 
   return (
     <div className="space-y-4">
@@ -344,42 +343,48 @@ export function BookTable({ books, showFinishedOn = false }: BookTableProps) {
         </table>
       </div>
 
-      {pageCount > 1 && (
-        <Pagination className="justify-end">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
-                disabled={currentPage <= 1}
-              />
-            </PaginationItem>
-            {paginationItems.map((item, index) =>
-              item === "ellipsis" ? (
-                <PaginationItem key={`ellipsis-${index}`}>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              ) : (
-                <PaginationItem key={item}>
-                  <PaginationLink
-                    isActive={item === currentPage}
-                    onClick={() => setPage(item)}
-                  >
-                    {item}
-                  </PaginationLink>
-                </PaginationItem>
-              )
-            )}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() =>
-                  setPage((current) => Math.min(pageCount, current + 1))
-                }
-                disabled={currentPage >= pageCount}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm tabular-nums text-muted-foreground">
+          Showing {firstVisibleBook}–{lastVisibleBook} of {sortedBooks.length}{" "}
+          {sortedBooks.length === 1 ? "book" : "books"}
+        </p>
+        {pageCount > 1 && (
+          <Pagination className="mx-0 w-auto justify-end">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage <= 1}
+                />
+              </PaginationItem>
+              {paginationItems.map((item, index) =>
+                item === "ellipsis" ? (
+                  <PaginationItem key={`ellipsis-${index}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={item}>
+                    <PaginationLink
+                      isActive={item === currentPage}
+                      onClick={() => setPage(item)}
+                    >
+                      {item}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              )}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() =>
+                    setPage(Math.min(pageCount, currentPage + 1))
+                  }
+                  disabled={currentPage >= pageCount}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
+      </div>
     </div>
   );
 }
