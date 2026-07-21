@@ -48,3 +48,31 @@ How far through a Book the user is: the Current Page of the latest Entry over th
 
 **Cover**:
 The Book's image, stored as a URL (from Open Library, or edited manually). A placeholder is shown when absent.
+
+### Mock Draft
+
+**Board**:
+The ranked player list used for a Mock Draft.
+_Avoid_: Rankings (when referring to the in-app list)
+
+**Pick**:
+One player selection, identified by its overall number, round, Slot, and player.
+_Avoid_: Selection
+
+**Slot**:
+A team's 1-based position in the draft order.
+_Avoid_: Seed, position
+
+**On the Clock**:
+The team whose turn it is to make a Pick.
+
+**Archetype**:
+A bot's drafting personality, which influences how it values positions.
+_Avoid_: Strategy
+
+**Best Available**:
+The undrafted players ordered by Board rank.
+_Avoid_: Available players (when referring to the ranked view)
+
+**Grade**:
+The post-draft letter score assigned to a team.

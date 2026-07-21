@@ -13,6 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { PAGE_FEATURES } from "@/lib/features";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -110,11 +111,11 @@ function AccountHeaderControl() {
   );
 }
 
-const fallbackNavItems = [
-  { href: "/", label: "Planner", key: "planner" },
-  { href: "/workout-tracker", label: "Workouts", key: "workouts" },
-  { href: "/reading-journal", label: "Book log", key: "reading-journal" },
-];
+const fallbackNavItems = PAGE_FEATURES.map((feature) => ({
+  href: feature.href,
+  label: feature.label,
+  key: feature.key,
+}));
 
 const VISIBLE_ROUTES = new Set([
   ...fallbackNavItems.map((item) => item.href),

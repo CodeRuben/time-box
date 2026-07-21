@@ -41,6 +41,18 @@ export const FEATURES = [
     },
   },
   {
+    key: "mock-draft",
+    label: "Mock Draft",
+    description: "Fantasy football snake mock drafts against AI opponents.",
+    href: "/mock-draft",
+    kind: "page",
+    defaults: {
+      adminEnabled: true,
+      userEnabled: true,
+      guestEnabled: true,
+    },
+  },
+  {
     key: "registration",
     label: "New user registration",
     description: "Allow visitors to create new accounts.",
