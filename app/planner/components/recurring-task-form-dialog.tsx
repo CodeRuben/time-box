@@ -335,17 +335,21 @@ export function RecurringTaskFormDialog({
                 <DatePicker
                   date={dateKeyToLocalDate(form.schedule.anchorDate)}
                   onSelect={(date) => {
-                    if (!date || form.schedule.type !== "active_rest_weeks") {
+                    if (!date) {
                       return;
                     }
-                    setForm((current) => ({
-                      ...current,
-                      schedule: {
-                        ...current.schedule,
-                        type: "active_rest_weeks",
-                        anchorDate: formatDateKey(date),
-                      },
-                    }));
+                    setForm((current) => {
+                      if (current.schedule.type !== "active_rest_weeks") {
+                        return current;
+                      }
+                      return {
+                        ...current,
+                        schedule: {
+                          ...current.schedule,
+                          anchorDate: formatDateKey(date),
+                        },
+                      };
+                    });
                   }}
                 />
                 {anchorDateError && (
