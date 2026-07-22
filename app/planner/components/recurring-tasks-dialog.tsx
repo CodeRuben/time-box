@@ -175,12 +175,18 @@ export function RecurringTasksDialog({
                   </TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody className="[&_tr:last-child]:!border-b">
+              <TableBody
+                className={
+                  !isLoading && tasks.length > 0
+                    ? "[&_tr:last-child]:!border-b"
+                    : undefined
+                }
+              >
                 {isLoading ? (
                   <TableRow>
                     <TableCell
                       colSpan={4}
-                      className="h-24 text-center text-muted-foreground"
+                      className="h-[calc(20rem-2.5rem)] text-center align-middle text-muted-foreground"
                     >
                       Loading tasks...
                     </TableCell>
@@ -189,7 +195,7 @@ export function RecurringTasksDialog({
                   <TableRow>
                     <TableCell
                       colSpan={4}
-                      className="h-24 text-center text-muted-foreground"
+                      className="h-[calc(20rem-2.5rem)] text-center align-middle text-muted-foreground"
                     >
                       No recurring tasks yet.
                     </TableCell>
