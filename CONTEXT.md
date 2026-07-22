@@ -4,6 +4,28 @@ A personal productivity web app with daily-cadence modules: a timeboxing planner
 
 ## Language
 
+### Planner
+
+**Focus List**:
+The day's actionable items on the planner, split into Todo and Complete columns.
+_Avoid_: Task list (unqualified), kanban
+
+**Focus List Item**:
+A single Focus List entry. After creation it behaves like a normal item (complete, reopen, reorder, delete). Source metadata may link it to a Priority, Brain Dump line, or Recurring Focus Task occurrence.
+_Avoid_: Card, ticket
+
+**Recurring Focus Task**:
+An account-scoped schedule definition that can generate a Focus List Item for the logged-in user's local today when the schedule is active. Guests do not have Recurring Focus Tasks.
+_Avoid_: Reminder, recurring reminder, cron job
+
+**Occurrence**:
+The idempotency record that a Recurring Focus Task already generated (or attempted) for a given local date. Deleting the Focus List Item does not remove the Occurrence, so that day will not regenerate.
+_Avoid_: Instance, run
+
+**Active-rest cycle**:
+A Recurring Focus Task schedule mode with alternating active and inactive week windows anchored to a start date, plus selected weekdays inside active weeks.
+_Avoid_: Sprint rotation (as a separate domain term)
+
 ### Reading Journal
 
 **Book**:

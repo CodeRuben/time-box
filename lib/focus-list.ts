@@ -1,6 +1,7 @@
 import type { DragEvent } from "react";
 import type { FocusItemSource } from "@/lib/focus-item-source";
 import { getFocusItemSourceKey } from "@/lib/focus-item-source";
+import { toTitleCase } from "@/lib/title-case";
 
 export type FocusItemStatus = "todo" | "complete";
 
@@ -184,6 +185,8 @@ export function getFocusListItemSubitems(
       );
       return (candidate?.subtasks ?? []).map((name) => ({ name }));
     }
+    case "recurring_task":
+      return [];
   }
 }
 
@@ -193,14 +196,22 @@ export function getFocusListItemLabel(
 ): string {
   const { source } = item;
 
+  let label: string;
   switch (source.type) {
     case "priority": {
       const priority = priorities.find((entry) => entry.id === source.priorityId);
-      return priority?.name.trim() || source.label;
+      label = priority?.name.trim() || source.label;
+      break;
     }
     case "brain_dump":
-      return source.text;
+      label = source.text;
+      break;
+    case "recurring_task":
+      label = source.label;
+      break;
   }
+
+  return toTitleCase(label);
 }
 
 export function isValidFocusListItem(value: unknown): value is FocusListItem {
@@ -234,6 +245,12 @@ export function isValidFocusListItem(value: unknown): value is FocusListItem {
       );
     case "brain_dump":
       return typeof item.source.text === "string";
+    case "recurring_task":
+      return (
+        typeof item.source.recurringTaskId === "string" &&
+        typeof item.source.occurrenceId === "string" &&
+        typeof item.source.label === "string"
+      );
     default:
       return false;
   }

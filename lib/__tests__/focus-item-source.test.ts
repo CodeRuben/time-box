@@ -11,6 +11,17 @@ describe("getFocusItemSourceKey", () => {
       })
     ).toBe("brain:ship feature");
   });
+
+  it("keys recurring tasks by occurrence id", () => {
+    expect(
+      getFocusItemSourceKey({
+        type: "recurring_task",
+        recurringTaskId: "task-1",
+        occurrenceId: "occ-1",
+        label: "Code review",
+      })
+    ).toBe("recurring:occ-1");
+  });
 });
 
 describe("getFocusAddOptions", () => {

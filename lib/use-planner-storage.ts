@@ -13,23 +13,23 @@ import {
 import {
   appendCopiedFocusListItems,
   copyFocusListItems,
-  parseFocusListItems,
   renormalizeFocusListOrders,
   type FocusListItem,
 } from "@/lib/focus-list";
+import {
+  ensurePriorityFields,
+  getDefaultData,
+  hydratePlannerData,
+  migrateFromLegacy,
+  type LegacyPlannerData,
+  type PlannerData,
+  type SubTask,
+  type TopPriority,
+} from "@/lib/planner-data";
+import { mergeRecurringFocusListItems } from "@/lib/recurring-focus-tasks/merge";
 
-export interface SubTask {
-  id: string;
-  name: string;
-  completed: boolean;
-}
-
-export interface TopPriority {
-  id: string;
-  name: string;
-  completed: boolean;
-  subtasks: SubTask[];
-}
+export type { LegacyPlannerData, PlannerData, SubTask, TopPriority };
+export { ensurePriorityFields, getDefaultData, migrateFromLegacy };
 
 export const MAX_TOP_PRIORITIES = 3;
 
@@ -49,27 +49,12 @@ export function createTopPriorityFromBrainDumpCandidate(candidate: {
   };
 }
 
-export interface PlannerData {
-  topPriorities: TopPriority[];
-  brainDump: string;
-  focusList: FocusListItem[];
-  lastSaved?: string;
-}
-
 export interface CopyPreviousDayOptions {
   includeTopPriorities: boolean;
   includeBrainDump: boolean;
   includeFocusList: boolean;
   onlyUnfinished: boolean;
   mode: "replace" | "merge";
-}
-
-// Legacy interface for migration (exported for testing)
-export interface LegacyPlannerData {
-  priorities?: string[];
-  priorityCompleted?: boolean[];
-  brainDump?: string;
-  lastSaved?: string;
 }
 
 const STORAGE_PREFIX = "planner-";
@@ -83,55 +68,6 @@ type PlannerStorageMode = "local" | "account";
  */
 export function getStorageKey(date: Date): string {
   return `${STORAGE_PREFIX}${formatDateKey(date)}`;
-}
-
-/**
- * Get default/empty planner data
- */
-export function getDefaultData(): PlannerData {
-  return {
-    topPriorities: [],
-    brainDump: "",
-    focusList: [],
-  };
-}
-
-/**
- * Migrate legacy data format to new format
- */
-export function migrateFromLegacy(legacy: LegacyPlannerData): TopPriority[] {
-  if (!legacy.priorities || !Array.isArray(legacy.priorities)) {
-    return [];
-  }
-
-  const migrated: TopPriority[] = [];
-
-  for (const name of legacy.priorities) {
-    if (name && name.trim() !== "") {
-      migrated.push({
-        id: crypto.randomUUID(),
-        name: name.trim(),
-        completed: false,
-        subtasks: [] as SubTask[],
-      });
-    }
-  }
-
-  return migrated;
-}
-
-/**
- * Ensure TopPriority has all required fields (for backwards compatibility)
- */
-export function ensurePriorityFields(
-  priority: Partial<TopPriority> & { id: string; name: string }
-): TopPriority {
-  return {
-    id: priority.id,
-    name: priority.name,
-    completed: priority.completed ?? false,
-    subtasks: priority.subtasks ?? [],
-  };
 }
 
 function withLastSaved(data: PlannerData): PlannerData {
@@ -245,37 +181,6 @@ export function copyPlannerDataFromPreviousDay(
   };
 }
 
-function hydratePlannerData(raw: unknown): PlannerData | null {
-  if (!raw || typeof raw !== "object") {
-    return null;
-  }
-
-  const parsed = raw as PlannerData & LegacyPlannerData;
-  const defaultData = getDefaultData();
-
-  const isLegacyFormat =
-    Array.isArray(parsed.priorities) &&
-    (parsed.priorities.length === 0 || typeof parsed.priorities[0] === "string");
-
-  let topPriorities: TopPriority[];
-
-  if (isLegacyFormat) {
-    topPriorities = migrateFromLegacy(parsed);
-  } else if (Array.isArray(parsed.topPriorities)) {
-    topPriorities = parsed.topPriorities.slice(0, 3).map(ensurePriorityFields);
-  } else {
-    topPriorities = [];
-  }
-
-  return {
-    ...defaultData,
-    brainDump: parsed.brainDump || defaultData.brainDump,
-    topPriorities,
-    focusList: parseFocusListItems(parsed.focusList),
-    lastSaved: parsed.lastSaved,
-  };
-}
-
 /**
  * Load planner data from localStorage for a specific date
  */
@@ -320,25 +225,69 @@ export function savePlannerData(date: Date, data: PlannerData): void {
   }
 }
 
-async function loadPlannerDataFromAccount(date: Date): Promise<PlannerData | null> {
-  const response = await fetch(`${PLANNER_API_PREFIX}/${formatDateKey(date)}`, {
+async function fetchAddedRecurringItems(dateKey: string): Promise<FocusListItem[]> {
+  const response = await fetch("/api/recurring-focus-tasks/apply", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({ date: dateKey }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to apply recurring focus tasks");
+  }
+
+  const payload = (await response.json()) as {
+    data?: { addedItems?: FocusListItem[] };
+  };
+
+  return Array.isArray(payload.data?.addedItems) ? payload.data.addedItems : [];
+}
+
+async function loadPlannerDataFromAccount(
+  date: Date,
+  writeKey: string
+): Promise<PlannerData | null> {
+  const dateKey = formatDateKey(date);
+  const isLocalToday = dateKey === formatDateKey(new Date());
+
+  const response = await fetch(`${PLANNER_API_PREFIX}/${dateKey}`, {
     cache: "no-store",
     credentials: "same-origin",
   });
 
-  if (response.status === 404) {
-    return null;
-  }
-
-  if (!response.ok) {
+  if (response.status !== 404 && !response.ok) {
     throw new Error("Failed to load planner data from account");
   }
 
-  const payload = (await response.json()) as {
-    data?: unknown;
-  };
+  let plannerData =
+    response.status === 404
+      ? getDefaultData()
+      : hydratePlannerData(
+          ((await response.json()) as { data?: unknown }).data
+        ) ?? getDefaultData();
 
-  return hydratePlannerData(payload.data);
+  if (isLocalToday) {
+    const addedItems = await fetchAddedRecurringItems(dateKey);
+    if (addedItems.length > 0) {
+      plannerData = {
+        ...plannerData,
+        focusList: mergeRecurringFocusListItems(
+          plannerData.focusList,
+          addedItems
+        ),
+      };
+      await enqueueWrite(writeKey, () =>
+        savePlannerDataToAccount(date, plannerData)
+      );
+    }
+  }
+
+  if (response.status === 404 && plannerData.focusList.length === 0) {
+    return null;
+  }
+
+  return plannerData;
 }
 
 async function savePlannerDataToAccount(
@@ -596,7 +545,10 @@ export function usePlannerStorage(date: Date | undefined) {
 
         const loaded =
           storageMode === "account"
-            ? await loadPlannerDataFromAccount(date)
+            ? await loadPlannerDataFromAccount(
+                date,
+                buildCacheKey(identity, date)
+              )
             : loadPlannerData(date);
 
         if (isCancelled || dataVersionRef.current !== loadStartedAtVersion) {
@@ -730,7 +682,10 @@ export function usePlannerStorage(date: Date | undefined) {
 
       const loaded =
         storageMode === "account"
-          ? await loadPlannerDataFromAccount(targetDate)
+          ? await loadPlannerDataFromAccount(
+              targetDate,
+              buildCacheKey(identity, targetDate)
+            )
           : loadPlannerData(targetDate);
 
       if (loaded) {
@@ -741,6 +696,27 @@ export function usePlannerStorage(date: Date | undefined) {
     },
     [storageMode, identity]
   );
+
+  const applyRecurringToCurrentDay = useCallback(async () => {
+    if (
+      !date ||
+      storageMode !== "account" ||
+      !identity ||
+      formatDateKey(date) !== formatDateKey(new Date())
+    ) {
+      return;
+    }
+
+    const addedItems = await fetchAddedRecurringItems(formatDateKey(date));
+    if (addedItems.length === 0) {
+      return;
+    }
+
+    updateData((prev) => ({
+      ...prev,
+      focusList: mergeRecurringFocusListItems(prev.focusList, addedItems),
+    }));
+  }, [date, storageMode, identity, updateData]);
 
   // Cleanup timeout on unmount and save current data
   useEffect(() => {
@@ -771,5 +747,6 @@ export function usePlannerStorage(date: Date | undefined) {
     isLoading,
     autosaveStatus,
     loadDataForDate,
+    applyRecurringToCurrentDay,
   };
 }

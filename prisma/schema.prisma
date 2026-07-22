@@ -24,6 +24,7 @@ model User {
   workoutDays   WorkoutDay[]
   books         Book[]
   featurePreferences UserFeaturePreference[]
+  recurringFocusTasks RecurringFocusTask[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -173,4 +174,35 @@ model RegistrationRateLimitBucket {
   resetAtMs BigInt
 
   @@index([resetAtMs])
+}
+
+model RecurringFocusTask {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  notes       String   @default("")
+  enabled     Boolean  @default(true)
+  startDate   String?
+  endDate     String?
+  schedule    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  occurrences RecurringFocusTaskOccurrence[]
+
+  @@index([userId])
+  @@index([userId, enabled])
+}
+
+model RecurringFocusTaskOccurrence {
+  id                   String   @id @default(cuid())
+  recurringFocusTaskId String
+  userId               String
+  date                 String
+  focusListItemId      String
+  createdAt            DateTime @default(now())
+  recurringFocusTask   RecurringFocusTask @relation(fields: [recurringFocusTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([recurringFocusTaskId, date])
+  @@index([userId, date])
 }

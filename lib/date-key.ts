@@ -11,3 +11,12 @@ export function formatDateKey(date: Date): string {
 export function isDateKey(value: string): boolean {
   return DATE_KEY_PATTERN.test(value);
 }
+
+export function dateKeyToLocalDate(dateKey: string): Date {
+  if (!isDateKey(dateKey)) {
+    throw new Error(`Invalid date key: ${dateKey}`);
+  }
+
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(year!, month! - 1, day!);
+}
