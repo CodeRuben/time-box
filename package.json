@@ -1,6 +1,6 @@
 {
   "name": "time-box",
-  "version": "0.17.1",
+  "version": "0.18.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -42,6 +42,7 @@
     "react-day-picker": "^9.13.0",
     "react-dom": "19.2.3",
     "server-only": "^0.0.1",
+    "shadcn": "^4.14.0",
     "sqlite3": "^5.1.7",
     "tailwind-merge": "^3.4.0"
   },

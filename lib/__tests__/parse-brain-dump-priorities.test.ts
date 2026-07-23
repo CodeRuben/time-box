@@ -10,10 +10,10 @@ describe("parseBrainDumpPriorityCandidates", () => {
     expect(parseBrainDumpPriorityCandidates("")).toEqual([]);
   });
 
-  it("extracts lines starting with dash", () => {
-    const brainDump = `- First item
-Some note without dash
-- Second item`;
+  it("extracts lines starting with a bullet", () => {
+    const brainDump = `• First item
+Some note without bullet
+• Second item`;
 
     expect(parseBrainDumpPriorityCandidates(brainDump)).toEqual([
       { name: "First item", subtasks: [] },
@@ -21,30 +21,30 @@ Some note without dash
     ]);
   });
 
-  it("trims whitespace around dash items", () => {
-    expect(parseBrainDumpPriorityCandidates("  -   Spaced item  ")).toEqual([
+  it("trims whitespace around bullet items", () => {
+    expect(parseBrainDumpPriorityCandidates("  •   Spaced item  ")).toEqual([
       { name: "Spaced item", subtasks: [] },
     ]);
   });
 
-  it("ignores empty dash lines", () => {
-    expect(parseBrainDumpPriorityCandidates("- \n- Valid")).toEqual([
+  it("ignores empty bullet lines", () => {
+    expect(parseBrainDumpPriorityCandidates("• \n• Valid")).toEqual([
       { name: "Valid", subtasks: [] },
     ]);
   });
 
   it("deduplicates case-insensitive priority matches", () => {
     expect(
-      parseBrainDumpPriorityCandidates("- Task\n- task\n- TASK")
+      parseBrainDumpPriorityCandidates("• Task\n• task\n• TASK")
     ).toEqual([{ name: "Task", subtasks: [] }]);
   });
 
-  it("attaches double-dash lines as subtasks to the previous priority", () => {
-    const brainDump = `- Ship login flow
--- Design mockups
--- Wire up API
-- Prep for standup
--- Review blockers`;
+  it("attaches arrow lines as subtasks to the previous bullet", () => {
+    const brainDump = `• Ship login flow
+→ Design mockups
+  → Wire up API
+• Prep for standup
+→ Review blockers`;
 
     expect(parseBrainDumpPriorityCandidates(brainDump)).toEqual([
       {
@@ -58,22 +58,36 @@ Some note without dash
     ]);
   });
 
-  it("ignores orphan double-dash lines before any priority", () => {
+  it("ignores orphan arrow lines before any bullet", () => {
     expect(
-      parseBrainDumpPriorityCandidates("-- Orphan\n- Valid\n-- Subtask")
+      parseBrainDumpPriorityCandidates("→ Orphan\n• Valid\n→ Subtask")
     ).toEqual([{ name: "Valid", subtasks: ["Subtask"] }]);
   });
 
   it("deduplicates subtasks case-insensitively within a priority", () => {
     expect(
-      parseBrainDumpPriorityCandidates("- Task\n-- Sub\n-- sub\n-- SUB")
+      parseBrainDumpPriorityCandidates("• Task\n→ Sub\n→ sub\n→ SUB")
     ).toEqual([{ name: "Task", subtasks: ["Sub"] }]);
   });
 
   it("does not attach subtasks to duplicate priority names", () => {
     expect(
-      parseBrainDumpPriorityCandidates("- Task\n-- First sub\n- task\n-- Lost sub")
+      parseBrainDumpPriorityCandidates(
+        "• Task\n→ First sub\n• task\n→ Lost sub"
+      )
     ).toEqual([{ name: "Task", subtasks: ["First sub"] }]);
+  });
+
+  it("ignores legacy dash markers", () => {
+    expect(
+      parseBrainDumpPriorityCandidates("- Old item\n-- Old sub\n• New item")
+    ).toEqual([{ name: "New item", subtasks: [] }]);
+  });
+
+  it("does not treat mid-line arrows as subtasks", () => {
+    expect(
+      parseBrainDumpPriorityCandidates("• Task\nnext → done")
+    ).toEqual([{ name: "Task", subtasks: [] }]);
   });
 });
 
@@ -82,19 +96,17 @@ describe("formatBrainDumpSubtaskPreview", () => {
     expect(formatBrainDumpSubtaskPreview([])).toBe("");
   });
 
-  it("shows a single subtask name", () => {
-    expect(formatBrainDumpSubtaskPreview(["Design mockups"])).toBe(
-      "Design mockups"
-    );
+  it("returns the single subtask name", () => {
+    expect(formatBrainDumpSubtaskPreview(["Only one"])).toBe("Only one");
   });
 
-  it("shows two subtasks joined", () => {
-    expect(formatBrainDumpSubtaskPreview(["One", "Two"])).toBe("One, Two");
+  it("joins two subtasks with a comma", () => {
+    expect(formatBrainDumpSubtaskPreview(["A", "B"])).toBe("A, B");
   });
 
-  it("truncates previews beyond two subtasks", () => {
-    expect(formatBrainDumpSubtaskPreview(["One", "Two", "Three"])).toBe(
-      "One, Two +1 more"
+  it("summarizes three or more subtasks", () => {
+    expect(formatBrainDumpSubtaskPreview(["A", "B", "C", "D"])).toBe(
+      "A, B +2 more"
     );
   });
 });
@@ -102,6 +114,6 @@ describe("formatBrainDumpSubtaskPreview", () => {
 describe("isPriorityNameTaken", () => {
   it("matches names case-insensitively", () => {
     expect(isPriorityNameTaken("Task", ["task"])).toBe(true);
-    expect(isPriorityNameTaken("New", ["Task"])).toBe(false);
+    expect(isPriorityNameTaken("Other", ["task"])).toBe(false);
   });
 });

@@ -3,6 +3,9 @@ export interface BrainDumpPriorityCandidate {
   subtasks: string[];
 }
 
+const BULLET_PREFIX = "•";
+const SUBTASK_PREFIX = "→";
+
 export function parseBrainDumpPriorityCandidates(
   brainDump: string
 ): BrainDumpPriorityCandidate[] {
@@ -13,8 +16,8 @@ export function parseBrainDumpPriorityCandidates(
   for (const line of brainDump.split(/\r?\n/)) {
     const trimmedStart = line.trimStart();
 
-    if (trimmedStart.startsWith("--")) {
-      const text = trimmedStart.slice(2).trim();
+    if (trimmedStart.startsWith(SUBTASK_PREFIX)) {
+      const text = trimmedStart.slice(SUBTASK_PREFIX.length).trim();
       if (!text || !current) {
         continue;
       }
@@ -28,11 +31,11 @@ export function parseBrainDumpPriorityCandidates(
       continue;
     }
 
-    if (!trimmedStart.startsWith("-")) {
+    if (!trimmedStart.startsWith(BULLET_PREFIX)) {
       continue;
     }
 
-    const text = trimmedStart.slice(1).trim();
+    const text = trimmedStart.slice(BULLET_PREFIX.length).trim();
     if (!text) {
       continue;
     }

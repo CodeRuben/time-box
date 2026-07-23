@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
+import { applyBrainDumpTransforms } from "@/lib/brain-dump-transforms";
 import { Check, Smile } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,8 @@ interface BrainDumpProps {
 export function BrainDump({ value, onChange }: BrainDumpProps) {
   const [showCheckIcon, setShowCheckIcon] = useState(false);
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const pendingCursorRef = useRef<number | null>(null);
 
   const showCopyFeedback = () => {
     if (feedbackTimeoutRef.current) {
@@ -43,6 +46,25 @@ export function BrainDump({ value, onChange }: BrainDumpProps) {
       // Keep this silent so failed clipboard permission checks do not interrupt typing.
     }
   };
+
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const cursor = event.target.selectionStart ?? event.target.value.length;
+    const next = applyBrainDumpTransforms(event.target.value, cursor);
+    if (next.cursor !== cursor || next.text !== event.target.value) {
+      pendingCursorRef.current = next.cursor;
+    }
+    onChange(next.text);
+  };
+
+  useLayoutEffect(() => {
+    const cursor = pendingCursorRef.current;
+    const textarea = textareaRef.current;
+    if (cursor === null || !textarea) {
+      return;
+    }
+    textarea.setSelectionRange(cursor, cursor);
+    pendingCursorRef.current = null;
+  }, [value]);
 
   useEffect(() => {
     return () => {
@@ -102,9 +124,10 @@ export function BrainDump({ value, onChange }: BrainDumpProps) {
         </div>
       </div>
       <Textarea
+        ref={textareaRef}
         placeholder="Write down all your thoughts, tasks, and ideas here..."
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={handleChange}
         className="scrollbar-themed w-full flex-1 resize-none min-h-[300px] md:min-h-[400px] lg:min-h-[500px] max-h-[min(60vh,28rem)] md:max-h-[min(65vh,32rem)] lg:max-h-[min(70vh,36rem)] overflow-y-auto bg-card dark:bg-card"
       />
     </div>
