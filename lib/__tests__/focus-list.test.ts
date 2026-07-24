@@ -146,7 +146,29 @@ describe("getFocusListItemLabel", () => {
 
     expect(
       getFocusListItemLabel(item, [{ id: "priority-1", name: "New name" }])
-    ).toBe("New name");
+    ).toBe("New Name");
+  });
+
+  it("uses the snapshot label for recurring tasks", () => {
+    const item = addFocusListItem([], {
+      type: "recurring_task",
+      recurringTaskId: "task-1",
+      occurrenceId: "occ-1",
+      label: "Code review",
+    })[0]!;
+
+    expect(getFocusListItemLabel(item, [])).toBe("Code Review");
+  });
+
+  it("title-cases labels and keeps small words lowercase", () => {
+    const item = addFocusListItem([], {
+      type: "brain_dump",
+      text: "Watch company review video of the year",
+    })[0]!;
+
+    expect(getFocusListItemLabel(item, [])).toBe(
+      "Watch Company Review Video of the Year"
+    );
   });
 });
 
@@ -220,6 +242,37 @@ describe("isValidFocusListItem", () => {
         status: "todo",
         order: 0,
         source: { type: "time_slot", slotKey: "7 AM:00" },
+      })
+    ).toBe(false);
+  });
+
+  it("accepts recurring task sources with required fields", () => {
+    expect(
+      isValidFocusListItem({
+        id: "1",
+        status: "todo",
+        order: 0,
+        source: {
+          type: "recurring_task",
+          recurringTaskId: "task-1",
+          occurrenceId: "occ-1",
+          label: "Code review",
+        },
+      })
+    ).toBe(true);
+  });
+
+  it("rejects recurring task sources missing snapshot fields", () => {
+    expect(
+      isValidFocusListItem({
+        id: "1",
+        status: "todo",
+        order: 0,
+        source: {
+          type: "recurring_task",
+          recurringTaskId: "task-1",
+          occurrenceId: "occ-1",
+        },
       })
     ).toBe(false);
   });

@@ -6,10 +6,8 @@ import { TopPriorities } from "./planner/components/top-priorities";
 import { BrainDump } from "./planner/components/brain-dump";
 import { DateSelector } from "./planner/components/date-selector";
 import { FocusBoard } from "./planner/components/focus-board";
-import { ReminderButton } from "./planner/components/reminder-button";
-import { CreateReminderDialog } from "./planner/components/create-reminder-dialog";
-import { ReminderInfoDialog } from "./planner/components/reminder-info-dialog";
-import { DeleteReminderAlert } from "./planner/components/delete-reminder-alert";
+import { RecurringTasksButton } from "./planner/components/recurring-tasks-button";
+import { RecurringTasksDialog } from "./planner/components/recurring-tasks-dialog";
 import { ClearDayAlert } from "./planner/components/clear-day-alert";
 import { CopyPreviousDayDialog } from "./planner/components/copy-previous-day-dialog";
 import {
@@ -30,11 +28,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  useReminderStorage,
-  type Reminder,
-  type NewReminder,
-} from "@/lib/use-reminder-storage";
 import { AutosaveIndicator } from "./components/autosave-indicator";
 import { useSession } from "next-auth/react";
 import { LoadingScreen } from "@/components/ui/loading-screen";
@@ -62,29 +55,15 @@ function PlannerPageContent() {
   const { status } = useSession();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const leftColumnRef = useRef<HTMLDivElement>(null);
-  const { data, setData, isLoading, autosaveStatus, loadDataForDate } =
+  const { data, setData, isLoading, autosaveStatus, loadDataForDate, applyRecurringToCurrentDay } =
     usePlannerStorage(date);
   const { rightColumnHeight } = useRightColumnLayout(
     leftColumnRef,
     !isLoading
   );
 
-  // Reminder state and hooks
-  const {
-    addReminder,
-    deleteReminder,
-    dismissReminder,
-    getPastDueReminders,
-    getUpcomingReminders,
-  } = useReminderStorage();
-
   // Dialog state
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [selectedReminder, setSelectedReminder] = useState<Reminder | null>(
-    null
-  );
-  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
-  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const [recurringTasksOpen, setRecurringTasksOpen] = useState(false);
   const [clearDayAlertOpen, setClearDayAlertOpen] = useState(false);
   const [copyPreviousDialogOpen, setCopyPreviousDialogOpen] = useState(false);
   const [copyPreviousLoading, setCopyPreviousLoading] = useState(false);
@@ -99,9 +78,6 @@ function PlannerPageContent() {
   }, []);
 
   useCommandPaletteShortcut(openCommandPalette);
-
-  const pastDueReminders = getPastDueReminders();
-  const upcomingReminders = getUpcomingReminders();
 
   // Handle adding a new priority
   const handleAddPriority = () => {
@@ -138,35 +114,6 @@ function PlannerPageContent() {
   // Handle brain dump change
   const handleBrainDumpChange = (value: string) => {
     setData((prev) => ({ ...prev, brainDump: value }));
-  };
-
-  // Reminder handlers
-  const handleAddReminder = () => {
-    setCreateDialogOpen(true);
-  };
-
-  const handleSaveReminder = (newReminder: NewReminder) => {
-    addReminder(newReminder);
-  };
-
-  const handleViewReminder = (reminder: Reminder) => {
-    setSelectedReminder(reminder);
-    setInfoDialogOpen(true);
-  };
-
-  const handleDeleteReminderClick = (reminder: Reminder) => {
-    setSelectedReminder(reminder);
-    setInfoDialogOpen(false);
-    setDeleteAlertOpen(true);
-  };
-
-  const handleConfirmDelete = (id: string) => {
-    deleteReminder(id);
-    setSelectedReminder(null);
-  };
-
-  const handleDismissReminder = (id: string) => {
-    dismissReminder(id);
   };
 
   const handleFocusItemsChange = useCallback(
@@ -310,12 +257,11 @@ function PlannerPageContent() {
             <div className="shrink-0">
               <div className="flex flex-wrap items-center gap-2">
               <DateSelector value={date} onChange={setDate} />
-              <ReminderButton
-                pastDueReminders={pastDueReminders}
-                upcomingReminders={upcomingReminders}
-                onAddReminder={handleAddReminder}
-                onViewReminder={handleViewReminder}
-              />
+              {status === "authenticated" && (
+                <RecurringTasksButton
+                  onClick={() => setRecurringTasksOpen(true)}
+                />
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -371,28 +317,14 @@ function PlannerPageContent() {
         </div>
       </div>
 
-      {/* Reminder Dialogs */}
-      <CreateReminderDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-        onSave={handleSaveReminder}
-        defaultDate={date}
-      />
-
-      <ReminderInfoDialog
-        reminder={selectedReminder}
-        open={infoDialogOpen}
-        onOpenChange={setInfoDialogOpen}
-        onDismiss={handleDismissReminder}
-        onDelete={handleDeleteReminderClick}
-      />
-
-      <DeleteReminderAlert
-        reminder={selectedReminder}
-        open={deleteAlertOpen}
-        onOpenChange={setDeleteAlertOpen}
-        onConfirm={handleConfirmDelete}
-      />
+      {/* Recurring task dialogs */}
+      {status === "authenticated" && (
+        <RecurringTasksDialog
+          open={recurringTasksOpen}
+          onOpenChange={setRecurringTasksOpen}
+          onTasksChanged={applyRecurringToCurrentDay}
+        />
+      )}
 
       <ClearDayAlert
         open={clearDayAlertOpen}

@@ -20,5 +20,7 @@ export function getFocusSourceTypeLabel(type: FocusItemSource["type"]): string {
       return "Priority";
     case "brain_dump":
       return "Brain dump";
+    case "recurring_task":
+      return "Recurring task";
   }
 }
