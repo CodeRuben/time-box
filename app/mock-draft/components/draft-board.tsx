@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/badge";
 import { PLAYERS } from "@/lib/mock-draft/players";
+import { POSITION_CELL_CLASS } from "@/lib/mock-draft/position-styles";
 import { getOverallPick } from "@/lib/mock-draft/snake";
 import type { DraftState } from "@/lib/mock-draft/types";
 import { TOTAL_ROUNDS } from "@/lib/mock-draft/types";
@@ -21,8 +21,8 @@ export function DraftBoard({ state }: DraftBoardProps) {
       <table className="w-max min-w-full border-collapse text-sm">
         <thead>
           <tr>
-            <th className="sticky left-0 z-10 min-w-20 border-b bg-muted px-3 py-3 text-left">
-              Round
+            <th className="sticky left-0 z-10 w-10 min-w-10 border-b bg-muted px-2 py-3 text-center align-middle text-xs">
+              Rd
             </th>
             {state.teams.map((team) => (
               <th
@@ -44,7 +44,7 @@ export function DraftBoard({ state }: DraftBoardProps) {
           {Array.from({ length: TOTAL_ROUNDS }, (_, index) => index + 1).map(
             (round) => (
               <tr key={round}>
-                <th className="sticky left-0 z-10 border-b bg-card px-3 py-3 text-left">
+                <th className="sticky left-0 z-10 w-10 min-w-10 border-b bg-card px-2 py-3 text-center align-middle">
                   {round}
                 </th>
                 {state.teams.map((team) => {
@@ -63,7 +63,9 @@ export function DraftBoard({ state }: DraftBoardProps) {
                       key={team.slot}
                       className={cn(
                         "h-16 border-b border-l px-3 py-2 align-top",
-                        team.isUser && "bg-primary/5",
+                        player
+                          ? POSITION_CELL_CLASS[player.position]
+                          : team.isUser && "bg-primary/5",
                       )}
                     >
                       {player ? (
@@ -74,12 +76,9 @@ export function DraftBoard({ state }: DraftBoardProps) {
                               {player.name}
                             </p>
                           </div>
-                          <div className="mt-1 flex items-center gap-2">
-                            <Badge variant="outline">{player.position}</Badge>
-                            <span className="text-xs text-muted-foreground">
-                              #{player.rank}
-                            </span>
-                          </div>
+                          <p className="mt-1 text-xs text-white/80">
+                            #{player.rank}
+                          </p>
                         </>
                       ) : (
                         <span className="text-muted-foreground">—</span>

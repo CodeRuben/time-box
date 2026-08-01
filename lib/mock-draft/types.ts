@@ -77,16 +77,16 @@ export const TIMER_OPTIONS = [30, 60, 90, 120] as const;
 export const STORAGE_KEY = "mock-draft";
 
 export const BOT_NAMES = [
-  "Kino",
-  "Jack Torrence",
-  "Jason Dessen",
-  "Colin",
-  "Odysseus",
-  "Clive Linley",
-  "Kolya Vlasov",
-  "Todd Bowden",
-  "Leonard Marnham",
-  "Stuart Ullman",
-  "Gordie LaChance",
-  "Lev Beniov",
+  "Team 1",
+  "Team 2",
+  "Team 3",
+  "Team 4",
+  "Team 5",
+  "Team 6",
+  "Team 7",
+  "Team 8",
+  "Team 9",
+  "Team 10",
+  "Team 11",
+  "Team 12",
 ] as const;

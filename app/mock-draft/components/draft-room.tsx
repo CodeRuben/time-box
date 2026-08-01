@@ -4,12 +4,10 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { DraftState, DraftTeam, Player } from "@/lib/mock-draft/types";
-import type { ResolvedPick } from "../hooks/use-mock-draft";
 import { BestAvailable } from "./best-available";
 import { DraftBoard } from "./draft-board";
 import { DraftHeader } from "./draft-header";
 import { MyRoster } from "./my-roster";
-import { PickTicker } from "./pick-ticker";
 
 interface DraftRoomProps {
   state: DraftState;
@@ -17,7 +15,6 @@ interface DraftRoomProps {
   currentRound: number;
   teamOnClock: DraftTeam;
   remainingSeconds: number;
-  recentPicks: ResolvedPick[];
   availablePlayers: Player[];
   userRoster: Player[];
   isUserOnClock: boolean;
@@ -33,7 +30,6 @@ export function DraftRoom({
   currentRound,
   teamOnClock,
   remainingSeconds,
-  recentPicks,
   availablePlayers,
   userRoster,
   isUserOnClock,
@@ -42,7 +38,7 @@ export function DraftRoom({
   onTogglePause,
   onAbandon,
 }: DraftRoomProps) {
-  const [view, setView] = useState<"draft" | "board">("draft");
+  const [view, setView] = useState<"draft" | "board">("board");
 
   return (
     <main className="min-h-screen px-3 py-4 sm:px-6 lg:px-8 lg:py-6">
@@ -56,10 +52,6 @@ export function DraftRoom({
           remainingSeconds={remainingSeconds}
           onTogglePause={onTogglePause}
           onAbandon={onAbandon}
-        />
-        <PickTicker
-          picks={recentPicks}
-          teamCount={state.config.teamCount}
         />
 
         <div className="flex gap-2" role="tablist" aria-label="Draft view">

@@ -49,7 +49,6 @@ function MockDraftPageContent() {
       currentRound={draft.currentRound}
       teamOnClock={draft.teamOnClock}
       remainingSeconds={draft.remainingSeconds}
-      recentPicks={draft.recentPicks}
       availablePlayers={draft.availablePlayers}
       userRoster={draft.userRoster}
       isUserOnClock={draft.isUserOnClock}

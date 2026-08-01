@@ -13,7 +13,6 @@ import {
   pauseDraft,
   resumeDraft,
 } from "@/lib/mock-draft/engine";
-import { PLAYERS } from "@/lib/mock-draft/players";
 import {
   getNextOverallForSlot,
   getRound,
@@ -26,16 +25,10 @@ import {
 } from "@/lib/mock-draft/storage";
 import type {
   DraftConfig,
-  DraftPick,
   DraftState,
   DraftTeam,
   Player,
 } from "@/lib/mock-draft/types";
-
-export interface ResolvedPick extends DraftPick {
-  player: Player;
-  team: DraftTeam;
-}
 
 function newSeed(): number {
   return Math.floor(Math.random() * 2 ** 31);
@@ -169,28 +162,6 @@ export function useMockDraft() {
     );
     return next === null ? null : next - currentOverall;
   }, [currentOverall, draftState]);
-  const recentPicks = useMemo<ResolvedPick[]>(() => {
-    if (!draftState) {
-      return [];
-    }
-
-    const playersById = new Map(
-      PLAYERS.map((player) => [player.id, player]),
-    );
-    const teamsBySlot = new Map(
-      draftState.teams.map((team) => [team.slot, team]),
-    );
-
-    return draftState.picks
-      .slice(-draftState.config.teamCount)
-      .reverse()
-      .flatMap((pick) => {
-        const player = playersById.get(pick.playerId);
-        const team = teamsBySlot.get(pick.slot);
-        return player && team ? [{ ...pick, player, team }] : [];
-      });
-  }, [draftState]);
-
   useEffect(() => {
     pickPendingRef.current = false;
   }, [draftState?.picks.length]);
@@ -341,7 +312,6 @@ export function useMockDraft() {
     isUserOnClock,
     phase,
     picksUntilUserTurn,
-    recentPicks,
     remainingSeconds,
     resumeSavedDraft,
     savedDraft,

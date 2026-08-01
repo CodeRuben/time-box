@@ -38,7 +38,7 @@ function stateWithPicks(
 
 const TEAMS: DraftTeam[] = [
   { slot: 1, name: "You", isUser: true, archetype: null },
-  { slot: 2, name: "Kino", isUser: false, archetype: "balanced" },
+  { slot: 2, name: "Team 1", isUser: false, archetype: "balanced" },
 ];
 
 describe("mock draft grading", () => {
