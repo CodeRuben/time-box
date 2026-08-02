@@ -338,14 +338,7 @@ export function ProductNotesDialog({
                               <CollapsibleContent
                                 className={NOTE_DESCRIPTION_COLLAPSIBLE}
                               >
-                                <div
-                                  className="cursor-pointer pb-3.5 pl-4 pr-4 pt-0"
-                                  onClick={() =>
-                                    setExpandedNoteId((current) =>
-                                      current === note.id ? null : note.id
-                                    )
-                                  }
-                                >
+                                <div className="pb-3.5 pl-4 pr-4 pt-0">
                                   <NoteDescriptionPanel
                                     description={note.description}
                                   />
