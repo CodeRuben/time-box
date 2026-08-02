@@ -43,7 +43,7 @@ export function FocusItemDetailsDialog({
         <DialogHeader>
           <DialogTitle>{label}</DialogTitle>
           <DialogDescription>
-            {sourceType === "brain_dump" ? "From brain dump" : sourceLabel}
+            {sourceType === "brain_dump" ? "From working notes" : sourceLabel}
           </DialogDescription>
         </DialogHeader>
 

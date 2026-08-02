@@ -25,7 +25,7 @@ export function FocusBoardEmptyState({ children }: FocusBoardEmptyStateProps) {
             Start your focus list
           </p>
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Pull from your brain dump or priorities.
+            Pull from your working notes or priorities.
           </p>
         </div>
         {children}

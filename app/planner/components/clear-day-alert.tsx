@@ -29,7 +29,7 @@ export function ClearDayAlert({
           <AlertDialogTitle>Clear Today&apos;s Planner</AlertDialogTitle>
           <AlertDialogDescription>
             Are you sure you want to clear all priorities, focus list items,
-            and brain dump notes for today? This action cannot be undone.
+            and working notes for today? This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

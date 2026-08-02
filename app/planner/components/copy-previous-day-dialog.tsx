@@ -119,7 +119,7 @@ export function CopyPreviousDayDialog({
                   }
                 />
                 <span className="grid gap-1">
-                  <span>Brain dump</span>
+                  <span>Working notes</span>
                   <span className="text-xs font-normal text-muted-foreground">
                     Yesterday&apos;s notes.
                   </span>

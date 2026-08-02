@@ -56,7 +56,7 @@ export function parseBrainDumpPriorityCandidates(
 
 export function isPriorityNameTaken(
   name: string,
-  existingNames: string[]
+  existingNames: readonly string[]
 ): boolean {
   const key = name.trim().toLowerCase();
   return existingNames.some((existing) => existing.trim().toLowerCase() === key);

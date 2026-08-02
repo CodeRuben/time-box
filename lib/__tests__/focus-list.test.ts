@@ -3,10 +3,13 @@ import { createMockFocusListItems } from "./fixtures/focus-list";
 import {
   addFocusListItem,
   appendCopiedFocusListItems,
+  appendFocusListSources,
   copyFocusListItems,
+  filterSourcesNotInFocusList,
   getFocusListItemLabel,
   getFocusListItemSubitems,
   getItemsByStatus,
+  isSourceInFocusList,
   isValidFocusListItem,
   moveFocusListItem,
   parseFocusListItems,
@@ -14,6 +17,7 @@ import {
   renormalizeFocusListOrders,
   setFocusListItemStatus,
 } from "../focus-list";
+import { getFocusItemSourceKey } from "../focus-item-source";
 
 describe("getItemsByStatus", () => {
   it("groups and sorts items by status", () => {
@@ -38,6 +42,112 @@ describe("addFocusListItem", () => {
     expect(items[0]).toMatchObject({
       status: "todo",
       source: { type: "brain_dump", text: "New task" },
+    });
+  });
+});
+
+describe("filterSourcesNotInFocusList", () => {
+  it("filters sources already present in the focus list", () => {
+    const existingKeys = new Set([
+      getFocusItemSourceKey({ type: "brain_dump", text: "Existing" }),
+    ]);
+
+    expect(
+      filterSourcesNotInFocusList(
+        [
+          { type: "brain_dump", text: "Existing" },
+          { type: "brain_dump", text: "New item" },
+        ],
+        existingKeys
+      )
+    ).toEqual([{ type: "brain_dump", text: "New item" }]);
+  });
+});
+
+describe("isSourceInFocusList", () => {
+  it("matches brain dump sources by normalized text", () => {
+    const existingKeys = new Set([
+      getFocusItemSourceKey({ type: "brain_dump", text: "Ship Login" }),
+    ]);
+
+    expect(
+      isSourceInFocusList(
+        { type: "brain_dump", text: "  ship login  " },
+        existingKeys
+      )
+    ).toBe(true);
+  });
+});
+
+describe("appendFocusListSources", () => {
+  it("returns the same array when there are no sources", () => {
+    const items = createMockFocusListItems();
+    expect(appendFocusListSources(items, [])).toBe(items);
+  });
+
+  it("returns the same array when every source already exists", () => {
+    const items = [
+      {
+        id: "focus-1",
+        status: "todo" as const,
+        order: 0,
+        source: { type: "brain_dump" as const, text: "Ship login" },
+      },
+    ];
+    const result = appendFocusListSources(items, [
+      { type: "brain_dump", text: "Ship login" },
+    ]);
+
+    expect(result).toBe(items);
+  });
+
+  it("skips case and whitespace equivalent duplicates, including completed items", () => {
+    const items = [
+      {
+        id: "focus-1",
+        status: "complete" as const,
+        order: 0,
+        source: { type: "brain_dump" as const, text: "Ship Login" },
+      },
+    ];
+
+    const result = appendFocusListSources(items, [
+      { type: "brain_dump", text: "  ship login  " },
+      { type: "brain_dump", text: "Write tests" },
+    ]);
+
+    expect(result).toHaveLength(2);
+    expect(result[1]).toMatchObject({
+      status: "todo",
+      order: 0,
+      source: { type: "brain_dump", text: "Write tests" },
+    });
+  });
+
+  it("appends missing sources in order after existing todos", () => {
+    const items = [
+      {
+        id: "focus-1",
+        status: "todo" as const,
+        order: 0,
+        source: { type: "brain_dump" as const, text: "Existing" },
+      },
+    ];
+
+    const result = appendFocusListSources(items, [
+      { type: "brain_dump", text: "Existing" },
+      { type: "brain_dump", text: "First new" },
+      { type: "brain_dump", text: "Second new" },
+    ]);
+
+    expect(result).toHaveLength(3);
+    expect(result[1]).toMatchObject({
+      order: 1,
+      source: { type: "brain_dump", text: "First new" },
+    });
+    expect(result[2]).toMatchObject({
+      order: 2,
+      source: { type: "brain_dump", text: "Second new" },
     });
   });
 });
