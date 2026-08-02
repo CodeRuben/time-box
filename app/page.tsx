@@ -8,8 +8,11 @@ import { DateSelector } from "./planner/components/date-selector";
 import { FocusBoard } from "./planner/components/focus-board";
 import { RecurringTasksButton } from "./planner/components/recurring-tasks-button";
 import { RecurringTasksDialog } from "./planner/components/recurring-tasks-dialog";
+import { ProductNotesButton } from "./planner/components/product-notes-button";
+import { ProductNotesDialog } from "./planner/components/product-notes-dialog";
 import { ClearDayAlert } from "./planner/components/clear-day-alert";
 import { CopyPreviousDayDialog } from "./planner/components/copy-previous-day-dialog";
+import { isAdminRole } from "@/lib/feature-access-rules";
 import {
   copyPlannerDataFromPreviousDay,
   createTopPriorityFromBrainDumpCandidate,
@@ -52,7 +55,8 @@ function getPreviousDate(date: Date): Date {
 }
 
 function PlannerPageContent() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const isAdmin = isAdminRole(session?.user?.role);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const leftColumnRef = useRef<HTMLDivElement>(null);
   const { data, setData, isLoading, autosaveStatus, loadDataForDate, applyRecurringToCurrentDay } =
@@ -64,6 +68,7 @@ function PlannerPageContent() {
 
   // Dialog state
   const [recurringTasksOpen, setRecurringTasksOpen] = useState(false);
+  const [productNotesOpen, setProductNotesOpen] = useState(false);
   const [clearDayAlertOpen, setClearDayAlertOpen] = useState(false);
   const [copyPreviousDialogOpen, setCopyPreviousDialogOpen] = useState(false);
   const [copyPreviousLoading, setCopyPreviousLoading] = useState(false);
@@ -262,6 +267,11 @@ function PlannerPageContent() {
                   onClick={() => setRecurringTasksOpen(true)}
                 />
               )}
+              {isAdmin && (
+                <ProductNotesButton
+                  onClick={() => setProductNotesOpen(true)}
+                />
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -323,6 +333,13 @@ function PlannerPageContent() {
           open={recurringTasksOpen}
           onOpenChange={setRecurringTasksOpen}
           onTasksChanged={applyRecurringToCurrentDay}
+        />
+      )}
+
+      {isAdmin && (
+        <ProductNotesDialog
+          open={productNotesOpen}
+          onOpenChange={setProductNotesOpen}
         />
       )}
 
