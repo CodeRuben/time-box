@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { CircleUser, Loader2, LogIn, Settings } from "lucide-react";
-import { HeaderTimer } from "@/app/components/header-timer";
 import { ThemeToggle } from "@/app/planner/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -235,7 +234,6 @@ export function AppHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
-          <HeaderTimer />
           <AccountHeaderControl />
           <ThemeToggle />
         </div>
