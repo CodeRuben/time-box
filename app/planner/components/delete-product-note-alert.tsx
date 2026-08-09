@@ -10,38 +10,44 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import type { ProductNoteDto } from "@/lib/product-notes/types";
 
-interface ClearDayAlertProps {
+interface DeleteProductNoteAlertProps {
+  note: ProductNoteDto | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: (id: string) => void;
 }
 
-export function ClearDayAlert({
+export function DeleteProductNoteAlert({
+  note,
   open,
   onOpenChange,
   onConfirm,
-}: ClearDayAlertProps) {
+}: DeleteProductNoteAlertProps) {
+  if (!note) return null;
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Clear Today&apos;s Planner</AlertDialogTitle>
+          <AlertDialogTitle>Delete note</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to clear all priorities, focus list items,
-            and working notes for today? This action cannot be undone.
+            Are you sure you want to permanently delete this note? This cannot
+            be undone.
+            <span className="mt-2 block text-foreground">{note.title}</span>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={() => {
-              onConfirm();
+              onConfirm(note.id);
               onOpenChange(false);
             }}
-            className="bg-destructive text-white hover:bg-destructive/90"
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            Clear All
+            Delete
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

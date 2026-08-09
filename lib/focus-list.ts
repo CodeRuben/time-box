@@ -44,6 +44,43 @@ export function addFocusListItem(
   return [...items, nextItem];
 }
 
+export function isSourceInFocusList(
+  source: FocusItemSource,
+  existingSourceKeys: ReadonlySet<string>
+): boolean {
+  return existingSourceKeys.has(getFocusItemSourceKey(source));
+}
+
+export function filterSourcesNotInFocusList(
+  sources: ReadonlyArray<FocusItemSource>,
+  existingSourceKeys: ReadonlySet<string>
+): FocusItemSource[] {
+  return sources.filter(
+    (source) => !isSourceInFocusList(source, existingSourceKeys)
+  );
+}
+
+export function appendFocusListSources(
+  items: FocusListItem[],
+  sources: ReadonlyArray<FocusItemSource>
+): FocusListItem[] {
+  const existingKeys = new Set(
+    items.map((item) => getFocusItemSourceKey(item.source))
+  );
+  const available = filterSourcesNotInFocusList(sources, existingKeys);
+
+  if (available.length === 0) {
+    return items;
+  }
+
+  let next = items;
+  for (const source of available) {
+    next = addFocusListItem(next, source);
+  }
+
+  return next;
+}
+
 export function removeFocusListItem(
   items: FocusListItem[],
   itemId: string

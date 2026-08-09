@@ -13,13 +13,33 @@ export async function getAuthenticatedSession() {
 }
 
 export async function getAdminUserId() {
+  const access = await requireAdminUser();
+  return access.userId ?? null;
+}
+
+export type AdminUserAccess =
+  | { userId: string; response?: never }
+  | { userId?: never; response: NextResponse };
+
+export async function requireAdminUser(): Promise<AdminUserAccess> {
   const session = await getServerAuthSession();
 
-  if (!session?.user?.id || !isAdminRole(session.user.role)) {
-    return null;
+  if (!session?.user?.id) {
+    return {
+      response: NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      ),
+    };
   }
 
-  return session.user.id;
+  if (!isAdminRole(session.user.role)) {
+    return {
+      response: NextResponse.json({ error: "Admin access required" }, { status: 403 }),
+    };
+  }
+
+  return { userId: session.user.id };
 }
 
 export type FeatureUserAccess =

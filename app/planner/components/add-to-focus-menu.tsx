@@ -10,10 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  getFocusItemSourceKey,
-  type FocusItemSource,
-} from "@/lib/focus-item-source";
+import type { FocusItemSource } from "@/lib/focus-item-source";
+import { isSourceInFocusList } from "@/lib/focus-list";
 import type { BrainDumpPriorityCandidate } from "@/lib/parse-brain-dump-priorities";
 import type { TopPriority } from "@/lib/use-planner-storage";
 
@@ -31,21 +29,23 @@ export function getFocusAddOptions({
   const availablePriorities = priorities.filter(
     (priority) =>
       priority.name.trim() &&
-      !existingSourceKeys.has(
-        getFocusItemSourceKey({
+      !isSourceInFocusList(
+        {
           type: "priority",
           priorityId: priority.id,
           label: priority.name,
-        })
+        },
+        existingSourceKeys
       )
   );
   const availableBrainDump = brainDumpCandidates.filter(
     (candidate) =>
-      !existingSourceKeys.has(
-        getFocusItemSourceKey({
+      !isSourceInFocusList(
+        {
           type: "brain_dump",
           text: candidate.name,
-        })
+        },
+        existingSourceKeys
       )
   );
 
@@ -120,7 +120,7 @@ export function AddToFocusMenu({
           <>
             {availablePriorities.length > 0 && <DropdownMenuSeparator />}
             <DropdownMenuGroup>
-              <DropdownMenuLabel>Brain dump</DropdownMenuLabel>
+              <DropdownMenuLabel>Working notes</DropdownMenuLabel>
               {availableBrainDump.map((candidate) => (
                 <DropdownMenuItem
                   key={candidate.name}

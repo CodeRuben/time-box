@@ -1,8 +1,10 @@
 "use client";
 
-import { Download } from "lucide-react";
+import { useState } from "react";
+import { ChartColumn, Download } from "lucide-react";
 import { ClearWorkoutsDialog } from "./components/clear-workouts-dialog";
 import { ExportWorkoutsDialog } from "./components/export-workouts-dialog";
+import { HistoricalInsightsSheet } from "./components/historical-insights-sheet";
 import { SelectedDayCard } from "./components/selected-day-card";
 import { WorkoutCalendar } from "./components/workout-calendar";
 import { useWorkoutExport } from "./hooks/use-workout-export";
@@ -15,6 +17,7 @@ import { FeatureGate } from "../components/feature-gate";
 
 function WorkoutTrackerPageContent() {
   const { status } = useSession();
+  const [isInsightsOpen, setIsInsightsOpen] = useState(false);
   const {
     calendarDays,
     calendarMonth,
@@ -76,6 +79,17 @@ function WorkoutTrackerPageContent() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-11 active:scale-[0.97] ease-out will-change-transform motion-reduce:transition-none motion-reduce:active:scale-100"
+              onClick={() => setIsInsightsOpen(true)}
+              aria-label="Workout Insights"
+              title="Workout Insights"
+            >
+              <ChartColumn className="h-4 w-4" aria-hidden />
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -146,6 +160,11 @@ function WorkoutTrackerPageContent() {
         onConfirmExport={() => {
           void exportWorkouts();
         }}
+      />
+
+      <HistoricalInsightsSheet
+        open={isInsightsOpen}
+        onOpenChange={setIsInsightsOpen}
       />
     </div>
   );

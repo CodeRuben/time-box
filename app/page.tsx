@@ -3,13 +3,16 @@
 import { useState, useRef, useCallback, useMemo, type SetStateAction } from "react";
 import { PlannerHeader } from "./planner/components/planner-header";
 import { TopPriorities } from "./planner/components/top-priorities";
-import { BrainDump } from "./planner/components/brain-dump";
+import { WorkingNotes } from "./planner/components/working-notes";
 import { DateSelector } from "./planner/components/date-selector";
 import { FocusBoard } from "./planner/components/focus-board";
 import { RecurringTasksButton } from "./planner/components/recurring-tasks-button";
 import { RecurringTasksDialog } from "./planner/components/recurring-tasks-dialog";
+import { ProductNotesButton } from "./planner/components/product-notes-button";
+import { ProductNotesDialog } from "./planner/components/product-notes-dialog";
 import { ClearDayAlert } from "./planner/components/clear-day-alert";
 import { CopyPreviousDayDialog } from "./planner/components/copy-previous-day-dialog";
+import { isAdminRole } from "@/lib/feature-access-rules";
 import {
   copyPlannerDataFromPreviousDay,
   createTopPriorityFromBrainDumpCandidate,
@@ -32,17 +35,21 @@ import { AutosaveIndicator } from "./components/autosave-indicator";
 import { useSession } from "next-auth/react";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { FeatureGate } from "./components/feature-gate";
-import {
-  AppCommandPalette,
-  type CommandPaletteView,
-} from "./components/app-command-palette";
-import { useCommandPaletteShortcut } from "@/hooks/use-command-palette-shortcut";
 import { useRightColumnLayout } from "@/hooks/use-right-column-layout";
-import type { BrainDumpPriorityCandidate } from "@/lib/parse-brain-dump-priorities";
-import { parseBrainDumpPriorityCandidates } from "@/lib/parse-brain-dump-priorities";
+import {
+  isPriorityNameTaken,
+  parseBrainDumpPriorityCandidates,
+  type BrainDumpPriorityCandidate,
+} from "@/lib/parse-brain-dump-priorities";
 import type { FocusListItem } from "@/lib/focus-list";
-import { addFocusListItem } from "@/lib/focus-list";
-import { getFocusItemSourceKey } from "@/lib/focus-item-source";
+import {
+  appendFocusListSources,
+  filterSourcesNotInFocusList,
+} from "@/lib/focus-list";
+import {
+  getFocusItemSourceKey,
+  type FocusItemSource,
+} from "@/lib/focus-item-source";
 import type { TopPriority } from "@/lib/use-planner-storage";
 
 function getPreviousDate(date: Date): Date {
@@ -52,7 +59,8 @@ function getPreviousDate(date: Date): Date {
 }
 
 function PlannerPageContent() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const isAdmin = isAdminRole(session?.user?.role);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const leftColumnRef = useRef<HTMLDivElement>(null);
   const { data, setData, isLoading, autosaveStatus, loadDataForDate, applyRecurringToCurrentDay } =
@@ -64,20 +72,11 @@ function PlannerPageContent() {
 
   // Dialog state
   const [recurringTasksOpen, setRecurringTasksOpen] = useState(false);
+  const [productNotesOpen, setProductNotesOpen] = useState(false);
   const [clearDayAlertOpen, setClearDayAlertOpen] = useState(false);
   const [copyPreviousDialogOpen, setCopyPreviousDialogOpen] = useState(false);
   const [copyPreviousLoading, setCopyPreviousLoading] = useState(false);
   const [copyPreviousError, setCopyPreviousError] = useState<string | null>(null);
-  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-  const [commandPaletteStartView, setCommandPaletteStartView] =
-    useState<CommandPaletteView>("root");
-
-  const openCommandPalette = useCallback((view: CommandPaletteView = "root") => {
-    setCommandPaletteStartView(view);
-    setCommandPaletteOpen(true);
-  }, []);
-
-  useCommandPaletteShortcut(openCommandPalette);
 
   // Handle adding a new priority
   const handleAddPriority = () => {
@@ -111,8 +110,8 @@ function PlannerPageContent() {
     }));
   };
 
-  // Handle brain dump change
-  const handleBrainDumpChange = (value: string) => {
+  // Handle working notes change
+  const handleWorkingNotesChange = (value: string) => {
     setData((prev) => ({ ...prev, brainDump: value }));
   };
 
@@ -127,22 +126,17 @@ function PlannerPageContent() {
     [setData]
   );
 
-  const handleAddToFocusFromBrainDump = useCallback(
-    (candidate: BrainDumpPriorityCandidate) => {
-      handleFocusItemsChange((current) =>
-        addFocusListItem(current, {
-          type: "brain_dump",
-          text: candidate.name,
-        })
-      );
-    },
-    [handleFocusItemsChange]
-  );
-
-  const handleAddToTopPriorityFromBrainDump = useCallback(
+  const handleAddFromWorkingNotes = useCallback(
     (candidate: BrainDumpPriorityCandidate) => {
       setData((prev) => {
         if (prev.topPriorities.length >= MAX_TOP_PRIORITIES) {
+          return prev;
+        }
+
+        const existingNames = prev.topPriorities.map(
+          (priority) => priority.name
+        );
+        if (isPriorityNameTaken(candidate.name, existingNames)) {
           return prev;
         }
 
@@ -157,13 +151,6 @@ function PlannerPageContent() {
     },
     [setData]
   );
-
-  const currentPriorityNames = useMemo(
-    () => data.topPriorities.map((priority) => priority.name),
-    [data.topPriorities]
-  );
-
-  const canAddTopPriority = data.topPriorities.length < MAX_TOP_PRIORITIES;
 
   const handleClearDay = () => {
     setData(getDefaultData());
@@ -221,6 +208,25 @@ function PlannerPageContent() {
     [data.brainDump]
   );
 
+  const brainDumpSources = useMemo<FocusItemSource[]>(
+    () =>
+      brainDumpCandidates.map((candidate) => ({
+        type: "brain_dump",
+        text: candidate.name,
+      })),
+    [brainDumpCandidates]
+  );
+
+  const canSyncWorkingNotesToFocus =
+    filterSourcesNotInFocusList(brainDumpSources, existingFocusSourceKeys)
+      .length > 0;
+
+  const handleSyncWorkingNotesToFocus = useCallback(() => {
+    handleFocusItemsChange((current) =>
+      appendFocusListSources(current, brainDumpSources)
+    );
+  }, [brainDumpSources, handleFocusItemsChange]);
+
   if (isLoading) {
     return <LoadingScreen />;
   }
@@ -234,13 +240,17 @@ function PlannerPageContent() {
             <PlannerHeader />
             <TopPriorities
               priorities={data.topPriorities}
+              workingNotesCandidates={brainDumpCandidates}
               onAddPriority={handleAddPriority}
+              onAddFromWorkingNotes={handleAddFromWorkingNotes}
               onUpdatePriority={handleUpdatePriority}
               onDeletePriority={handleDeletePriority}
             />
-            <BrainDump
+            <WorkingNotes
               value={data.brainDump}
-              onChange={handleBrainDumpChange}
+              onChange={handleWorkingNotesChange}
+              canSyncToFocus={canSyncWorkingNotesToFocus}
+              onSyncToFocus={handleSyncWorkingNotesToFocus}
             />
           </div>
 
@@ -260,6 +270,11 @@ function PlannerPageContent() {
               {status === "authenticated" && (
                 <RecurringTasksButton
                   onClick={() => setRecurringTasksOpen(true)}
+                />
+              )}
+              {isAdmin && (
+                <ProductNotesButton
+                  onClick={() => setProductNotesOpen(true)}
                 />
               )}
               <DropdownMenu>
@@ -326,6 +341,13 @@ function PlannerPageContent() {
         />
       )}
 
+      {isAdmin && (
+        <ProductNotesDialog
+          open={productNotesOpen}
+          onOpenChange={setProductNotesOpen}
+        />
+      )}
+
       <ClearDayAlert
         open={clearDayAlertOpen}
         onOpenChange={setClearDayAlertOpen}
@@ -342,23 +364,6 @@ function PlannerPageContent() {
           error={copyPreviousError}
         />
       )}
-
-      <AppCommandPalette
-        open={commandPaletteOpen}
-        onOpenChange={(open) => {
-          setCommandPaletteOpen(open);
-          if (!open) {
-            setCommandPaletteStartView("root");
-          }
-        }}
-        startView={commandPaletteStartView}
-        brainDumpCandidates={brainDumpCandidates}
-        existingFocusSourceKeys={existingFocusSourceKeys}
-        existingPriorityNames={currentPriorityNames}
-        canAddTopPriority={canAddTopPriority}
-        onAddToFocusFromBrainDump={handleAddToFocusFromBrainDump}
-        onAddToTopPriorityFromBrainDump={handleAddToTopPriorityFromBrainDump}
-      />
     </div>
   );
 }
