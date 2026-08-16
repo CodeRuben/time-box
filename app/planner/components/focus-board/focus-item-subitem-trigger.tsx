@@ -34,6 +34,7 @@ export function FocusItemSubitemTrigger({
             event.stopPropagation();
             setOpen(true);
           }}
+          onPointerDown={(event) => event.stopPropagation()}
           onMouseDown={(event) => event.stopPropagation()}
           className={cn(
             "rounded-full bg-muted/80 py-0.5 pr-1.5 pl-0 text-[11px] font-medium tabular-nums text-muted-foreground transition-colors duration-150 ease-out hover:bg-muted hover:text-foreground motion-reduce:transition-none",

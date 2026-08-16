@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties, type HTMLAttributes, type TransitionEvent } from "react";
+import { useEffect, useState, type CSSProperties, type HTMLAttributes, type PointerEvent, type TransitionEvent } from "react";
 import { Check, Clock, GripVertical, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ export interface FocusBoardItemRowProps {
   prefersReducedMotion?: boolean;
   rowRef?: (element: HTMLDivElement | null) => void;
   rowStyle?: CSSProperties;
-  dragHandleProps?: HTMLAttributes<HTMLButtonElement>;
+  rowDragProps?: HTMLAttributes<HTMLDivElement>;
   onStartComplete: (itemId: string) => void;
   onExitAnimationEnd: (itemId: string) => void;
   onReopen: (itemId: string) => void;
@@ -36,7 +36,7 @@ export function FocusBoardItemRow({
   prefersReducedMotion = false,
   rowRef,
   rowStyle,
-  dragHandleProps,
+  rowDragProps,
   onStartComplete,
   onExitAnimationEnd,
   onReopen,
@@ -45,7 +45,11 @@ export function FocusBoardItemRow({
   const [exitActive, setExitActive] = useState(false);
   const isComplete = item.status === "complete";
   const showCompletedCheck = isComplete || isExiting;
-  const canDrag = Boolean(dragHandleProps) && !isComplete && !isExiting;
+  const canDrag = Boolean(rowDragProps) && !isComplete && !isExiting;
+
+  const stopRowDrag = (event: PointerEvent<HTMLElement>) => {
+    event.stopPropagation();
+  };
 
   useEffect(() => {
     if (!isExiting) {
@@ -73,10 +77,12 @@ export function FocusBoardItemRow({
           : undefined),
       }}
       onTransitionEnd={handleTransitionEnd}
+      {...rowDragProps}
+      aria-label={canDrag ? `Reorder ${label}` : undefined}
       className={cn(
         "group relative flex min-h-[3.5rem] items-center gap-2 rounded-xl border bg-card px-3 py-2.5 shadow-sm dark:border-muted-foreground/20 dark:bg-muted/80 dark:shadow-lg dark:shadow-black/25",
         canDrag &&
-          "transition-[border-color,box-shadow,background-color] duration-150 ease-out motion-reduce:transition-none dark:hover:bg-muted",
+          "cursor-grab touch-none transition-[border-color,box-shadow,background-color] duration-150 ease-out active:cursor-grabbing motion-reduce:transition-none dark:hover:bg-muted",
         isDragging && "z-10 scale-[0.98] opacity-50",
         isExiting &&
           "pointer-events-none will-change-[opacity,transform] transition-[opacity,transform] ease-out motion-reduce:transition-none",
@@ -87,25 +93,19 @@ export function FocusBoardItemRow({
           "border-border/60 hover:border-border hover:bg-accent/20"
       )}
     >
-      {canDrag ? (
-        <button
-          type="button"
-          aria-label={`Reorder ${label}`}
-          className="flex w-5 shrink-0 cursor-grab touch-none items-center justify-center active:cursor-grabbing"
-          {...dragHandleProps}
-        >
+      <div className="flex w-5 shrink-0 items-center justify-center" aria-hidden="true">
+        {canDrag ? (
           <GripVertical className="h-4 w-4 text-muted-foreground" />
-        </button>
-      ) : (
-        <div className="w-5 shrink-0" aria-hidden="true" />
-      )}
+        ) : null}
+      </div>
 
       <Button
         type="button"
         variant="ghost"
         size="icon"
         disabled={isExiting}
-        className="h-9 w-9 shrink-0 active:scale-[0.97] transition-transform ease-out will-change-transform hover:bg-transparent hover:text-current motion-reduce:transition-none motion-reduce:active:scale-100"
+        className="h-9 w-9 shrink-0 cursor-pointer active:scale-[0.97] transition-transform ease-out will-change-transform hover:bg-transparent hover:text-current motion-reduce:transition-none motion-reduce:active:scale-100"
+        onPointerDown={stopRowDrag}
         onClick={(event) => {
           event.stopPropagation();
           if (isComplete) {
@@ -145,8 +145,9 @@ export function FocusBoardItemRow({
         type="button"
         variant="ghost"
         size="icon"
+        onPointerDown={stopRowDrag}
         onClick={() => onRemove(item.id)}
-        className="h-9 w-9 shrink-0 text-muted-foreground/50 opacity-0 transition-[opacity,color,background-color] duration-150 group-hover:opacity-100 hover:bg-muted/80 hover:text-destructive focus-visible:opacity-100 motion-reduce:transition-none"
+        className="h-9 w-9 shrink-0 cursor-pointer text-muted-foreground/50 opacity-0 transition-[opacity,color,background-color] duration-150 group-hover:opacity-100 hover:bg-muted/80 hover:text-destructive focus-visible:opacity-100 motion-reduce:transition-none"
         aria-label={`Remove ${label}`}
       >
         <X className="h-4 w-4" />
