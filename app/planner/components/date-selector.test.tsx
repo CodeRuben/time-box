@@ -48,4 +48,18 @@ describe("DateSelector", () => {
     expect(handleChange).toHaveBeenCalledTimes(1);
     expect(handleChange.mock.calls[0][0]).toEqual(new Date(2026, 0, 16));
   });
+
+  it("steps backward and forward by one local day", () => {
+    const handleChange = vi.fn();
+
+    render(
+      <DateSelector value={new Date(2026, 0, 15, 9)} onChange={handleChange} />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Previous day" }));
+    fireEvent.click(screen.getByRole("button", { name: "Next day" }));
+
+    expect(handleChange.mock.calls[0][0]).toEqual(new Date(2026, 0, 14, 9));
+    expect(handleChange.mock.calls[1][0]).toEqual(new Date(2026, 0, 16, 9));
+  });
 });

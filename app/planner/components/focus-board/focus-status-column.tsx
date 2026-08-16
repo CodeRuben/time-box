@@ -3,7 +3,6 @@
 import { useMemo, type DragEvent, type ReactNode } from "react";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
-import { cn } from "@/lib/utils";
 import type { FocusItemStatus, FocusListItem, FocusListSubitem } from "@/lib/focus-list";
 import { CompleteSection } from "./focus-complete-section";
 import { FocusBoardItemRow } from "./focus-board-item-row";

@@ -56,7 +56,7 @@ export function FocusItemSubitemTrigger({
     );
   }
 
-  if (item.source.type === "brain_dump") {
+  if (item.source.type === "brain_dump" || item.source.type === "custom") {
     return null;
   }
 

@@ -11,10 +11,7 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { Plus } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
   addFocusListItem,
   FOCUS_STATUS_ORDER,
@@ -32,7 +29,7 @@ import {
 import { getFocusItemSourceKey, type FocusItemSource } from "@/lib/focus-item-source";
 import type { BrainDumpPriorityCandidate } from "@/lib/parse-brain-dump-priorities";
 import type { TopPriority } from "@/lib/use-planner-storage";
-import { AddToFocusMenu, getFocusAddOptions } from "../add-to-focus-menu";
+import { getFocusAddOptions } from "../add-to-focus-menu";
 import {
   persistFocusItemComplete,
   useFocusCompleteAnimation,
@@ -40,6 +37,7 @@ import {
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
 import { FocusStatusColumn } from "./focus-status-column";
 import { FocusBoardEmptyState } from "./focus-board-empty-state";
+import { FocusBoardAddField } from "./focus-board-add-field";
 
 interface FocusBoardProps {
   items: FocusListItem[];
@@ -188,28 +186,14 @@ export function FocusBoard({
     [onItemsChange]
   );
 
-  const renderAddItemsButton = (variant: "footer" | "empty") => (
-    <AddToFocusMenu
+  const addField = (
+    <FocusBoardAddField
+      onAdd={handleAddSource}
       priorities={priorities}
       brainDumpCandidates={brainDumpCandidates}
       existingSourceKeys={existingSourceKeys}
-      onAdd={handleAddSource}
-    >
-      <Button
-        type="button"
-        variant="ghost"
-        size={variant === "empty" ? "sm" : undefined}
-        disabled={!hasAddOptions}
-        className={cn(
-          variant === "empty"
-            ? "h-auto gap-1.5 px-2 py-1 text-sm font-medium text-muted-foreground hover:bg-transparent hover:text-foreground"
-            : "h-auto w-full shrink-0 justify-center gap-2 rounded-none border-0 bg-transparent px-0 py-2 text-sm font-medium text-muted-foreground shadow-none transition-colors duration-150 ease-out hover:bg-transparent hover:text-foreground motion-reduce:transition-none"
-        )}
-      >
-        <Plus className="h-4 w-4" />
-        Add items
-      </Button>
-    </AddToFocusMenu>
+      hasAddOptions={hasAddOptions}
+    />
   );
 
   const isEmpty = items.length === 0;
@@ -223,9 +207,7 @@ export function FocusBoard({
       >
         <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto scrollbar-themed pr-1 lg:min-h-full">
           {isEmpty ? (
-            <FocusBoardEmptyState>
-              {renderAddItemsButton("empty")}
-            </FocusBoardEmptyState>
+            <FocusBoardEmptyState>{addField}</FocusBoardEmptyState>
           ) : (
             FOCUS_STATUS_ORDER.map((status) => (
               <FocusStatusColumn
@@ -248,7 +230,7 @@ export function FocusBoard({
                 onExitAnimationEnd={handleExitAnimationEnd}
                 onReopen={handleReopen}
                 onRemove={handleRemove}
-                footer={status === "todo" ? renderAddItemsButton("footer") : undefined}
+                footer={status === "todo" ? addField : undefined}
               />
             ))
           )}

@@ -19,13 +19,13 @@ export function FocusBoardEmptyState({ children }: FocusBoardEmptyStateProps) {
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 py-10 sm:py-14">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 py-10 sm:py-14">
         <div className="max-w-[15rem] space-y-1.5 text-center">
           <p className="text-[15px] font-medium tracking-tight text-foreground/90">
             Start your focus list
           </p>
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Pull from your working notes or priorities.
+            Add a focus item, or pull from notes and priorities.
           </p>
         </div>
         {children}

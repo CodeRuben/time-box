@@ -11,8 +11,12 @@ The day's actionable items on the planner, split into Todo and Complete columns.
 _Avoid_: Task list (unqualified), kanban
 
 **Focus List Item**:
-A single Focus List entry. After creation it behaves like a normal item (complete, reopen, reorder, delete). Source metadata may link it to a Priority, Brain Dump line, or Recurring Focus Task occurrence.
+A single Focus List entry. After creation it behaves like a normal item (complete, reopen, reorder, delete). It can be typed directly into the Focus List, or source metadata may link it to a Priority, Brain Dump line, or Recurring Focus Task occurrence.
 _Avoid_: Card, ticket
+
+**Custom Focus Item**:
+A Focus List Item created by typing a title directly into the Focus List. The title is snapshotted on the item and is not live-tied to Working Notes or a Priority.
+_Avoid_: Manual task, ad-hoc task, typed task (as a domain term)
 
 **Recurring Focus Task**:
 An account-scoped schedule definition that can generate a Focus List Item for the logged-in user's local today when the schedule is active. Guests do not have Recurring Focus Tasks.

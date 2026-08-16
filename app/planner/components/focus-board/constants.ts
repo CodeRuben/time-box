@@ -22,5 +22,7 @@ export function getFocusSourceTypeLabel(type: FocusItemSource["type"]): string {
       return "Working notes";
     case "recurring_task":
       return "Recurring task";
+    case "custom":
+      return "Typed";
   }
 }

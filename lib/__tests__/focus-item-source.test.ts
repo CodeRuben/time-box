@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { getFocusItemSourceKey } from "../focus-item-source";
+import {
+  createCustomFocusItemSource,
+  getFocusItemSourceKey,
+} from "../focus-item-source";
 import { getFocusAddOptions } from "@/app/planner/components/add-to-focus-menu";
 
 describe("getFocusItemSourceKey", () => {
@@ -21,6 +24,24 @@ describe("getFocusItemSourceKey", () => {
         label: "Code review",
       })
     ).toBe("recurring:occ-1");
+  });
+
+  it("keys custom items by normalized label", () => {
+    expect(
+      getFocusItemSourceKey({
+        type: "custom",
+        label: "  Ship Feature  ",
+      })
+    ).toBe("custom:ship feature");
+  });
+});
+
+describe("createCustomFocusItemSource", () => {
+  it("snapshots a trimmed label", () => {
+    expect(createCustomFocusItemSource("  Follow up with legal  ")).toEqual({
+      type: "custom",
+      label: "Follow up with legal",
+    });
   });
 });
 

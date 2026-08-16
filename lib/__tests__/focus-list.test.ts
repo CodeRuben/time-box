@@ -259,6 +259,15 @@ describe("getFocusListItemLabel", () => {
     ).toBe("New Name");
   });
 
+  it("uses the snapshot label for custom items", () => {
+    const item = addFocusListItem([], {
+      type: "custom",
+      label: "Follow up with legal",
+    })[0]!;
+
+    expect(getFocusListItemLabel(item, [])).toBe("Follow up With Legal");
+  });
+
   it("uses the snapshot label for recurring tasks", () => {
     const item = addFocusListItem([], {
       type: "recurring_task",
@@ -370,6 +379,34 @@ describe("isValidFocusListItem", () => {
         },
       })
     ).toBe(true);
+  });
+
+  it("accepts custom sources with a non-empty label", () => {
+    expect(
+      isValidFocusListItem({
+        id: "1",
+        status: "todo",
+        order: 0,
+        source: {
+          type: "custom",
+          label: "Write the weekly update",
+        },
+      })
+    ).toBe(true);
+  });
+
+  it("rejects custom sources with a blank label", () => {
+    expect(
+      isValidFocusListItem({
+        id: "1",
+        status: "todo",
+        order: 0,
+        source: {
+          type: "custom",
+          label: "   ",
+        },
+      })
+    ).toBe(false);
   });
 
   it("rejects recurring task sources missing snapshot fields", () => {
@@ -492,6 +529,20 @@ describe("getFocusListItemSubitems", () => {
       source: {
         type: "brain_dump" as const,
         text: "Standalone item",
+      },
+    };
+
+    expect(getFocusListItemSubitems(item, context)).toEqual([]);
+  });
+
+  it("returns an empty list for custom items", () => {
+    const item = {
+      id: "focus-5",
+      status: "todo" as const,
+      order: 0,
+      source: {
+        type: "custom" as const,
+        label: "Write the weekly update",
       },
     };
 
