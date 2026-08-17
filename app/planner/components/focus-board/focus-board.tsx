@@ -26,10 +26,9 @@ import {
   type FocusItemStatus,
   type FocusListItem,
 } from "@/lib/focus-list";
-import { getFocusItemSourceKey, type FocusItemSource } from "@/lib/focus-item-source";
+import type { FocusItemSource } from "@/lib/focus-item-source";
 import type { BrainDumpPriorityCandidate } from "@/lib/parse-brain-dump-priorities";
 import type { TopPriority } from "@/lib/use-planner-storage";
-import { getFocusAddOptions } from "../add-to-focus-menu";
 import {
   persistFocusItemComplete,
   useFocusCompleteAnimation,
@@ -94,11 +93,6 @@ export function FocusBoard({
     [getTodoDisplayItems, items]
   );
 
-  const existingSourceKeys = useMemo(
-    () => new Set(items.map((item) => getFocusItemSourceKey(item.source))),
-    [items]
-  );
-
   const getItemLabel = useCallback(
     (item: FocusListItem) => getFocusListItemLabel(item, priorities),
     [priorities]
@@ -111,16 +105,6 @@ export function FocusBoard({
         brainDumpCandidates,
       }),
     [priorities, brainDumpCandidates]
-  );
-
-  const { hasOptions: hasAddOptions } = useMemo(
-    () =>
-      getFocusAddOptions({
-        priorities,
-        brainDumpCandidates,
-        existingSourceKeys,
-      }),
-    [priorities, brainDumpCandidates, existingSourceKeys]
   );
 
   const handleAddSource = useCallback(
@@ -186,15 +170,7 @@ export function FocusBoard({
     [onItemsChange]
   );
 
-  const addField = (
-    <FocusBoardAddField
-      onAdd={handleAddSource}
-      priorities={priorities}
-      brainDumpCandidates={brainDumpCandidates}
-      existingSourceKeys={existingSourceKeys}
-      hasAddOptions={hasAddOptions}
-    />
-  );
+  const addField = <FocusBoardAddField onAdd={handleAddSource} />;
 
   const isEmpty = items.length === 0;
 

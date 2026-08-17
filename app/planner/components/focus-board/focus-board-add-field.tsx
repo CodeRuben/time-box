@@ -6,25 +6,12 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createCustomFocusItemSource } from "@/lib/focus-item-source";
 import type { FocusItemSource } from "@/lib/focus-item-source";
-import { AddToFocusMenu } from "../add-to-focus-menu";
-import type { BrainDumpPriorityCandidate } from "@/lib/parse-brain-dump-priorities";
-import type { TopPriority } from "@/lib/use-planner-storage";
 
 interface FocusBoardAddFieldProps {
   onAdd: (source: FocusItemSource) => void;
-  priorities: TopPriority[];
-  brainDumpCandidates: BrainDumpPriorityCandidate[];
-  existingSourceKeys: Set<string>;
-  hasAddOptions: boolean;
 }
 
-export function FocusBoardAddField({
-  onAdd,
-  priorities,
-  brainDumpCandidates,
-  existingSourceKeys,
-  hasAddOptions,
-}: FocusBoardAddFieldProps) {
+export function FocusBoardAddField({ onAdd }: FocusBoardAddFieldProps) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
 
@@ -49,7 +36,7 @@ export function FocusBoardAddField({
 
   if (!open) {
     return (
-      <div className="flex items-center justify-center gap-2 pt-1">
+      <div className="flex items-center justify-center pt-1">
         <Button
           type="button"
           variant="ghost"
@@ -60,23 +47,6 @@ export function FocusBoardAddField({
           <Plus className="h-4 w-4" />
           Add item
         </Button>
-        {hasAddOptions ? (
-          <AddToFocusMenu
-            priorities={priorities}
-            brainDumpCandidates={brainDumpCandidates}
-            existingSourceKeys={existingSourceKeys}
-            onAdd={onAdd}
-          >
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 text-foreground dark:border-muted-foreground/70 dark:bg-card dark:hover:bg-muted"
-            >
-              From notes
-            </Button>
-          </AddToFocusMenu>
-        ) : null}
       </div>
     );
   }
