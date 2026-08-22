@@ -41,10 +41,10 @@ export const FEATURES = [
     },
   },
   {
-    key: "mock-draft",
-    label: "Mock Draft",
-    description: "Fantasy football snake mock drafts against AI opponents.",
-    href: "/mock-draft",
+    key: "draft-rankings",
+    label: "Draft Rankings",
+    description: "Editable fantasy football draft rankings board.",
+    href: "/draft-rankings",
     kind: "page",
     defaults: {
       adminEnabled: true,

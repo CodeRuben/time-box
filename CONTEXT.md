@@ -75,30 +75,20 @@ How far through a Book the user is: the Current Page of the latest Entry over th
 **Cover**:
 The Book's image, stored as a URL (from Open Library, or edited manually). A placeholder is shown when absent.
 
-### Mock Draft
+### Draft Rankings
 
 **Board**:
-The ranked player list used for a Mock Draft.
-_Avoid_: Rankings (when referring to the in-app list)
+The ordered player list for a fantasy football draft. Users can reorder players by dragging; the custom order persists in local storage.
+_Avoid_: Rankings (when referring to the in-app list order — prefer Board)
 
-**Pick**:
-One player selection, identified by its overall number, round, Slot, and player.
-_Avoid_: Selection
+**Position Filter**:
+A multi-select control that greys out players whose Position is not in the active set, without changing Board order.
+_Avoid_: Filter chips (unqualified)
 
-**Slot**:
-A team's 1-based position in the draft order.
-_Avoid_: Seed, position
+**Live Draft**:
+A Board mode for tracking a draft in progress. The user clicks a player when that player is selected; Taken players stay in place and are visually marked unavailable. Clicking again marks them Available. Reset restores default Board order and clears Taken players.
+_Avoid_: Draft tracker, snake draft room
 
-**On the Clock**:
-The team whose turn it is to make a Pick.
-
-**Archetype**:
-A bot's drafting personality, which influences how it values positions.
-_Avoid_: Strategy
-
-**Best Available**:
-The undrafted players ordered by Board rank.
-_Avoid_: Available players (when referring to the ranked view)
-
-**Grade**:
-The post-draft letter score assigned to a team.
+**Taken**:
+A player already selected in the current Live Draft. Distinct from Board rank.
+_Avoid_: Drafted, unavailable (as stored state names)
