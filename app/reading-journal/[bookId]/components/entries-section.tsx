@@ -90,7 +90,7 @@ export function EntriesSection({
           </Button>
         </div>
       ) : (
-        <div className="pt-5">
+        <div className="scrollbar-themed max-h-[min(55vh,32rem)] overflow-y-auto overscroll-contain pt-5 pr-1">
           {entries.map((entry, index) => (
             <EntryCard
               key={entry.date}
