@@ -33,6 +33,7 @@ interface WorkoutInsightsFiltersProps {
   startDate: string;
   endDate: string;
   selectedTypes: WorkoutType[];
+  availableTypes: WorkoutType[];
   onSelectPreset: (preset: InsightPreset) => void;
   onSelectCustomRange: (
     start: Date | undefined,
@@ -47,6 +48,7 @@ export function WorkoutInsightsFilters({
   startDate,
   endDate,
   selectedTypes,
+  availableTypes,
   onSelectPreset,
   onSelectCustomRange,
   onToggleType,
@@ -112,19 +114,27 @@ export function WorkoutInsightsFilters({
       <div className="flex flex-wrap items-center gap-2">
         {WORKOUT_TYPES.map((type) => {
           const isSelected = selectedTypes.includes(type);
+          const isDisabled = !availableTypes.includes(type);
           return (
             <label
               key={type}
               className={cn(
-                "inline-flex cursor-pointer items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 ease motion-reduce:transition-none",
-                isSelected
-                  ? "border-border bg-muted/50 text-foreground"
-                  : "border-border/70 bg-background text-muted-foreground [@media(hover:hover)_and_(pointer:fine)]:hover:border-border [@media(hover:hover)_and_(pointer:fine)]:hover:text-foreground",
+                "inline-flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 ease motion-reduce:transition-none",
+                isDisabled
+                  ? "cursor-not-allowed border-border/70 bg-background text-muted-foreground opacity-50"
+                  : isSelected
+                    ? "cursor-pointer border-border bg-muted/50 text-foreground"
+                    : "cursor-pointer border-border/70 bg-background text-muted-foreground [@media(hover:hover)_and_(pointer:fine)]:hover:border-border [@media(hover:hover)_and_(pointer:fine)]:hover:text-foreground",
               )}
             >
               <Checkbox
-                checked={isSelected}
-                onCheckedChange={() => onToggleType(type)}
+                checked={isSelected && !isDisabled}
+                disabled={isDisabled}
+                onCheckedChange={() => {
+                  if (!isDisabled) {
+                    onToggleType(type);
+                  }
+                }}
               />
               {INSIGHT_WORKOUT_TYPE_META[type].label}
             </label>

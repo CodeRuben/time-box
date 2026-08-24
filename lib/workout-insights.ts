@@ -76,6 +76,7 @@ export interface WorkoutInsights {
   mostFrequentType: { type: WorkoutType; count: number } | null;
   mostActiveMonth: WorkoutInsightMostActiveMonth | null;
   monthlyCounts: WorkoutInsightMonthlyCount[];
+  availableTypes: WorkoutType[];
   entries: WorkoutInsightEntry[];
 }
 
@@ -99,6 +100,7 @@ export function emptyWorkoutInsightsSummary(): WorkoutInsightsSummary {
     mostFrequentType: null,
     mostActiveMonth: null,
     monthlyCounts: [],
+    availableTypes: [...WORKOUT_TYPES],
   };
 }
 
@@ -115,6 +117,7 @@ export function toWorkoutInsightsPage(
       mostFrequentType: insights.mostFrequentType,
       mostActiveMonth: insights.mostActiveMonth,
       monthlyCounts: insights.monthlyCounts,
+      availableTypes: insights.availableTypes,
     },
     entries,
     totalEntries: insights.totalWorkoutEntries,
@@ -144,11 +147,67 @@ export function parseWorkoutInsightsPage(value: unknown): WorkoutInsightsPage {
     typeof payload.nextOffset === "number" ? payload.nextOffset : null;
 
   return {
-    summary: payload.summary,
+    summary: {
+      ...payload.summary,
+      availableTypes: parseAvailableTypes(
+        (payload.summary as WorkoutInsightsSummary).availableTypes,
+      ),
+    },
     entries: payload.entries,
     totalEntries: payload.totalEntries,
     nextOffset,
   };
+}
+
+function parseAvailableTypes(value: unknown): WorkoutType[] {
+  if (!Array.isArray(value)) {
+    return [...WORKOUT_TYPES];
+  }
+
+  return WORKOUT_TYPES.filter((type) => value.includes(type));
+}
+
+export function constrainSelectedWorkoutTypes(
+  current: WorkoutType[],
+  availableTypes: readonly WorkoutType[],
+): WorkoutType[] {
+  const next = WORKOUT_TYPES.filter(
+    (type) => current.includes(type) && availableTypes.includes(type),
+  );
+
+  if (
+    next.length === current.length &&
+    next.every((type) => current.includes(type))
+  ) {
+    return current;
+  }
+
+  return next;
+}
+
+export function nextSelectedWorkoutTypes(
+  current: WorkoutType[],
+  type: WorkoutType,
+  availableTypes: readonly WorkoutType[],
+): WorkoutType[] {
+  if (!availableTypes.includes(type)) {
+    return current;
+  }
+
+  const selectedAvailable = current.filter((item) =>
+    availableTypes.includes(item),
+  );
+
+  if (current.includes(type)) {
+    if (selectedAvailable.length <= 1) {
+      return current;
+    }
+    return current.filter((item) => item !== type);
+  }
+
+  return WORKOUT_TYPES.filter(
+    (item) => item === type || current.includes(item),
+  );
 }
 
 function emptyTypeCounts(): Record<WorkoutType, number> {
@@ -259,6 +318,7 @@ export function buildWorkoutInsights(
   filters: WorkoutInsightFilters,
 ): WorkoutInsights {
   const selectedTypes = new Set(filters.types);
+  const presentTypes = new Set<WorkoutType>();
   const typeTotals = emptyTypeCounts();
   const monthlyMap = new Map<string, Record<WorkoutType, number>>();
   const activeDayKeys = new Set<string>();
@@ -281,7 +341,12 @@ export function buildWorkoutInsights(
 
     for (const workout of day.data.workouts) {
       const entry = toInsightEntry(day.dateKey, workout);
-      if (!entry || !selectedTypes.has(entry.type)) {
+      if (!entry) {
+        continue;
+      }
+
+      presentTypes.add(entry.type);
+      if (!selectedTypes.has(entry.type)) {
         continue;
       }
 
@@ -322,6 +387,7 @@ export function buildWorkoutInsights(
     mostFrequentType: pickMostFrequentType(typeTotals),
     mostActiveMonth: pickMostActiveMonth(monthlyCounts),
     monthlyCounts,
+    availableTypes: WORKOUT_TYPES.filter((type) => presentTypes.has(type)),
     entries,
   };
 }

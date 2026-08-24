@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   buildWorkoutInsights,
+  constrainSelectedWorkoutTypes,
   isInsightRangeWithinLimit,
+  nextSelectedWorkoutTypes,
   type WorkoutInsightDay,
 } from "../workout-insights";
 import { hydrateWorkoutDayData } from "../workout-day-data";
@@ -214,8 +216,70 @@ describe("buildWorkoutInsights", () => {
 
     expect(insights.mostActiveMonth).toBeNull();
     expect(insights.monthlyCounts.every((row) => row.total === 0)).toBe(true);
+    expect(insights.availableTypes).toEqual([]);
   });
 
+  it("lists available types for the date range even when they are filtered out", () => {
+    const insights = buildWorkoutInsights(
+      [
+        day("2026-06-01", [
+          workout("w1", "resistance", "Lift", "2026-06-01T08:00:00.000Z"),
+          workout("w2", "cardio", "Run", "2026-06-01T09:00:00.000Z"),
+        ]),
+      ],
+      {
+        startDate: "2026-06-01",
+        endDate: "2026-06-30",
+        types: ["cardio"],
+      },
+    );
+
+    expect(insights.availableTypes).toEqual(["resistance", "cardio"]);
+    expect(insights.totalWorkoutEntries).toBe(1);
+  });
+
+});
+
+describe("nextSelectedWorkoutTypes", () => {
+  it("ignores types that have no workouts in range", () => {
+    expect(
+      nextSelectedWorkoutTypes(
+        ["resistance", "cardio"],
+        "hybrid",
+        ["resistance", "cardio"],
+      ),
+    ).toEqual(["resistance", "cardio"]);
+  });
+
+  it("keeps the last available type selected", () => {
+    expect(
+      nextSelectedWorkoutTypes(
+        ["resistance", "hybrid"],
+        "resistance",
+        ["resistance"],
+      ),
+    ).toEqual(["resistance", "hybrid"]);
+  });
+});
+
+describe("constrainSelectedWorkoutTypes", () => {
+  it("unchecks types that have no workouts in range", () => {
+    expect(
+      constrainSelectedWorkoutTypes(
+        ["resistance", "cardio", "hybrid", "unknown"],
+        ["resistance", "cardio"],
+      ),
+    ).toEqual(["resistance", "cardio"]);
+  });
+
+  it("unchecks every type when the range has no workouts", () => {
+    expect(
+      constrainSelectedWorkoutTypes(
+        ["resistance", "cardio", "hybrid", "unknown"],
+        [],
+      ),
+    ).toEqual([]);
+  });
 });
 
 describe("isInsightRangeWithinLimit", () => {
