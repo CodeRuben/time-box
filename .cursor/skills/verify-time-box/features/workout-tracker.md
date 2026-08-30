@@ -35,4 +35,5 @@ Preconditions:
 - **Clear workouts for selected date** is disabled when the day has no workouts.
 - Use `browser_type` for **Workout name**; `browser_fill` does not update React state.
 - Guest workouts persist in browser localStorage; signed-in users autosave to the verification database ([Autosave](./autosave.md)).
+- CSV export is covered by [Workout export](./workout-export.md).
 - Navigation to this page alone is covered by [Navigate features](./navigate-features.md); this file covers in-page behavior.

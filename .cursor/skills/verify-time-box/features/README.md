@@ -45,11 +45,13 @@ Each feature file uses H1 title, one intro paragraph, then four H2 sections in o
 - [Navigate features](./navigate-features.md) — primary nav between Planner, Workouts, and Book log.
 - [Theme controls](./theme-controls.md) — light/dark toggle and persistence.
 - [Autosave](./autosave.md) — signed-in save indicators on planner, workouts, and book notes.
+- [Settings](./settings.md) — workspace toggles and admin feature flags (signed-in).
 
 ### Workouts
 
 - [Workout tracker](./workout-tracker.md) — add, name, and clear workouts for a day.
 - [Workout insights](./workout-insights.md) — historical insights sheet and filters.
+- [Workout export](./workout-export.md) — CSV download dialog on the tracker page.
 
 ### Book log
 
@@ -58,6 +60,4 @@ Each feature file uses H1 title, one intro paragraph, then four H2 sections in o
 
 ## Surfaces not yet mapped
 
-- **Settings** (`/settings`) — feature flags and account preferences.
-- **Workout export** — CSV export dialog on the tracker page.
 - **Registration** (`/register`) — new account creation when enabled.
