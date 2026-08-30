@@ -53,7 +53,7 @@ export function BookTagFilter({
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-56 p-0">
-        <ul className="max-h-64 overflow-y-auto p-1">
+        <ul className="scrollbar-themed max-h-64 overflow-y-auto p-1">
           {tags.map((tag) => {
             const selected = selectedKeys.includes(tag.key);
             const id = `book-tag-filter-${tag.key}`;
