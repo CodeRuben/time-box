@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { CircleUser, Loader2, LogIn, Settings } from "lucide-react";
+import { CircleUser, Loader2, LogIn, Menu, Settings } from "lucide-react";
 import { ThemeToggle } from "@/app/planner/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -142,14 +149,67 @@ function isNavItemActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function NavigationLoadingLinks() {
+function NavigationLoadingLinks({ compact = false }: { compact?: boolean }) {
+  if (compact) {
+    return (
+      <span
+        className="size-9 animate-pulse rounded-md bg-muted motion-reduce:animate-none md:hidden"
+        aria-hidden
+      />
+    );
+  }
+
   return (
-    <div className="flex items-center gap-2" aria-hidden>
+    <div className="hidden items-center gap-2 md:flex" aria-hidden>
       <span className="h-4 w-11 animate-pulse rounded bg-muted motion-reduce:animate-none" />
       <span className="h-4 w-8 animate-pulse rounded bg-muted motion-reduce:animate-none" />
       <span className="h-4 w-14 animate-pulse rounded bg-muted motion-reduce:animate-none" />
     </div>
   );
+}
+
+type PrimaryNavLinksProps = {
+  items: NavItem[];
+  pathname: string;
+  variant?: "inline" | "menu";
+  onNavigate?: () => void;
+};
+
+function PrimaryNavLinks({
+  items,
+  pathname,
+  variant = "inline",
+  onNavigate,
+}: PrimaryNavLinksProps) {
+  return items.map((item) => {
+    const isActive = isNavItemActive(pathname, item.href);
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        onClick={onNavigate}
+        className={cn(
+          "font-medium transition-colors",
+          variant === "inline"
+            ? cn(
+                "px-3 py-1.5 text-sm",
+                isActive
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )
+            : cn(
+                "block rounded-md px-3 py-2.5 text-base",
+                isActive
+                  ? "bg-accent text-foreground"
+                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+              )
+        )}
+      >
+        {item.label}
+      </Link>
+    );
+  });
 }
 
 function LogoMarkA() {
@@ -167,6 +227,11 @@ export function AppHeader() {
   const pathname = usePathname();
   const { status } = useSession();
   const [navItems, setNavItems] = useState<NavItem[] | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     let cancelled = false;
@@ -204,34 +269,64 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-40 bg-background/85 backdrop-blur">
       <div className="flex h-12 w-full items-center px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="mr-4 flex items-center">
-          <LogoMarkA />
-        </Link>
+        <div className="mr-4 flex items-center gap-2">
+          {navItems === null ? (
+            <NavigationLoadingLinks compact />
+          ) : (
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="size-9 md:hidden"
+                  aria-label="Open menu"
+                >
+                  <Menu className="size-4" aria-hidden />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="h-full w-full max-w-none border-0">
+                <SheetHeader className="flex-row items-center gap-2 space-y-0">
+                  <Link
+                    href="/"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center"
+                  >
+                    <LogoMarkA />
+                  </Link>
+                  <SheetTitle>Menu</SheetTitle>
+                </SheetHeader>
+                <nav
+                  className="flex flex-col gap-1 px-2"
+                  aria-label="Primary"
+                >
+                  <PrimaryNavLinks
+                    items={navItems}
+                    pathname={pathname}
+                    variant="menu"
+                    onNavigate={() => setMobileMenuOpen(false)}
+                  />
+                </nav>
+              </SheetContent>
+            </Sheet>
+          )}
 
-        <nav className="flex items-center gap-1" aria-label="Primary">
+          <Link href="/" className="hidden items-center md:flex">
+            <LogoMarkA />
+          </Link>
+        </div>
+
+        <div className="flex min-w-0 flex-1 items-center">
           {navItems === null ? (
             <NavigationLoadingLinks />
           ) : (
-            navItems.map((item) => {
-              const isActive = isNavItemActive(pathname, item.href);
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "px-3 py-1.5 text-sm font-medium transition-colors",
-                    isActive
-                      ? "text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {item.label}
-                </Link>
-              );
-            })
+            <nav
+              className="hidden items-center gap-1 md:flex"
+              aria-label="Primary"
+            >
+              <PrimaryNavLinks items={navItems} pathname={pathname} />
+            </nav>
           )}
-        </nav>
+        </div>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
           <AccountHeaderControl />
