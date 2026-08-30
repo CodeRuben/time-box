@@ -93,6 +93,11 @@ export function FocusBoard({
     [getTodoDisplayItems, items]
   );
 
+  const completeDisplayItems = useMemo(
+    () => itemsByStatus.complete.filter((item) => !isExiting(item.id)),
+    [itemsByStatus.complete, isExiting]
+  );
+
   const getItemLabel = useCallback(
     (item: FocusListItem) => getFocusListItemLabel(item, priorities),
     [priorities]
@@ -189,7 +194,11 @@ export function FocusBoard({
               <FocusStatusColumn
                 key={status}
                 status={status}
-                items={itemsByStatus[status]}
+                items={
+                  status === "complete"
+                    ? completeDisplayItems
+                    : itemsByStatus[status]
+                }
                 todoDisplayItems={
                   status === "todo" ? todoDisplayItems : undefined
                 }
