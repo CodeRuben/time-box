@@ -33,10 +33,31 @@ Each feature file uses H1 title, one intro paragraph, then four H2 sections in o
 
 ## Features
 
+### Planner
+
 - [Planner top priority](./planner-top-priority.md) — add and persist a guest priority.
 - [Planner focus item](./planner-focus-item.md) — add a focus list item.
 - [Working notes](./working-notes.md) — edit brain dump text for the day.
+
+### App chrome
+
 - [Sign in](./sign-in.md) — credentials login and account menu.
 - [Navigate features](./navigate-features.md) — primary nav between Planner, Workouts, and Book log.
+- [Theme controls](./theme-controls.md) — light/dark toggle and persistence.
+- [Autosave](./autosave.md) — signed-in save indicators on planner, workouts, and book notes.
+
+### Workouts
+
 - [Workout tracker](./workout-tracker.md) — add, name, and clear workouts for a day.
-- [Book log](./book-log.md) — add a book and save a reflection entry (signed-in).
+- [Workout insights](./workout-insights.md) — historical insights sheet and filters.
+
+### Book log
+
+- [Book log](./book-log.md) — library list and add a book (signed-in).
+- [Book detail](./book-detail.md) — reading days, notes, and reflections on a book page.
+
+## Surfaces not yet mapped
+
+- **Settings** (`/settings`) — feature flags and account preferences.
+- **Workout export** — CSV export dialog on the tracker page.
+- **Registration** (`/register`) — new account creation when enabled.
