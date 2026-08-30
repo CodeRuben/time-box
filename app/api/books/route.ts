@@ -7,7 +7,11 @@ import {
 } from "@/lib/book-api-helpers";
 import { prisma } from "@/lib/prisma";
 import { getCurrentPage } from "@/lib/reading-progress";
-import type { BookStatus, BookSummaryView } from "@/lib/reading-journal-types";
+import type {
+  BookStatus,
+  BookSummaryView,
+  BookTag,
+} from "@/lib/reading-journal-types";
 
 interface BookRowWithEntries {
   id: string;
@@ -20,6 +24,7 @@ interface BookRowWithEntries {
   startedOn: string | null;
   finishedOn: string | null;
   entries: { date: string; currentPage: number | null }[];
+  tags: BookTag[];
 }
 
 function formatBookSummary(book: BookRowWithEntries): BookSummaryView {
@@ -34,6 +39,7 @@ function formatBookSummary(book: BookRowWithEntries): BookSummaryView {
     currentPage: getCurrentPage(book.entries),
     startedOn: book.startedOn,
     finishedOn: book.finishedOn,
+    tags: book.tags,
   };
 }
 
@@ -51,6 +57,7 @@ export async function GET() {
     orderBy: { updatedAt: "desc" },
     include: {
       entries: { select: { date: true, currentPage: true } },
+      tags: { orderBy: { key: "asc" }, select: { key: true, name: true } },
     },
   });
 
@@ -96,7 +103,7 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.json(
-    { data: formatBookSummary({ ...book, entries: [] }) },
+    { data: formatBookSummary({ ...book, entries: [], tags: [] }) },
     { status: 201 }
   );
 }

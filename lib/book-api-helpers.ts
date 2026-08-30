@@ -6,6 +6,7 @@ import type {
   BookDetailView,
   BookEntry,
   BookStatus,
+  BookTag,
 } from "@/lib/reading-journal-types";
 
 const VALID_STATUSES: ReadonlySet<BookStatus> = new Set<BookStatus>([
@@ -237,11 +238,13 @@ interface BookDetailRow {
   updatedAt: Date;
   entries: EntryRow[];
   readingDays: { date: string }[];
+  tags: BookTag[];
 }
 
 export const ownedBookDetailInclude = {
   entries: { orderBy: { date: "desc" as const } },
   readingDays: { orderBy: { date: "asc" as const }, select: { date: true } },
+  tags: { orderBy: { key: "asc" as const }, select: { key: true, name: true } },
 } satisfies Prisma.BookInclude;
 
 export type OwnedBookDetail = Prisma.BookGetPayload<{
@@ -329,6 +332,7 @@ export function formatBookDetail(book: BookDetailRow | OwnedBookDetail): BookDet
     currentPage: getCurrentPage(book.entries),
     entries,
     readingDays: book.readingDays.map((day) => day.date),
+    tags: book.tags.map((tag) => ({ key: tag.key, name: tag.name })),
     createdAt: book.createdAt.toISOString(),
     updatedAt: book.updatedAt.toISOString(),
   };

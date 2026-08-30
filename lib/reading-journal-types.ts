@@ -1,5 +1,10 @@
 export type BookStatus = "reading" | "finished" | "abandoned";
 
+export interface BookTag {
+  key: string;
+  name: string;
+}
+
 export interface BookEntry {
   id: string;
   date: string; // YYYY-MM-DD
@@ -22,6 +27,7 @@ export interface BookSummaryView {
   currentPage: number | null; // derived from latest entry
   startedOn: string | null;
   finishedOn: string | null;
+  tags: BookTag[];
 }
 
 export interface BookDetailView extends BookSummaryView {

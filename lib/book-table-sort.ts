@@ -6,6 +6,7 @@ export type BookSortColumn =
   | "author"
   | "progress"
   | "rating"
+  | "tags"
   | "startedOn"
   | "finishedOn";
 
@@ -72,6 +73,10 @@ export function sortBooks(
         );
       case "rating":
         return compareNullableNumbers(a.rating, b.rating, direction);
+      case "tags": {
+        const result = a.tags.length - b.tags.length;
+        return direction === "asc" ? result : -result;
+      }
       case "startedOn":
         return compareNullableStrings(a.startedOn, b.startedOn, direction);
       case "finishedOn":

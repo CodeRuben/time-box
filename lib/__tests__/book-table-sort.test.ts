@@ -14,6 +14,7 @@ function createBook(
     currentPage: null,
     startedOn: null,
     finishedOn: null,
+    tags: [],
     ...overrides,
   };
 }
@@ -115,6 +116,36 @@ describe("sortBooks", () => {
       "later",
       "earlier",
       "none",
+    ]);
+  });
+
+  it("sorts by tag count", () => {
+    const books = [
+      createBook({
+        id: "one",
+        title: "One",
+        tags: [{ key: "a", name: "A" }],
+      }),
+      createBook({ id: "none", title: "None", tags: [] }),
+      createBook({
+        id: "two",
+        title: "Two",
+        tags: [
+          { key: "a", name: "A" },
+          { key: "b", name: "B" },
+        ],
+      }),
+    ];
+
+    expect(sortBooks(books, "tags", "desc").map((book) => book.id)).toEqual([
+      "two",
+      "one",
+      "none",
+    ]);
+    expect(sortBooks(books, "tags", "asc").map((book) => book.id)).toEqual([
+      "none",
+      "one",
+      "two",
     ]);
   });
 });

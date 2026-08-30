@@ -18,9 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BOOK_STATUS_OPTIONS, type BookDetailView } from "@/lib/reading-journal-types";
+import {
+  BOOK_STATUS_OPTIONS,
+  type BookDetailView,
+  type BookTag,
+} from "@/lib/reading-journal-types";
 import type { BookPatch } from "../../hooks/use-book-detail";
 import { BookCoverImage } from "../../components/book-cover-image";
+import { BookTags } from "./book-tags";
 import { DeleteBookAlert } from "./delete-book-alert";
 import { EditBookDialog } from "./edit-book-dialog";
 import { StarRating } from "./star-rating";
@@ -29,13 +34,23 @@ interface BookInfoHeaderProps {
   book: BookDetailView;
   onUpdate: (patch: BookPatch) => Promise<unknown>;
   onDelete: () => Promise<unknown>;
+  onAddTag: (name: string) => Promise<void>;
+  onRemoveTag: (tag: BookTag) => Promise<void>;
+  isUpdatingTags: boolean;
 }
 
 function parseLocalDate(value: string | null): Date | undefined {
   return value ? new Date(`${value}T00:00:00`) : undefined;
 }
 
-export function BookInfoHeader({ book, onUpdate, onDelete }: BookInfoHeaderProps) {
+export function BookInfoHeader({
+  book,
+  onUpdate,
+  onDelete,
+  onAddTag,
+  onRemoveTag,
+  isUpdatingTags,
+}: BookInfoHeaderProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -74,9 +89,12 @@ export function BookInfoHeader({ book, onUpdate, onDelete }: BookInfoHeaderProps
             <div className="flex shrink-0 items-center gap-1.5 pt-0.5">
               <Select
                 value={book.status}
-                onValueChange={(value) =>
-                  void onUpdate({ status: value as BookDetailView["status"] })
-                }
+                onValueChange={(value) => {
+                  const option = BOOK_STATUS_OPTIONS.find(
+                    (status) => status.value === value
+                  );
+                  if (option) void onUpdate({ status: option.value });
+                }}
               >
                 <SelectTrigger className="h-8 w-auto min-w-28 gap-1.5 px-2.5 text-sm">
                   <SelectValue />
@@ -150,6 +168,13 @@ export function BookInfoHeader({ book, onUpdate, onDelete }: BookInfoHeaderProps
         <StarRating
           rating={book.rating}
           onChange={(rating) => void onUpdate({ rating })}
+        />
+
+        <BookTags
+          tags={book.tags}
+          isUpdating={isUpdatingTags}
+          onAdd={onAddTag}
+          onRemove={onRemoveTag}
         />
       </div>
 
