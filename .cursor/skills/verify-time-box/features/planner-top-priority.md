@@ -22,9 +22,9 @@ Preconditions:
 - Doctor reports healthy `baseUrl` (default `http://127.0.0.1:3847`).
 - Browser tab has no conflicting planner data for today, or clear day first via planner actions.
 
-- **Open planner.** Navigate to `<baseUrl>/`. Snapshot shows heading `Daily Timeboxing Planner` and region **Top Priorities**.
+- **Open planner.** Navigate to `<baseUrl>/`. Snapshot shows heading `Daily Timeboxing Planner` and heading **Top Priorities**.
 - **Add priority.** Click button **New priority** (empty state) or button with `aria-label` **Add blank priority**. An input with placeholder **Priority name** appears focused.
-- **Enter name.** Type into **Priority name** with `browser_type` (not `browser_fill` — React inputs need real keystrokes). Press Enter. The inline editor closes and the card shows `Verify priority` (not **Untitled Priority**).
+- **Enter name.** Type into **Priority name** with `browser_type` (not `browser_fill` — React inputs need real keystrokes). Press Enter. The inline editor closes and the card shows `Verify priority` (not **Untitled Priority**). Wait at least 500ms for the localStorage debounce.
 - **Reload.** Navigate to `<baseUrl>/` again (hard refresh if needed). The card still shows `Verify priority`.
 - **Proof.** Snapshot to `artifacts/<RUN_ID>/planner-top-priority/list.aria.txt` and screenshot to `artifacts/<RUN_ID>/planner-top-priority/list.png`. Both must show **Top Priorities** and `Verify priority`.
 

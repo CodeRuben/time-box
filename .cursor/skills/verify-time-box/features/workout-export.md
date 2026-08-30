@@ -11,7 +11,7 @@ Lets a user download all saved workouts as a CSV file from the workout tracker.
 ## How to get to it (user POV)
 
 - Open **Workouts** from the header.
-- Click **Export** beside **Workout Insights**.
+- Click **Export** next to the **Workout Insights** chart icon (icon-only; no visible "Workout Insights" text).
 - In dialog **Export workouts?**, read *Download all your saved workouts as a CSV file.*
 - Choose **Export CSV** to download, or **Cancel** to close without exporting.
 
@@ -20,11 +20,11 @@ Lets a user download all saved workouts as a CSV file from the workout tracker.
 Preconditions:
 
 - Doctor reports healthy `baseUrl`.
-- At least one workout exists on any day (create via [Workout tracker](./workout-tracker.md) if the export button is disabled with no data).
+- Wait until **Export** is enabled (session finished loading). Empty history still opens the dialog.
 
 - **Open dialog.** On `<baseUrl>/workout-tracker`, click button **Export**. Dialog title **Export workouts?** and buttons **Cancel** and **Export CSV** are visible.
 - **Confirm export.** Click **Export CSV**. Button may briefly show **Exporting…** with a spinner, then the dialog closes.
-- **Download check.** Browser triggers a file download (`workouts-export.csv` or similar). CDP or network inspection can confirm a CSV response when signed in; guest export is generated client-side from localStorage.
+- **Download check.** Browser triggers a file download named `workout-export-YYYY-MM-DD.csv`. Guest export is built client-side from localStorage. Signed-in export fetches JSON from `/api/workouts/export`, then the client builds the same CSV blob (the HTTP body is not CSV).
 - **Cancel path.** Re-open **Export** and click **Cancel**. Dialog closes with no download.
 - **Proof.** Screenshot `artifacts/<RUN_ID>/workout-export/dialog.png` showing **Export workouts?** and **Export CSV**.
 

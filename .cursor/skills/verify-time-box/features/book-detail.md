@@ -16,7 +16,7 @@ Lets a signed-in user manage one book on its detail page: status, reading days, 
 - Change **Reading** / **Finished** / **Abandoned** from the status select in the header.
 - Tap days in **Days read** to mark or unmark reading days.
 - Type in the **Notes** textarea; wait for **Saved** beside the heading.
-- Under **Reflections**, choose **Write today**, fill **Current page** and **Summary**, and save **Save entry**.
+- Under **Reflections**, choose **Write today** (or **Edit today** if today already has an entry), fill **Current page** and **Summary**, and save **Save entry**.
 
 ## Driving it with cursor-ide-browser
 
@@ -29,7 +29,7 @@ Preconditions:
 - **Open detail.** From `/reading-journal`, click a book title in the **Reading** table. URL is `/reading-journal/<id>`. Page heading matches the book title. Link **All books** is visible.
 - **Toggle reading day.** In **Days read**, click today's date button (long `aria-label` with weekday and date). Button shows `aria-pressed="true"` when marked read.
 - **Edit notes.** `browser_type` into the **Notes** textarea (placeholder *Jot down anything about this book…*). Wait until **Saved** appears next to the **Notes** heading.
-- **Write reflection.** Click **Write today**. Dialog **New entry** opens. `browser_type` **Current page** with `42` and **Summary** with `Test summary`. Click **Save entry**. **Reflections** lists the new entry.
+- **Write reflection.** Click **Write today** (if it says **Edit today**, that book already has today's entry; use **Edit today** or pick a book with none). Dialog **New entry** (or **Edit entry**) opens. `browser_type` **Current page** with `42` and **Summary** with `Test summary`. Click **Save entry**. **Reflections** lists the entry.
 - **Proof.** Snapshot `artifacts/<RUN_ID>/book-detail/page.aria.txt` and screenshot `artifacts/<RUN_ID>/book-detail/page.png`. Artifacts show the book title, **Days read**, and at least one reflection or note save indicator.
 
 ## Gotchas

@@ -32,6 +32,7 @@ Preconditions:
 ## Gotchas
 
 - Insights load from `/api/workouts/insights`; signed-in users see account history, guests see localStorage-backed history.
+- Preset buttons show short visible text (`YTD`, `90 days`, `12 months`) with full names as `aria-label`. Click by accessible name **Year to date**, **Last 90 days**, **Last 12 months**.
 - Type filter checkboxes disable when a workout type has no entries in range.
 - Day-level editing is covered by [Workout tracker](./workout-tracker.md); this file covers the insights sheet only.
-- Initial load may briefly show *Loading insights…* before stats render.
+- Signed-in fetches may briefly show *Loading insights…*. Guest insights compute locally and never show that loading state.

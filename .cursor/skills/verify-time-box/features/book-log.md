@@ -30,8 +30,9 @@ Preconditions:
 
 ## Gotchas
 
-- Book log is signed-in only; guests do not see the nav link and direct `/reading-journal` shows a **Sign in** gate card.
+- Book log is signed-in only; guests do not see the nav link. Direct `/reading-journal` redirects to another allowed page (usually Planner). A **Sign in** button appears only on the **No pages available** fallback card when no other nav destination exists.
 - Nav items load from `/api/settings/navigation`; wait for links to replace the loading skeleton.
 - Use `browser_type` for **Book title**.
+- **Can't find it? Add manually** uses `&rsquo;` in source. Snapshot the dialog and click by ref rather than assuming an ASCII apostrophe.
 - Adding a book returns to the list page; it does not auto-navigate to the detail page.
 - Detail-page behavior is covered by [Book detail](./book-detail.md).

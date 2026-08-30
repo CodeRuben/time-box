@@ -60,4 +60,7 @@ Each feature file uses H1 title, one intro paragraph, then four H2 sections in o
 
 ## Surfaces not yet mapped
 
-- **Registration** (`/register`) — new account creation when enabled.
+- **Registration** (`/register`, `app/register/page.tsx`) — new account creation when enabled. Login shows **Create an account** when the flag is on.
+- **Recurring tasks** (`app/planner/components/recurring-tasks-dialog.tsx`) — signed-in planner control `aria-label="Recurring tasks"`.
+- **Product notes** (`app/planner/components/product-notes-dialog.tsx`) — admin-only planner control `aria-label="Product notes"`.
+- **Year recap** (`app/reading-journal/components/year-recap.tsx`) — `aria-label="{year} reading recap"` on the book log list when at least one book exists.

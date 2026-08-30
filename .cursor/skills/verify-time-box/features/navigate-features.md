@@ -12,7 +12,7 @@ Lets a user move between primary app areas using the header navigation.
 ## How to get to it (user POV)
 
 - **Desktop (md and up):** use header links **Planner**, **Workouts**, and **Book log** (when visible).
-- **Mobile:** tap **Open menu**, then choose **Planner**, **Workouts**, or **Book log** in the sheet.
+- **Mobile:** tap the icon button with accessible name **Open menu**, then choose **Planner**, **Workouts**, or **Book log** in the sheet.
 
 ## Driving it with cursor-ide-browser
 
@@ -30,6 +30,7 @@ Preconditions:
 ## Gotchas
 
 - Nav items load from `/api/settings/navigation`; wait for links to replace loading skeleton.
-- Book log requires authentication per product ADR; guests may not see the link.
+- Book log requires authentication per product ADR; guests never see the link.
+- **Open menu** is an icon-only button (`aria-label="Open menu"`), not visible text.
 - On mobile the site logo lives in the menu sheet header, not the main header bar.
 - Workout and book log in-page behavior is covered by [Workout tracker](./workout-tracker.md) and [Book log](./book-log.md).
