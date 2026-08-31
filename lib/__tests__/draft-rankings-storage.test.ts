@@ -53,6 +53,7 @@ describe("parseDraftRankingsState", () => {
       ids: repairPlayerIds(ids),
       draftedIds: [],
       draftMode: false,
+      view: "board",
     });
   });
 
@@ -65,12 +66,23 @@ describe("parseDraftRankingsState", () => {
         ids: [second, first],
         draftedIds: [first, 99999, first],
         draftMode: true,
+        view: "compact",
       })
     ).toMatchObject({
       ids: expect.arrayContaining([first, second]),
       draftedIds: [first],
       draftMode: true,
+      view: "compact",
     });
+  });
+
+  it("defaults saved objects without a valid view to the board", () => {
+    const ids = getDefaultPlayerIds();
+
+    expect(parseDraftRankingsState({ ids })).toMatchObject({ view: "board" });
+    expect(
+      parseDraftRankingsState({ ids, view: "unrecognized" })
+    ).toMatchObject({ view: "board" });
   });
 
   it("returns null for invalid payloads", () => {

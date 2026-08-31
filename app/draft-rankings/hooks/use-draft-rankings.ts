@@ -1,17 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { toggleDraftedId } from "@/lib/draft-rankings/drafted";
 import { PLAYERS } from "@/lib/draft-rankings/players";
 import { reorderIds } from "@/lib/draft-rankings/reorder";
 import {
   getDefaultDraftRankingsState,
-  getDefaultPlayerIds,
   loadDraftRankingsState,
   saveDraftRankingsState,
 } from "@/lib/draft-rankings/storage";
-import type { Player, Position } from "@/lib/draft-rankings/types";
+import type {
+  DraftRankingsView,
+  Player,
+  Position,
+} from "@/lib/draft-rankings/types";
 
 function playersFromIds(ids: number[]): Player[] {
   const byId = new Map(PLAYERS.map((player) => [player.id, player]));
@@ -26,22 +29,32 @@ function playersFromIds(ids: number[]): Player[] {
   });
 }
 
+function subscribeToHydration() {
+  return () => undefined;
+}
+
+function getClientHydrationSnapshot() {
+  return true;
+}
+
+function getServerHydrationSnapshot() {
+  return false;
+}
+
 export function useDraftRankings() {
-  const [playerIds, setPlayerIds] = useState(getDefaultPlayerIds);
-  const [draftedIds, setDraftedIds] = useState<number[]>([]);
-  const [draftMode, setDraftMode] = useState(false);
+  const [initialState] = useState(loadDraftRankingsState);
+  const [playerIds, setPlayerIds] = useState(initialState.ids);
+  const [draftedIds, setDraftedIds] = useState(initialState.draftedIds);
+  const [draftMode, setDraftMode] = useState(initialState.draftMode);
+  const [view, setView] = useState<DraftRankingsView>(initialState.view);
   const [activePositions, setActivePositions] = useState<Set<Position>>(
     () => new Set()
   );
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  useEffect(() => {
-    const stored = loadDraftRankingsState();
-    setPlayerIds(stored.ids);
-    setDraftedIds(stored.draftedIds);
-    setDraftMode(stored.draftMode);
-    setIsHydrated(true);
-  }, []);
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationSnapshot,
+    getServerHydrationSnapshot,
+  );
 
   useEffect(() => {
     if (!isHydrated) {
@@ -52,8 +65,9 @@ export function useDraftRankings() {
       ids: playerIds,
       draftedIds,
       draftMode,
+      view,
     });
-  }, [draftMode, draftedIds, isHydrated, playerIds]);
+  }, [draftMode, draftedIds, isHydrated, playerIds, view]);
 
   const players = playersFromIds(playerIds);
   const draftedIdSet = new Set(draftedIds);
@@ -82,6 +96,10 @@ export function useDraftRankings() {
     setDraftMode((current) => !current);
   }
 
+  function toggleView() {
+    setView((current) => (current === "board" ? "compact" : "board"));
+  }
+
   function toggleTaken(playerId: number) {
     setDraftedIds((current) => toggleDraftedId(current, playerId));
   }
@@ -98,6 +116,7 @@ export function useDraftRankings() {
     players,
     activePositions,
     draftMode,
+    view,
     draftedIds: draftedIdSet,
     availableCount: players.length - draftedIds.length,
     takenCount: draftedIds.length,
@@ -105,6 +124,7 @@ export function useDraftRankings() {
     clearFilters,
     reorder,
     toggleDraftMode,
+    toggleView,
     toggleTaken,
     resetBoard,
   };

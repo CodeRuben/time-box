@@ -12,10 +12,13 @@ export interface Player {
 
 export const POSITIONS: Position[] = ["QB", "RB", "WR", "TE", "K", "DST"];
 
-export const STORAGE_KEY = "draft-rankings-2026-08-22";
+export const STORAGE_KEY = "draft-rankings-2026-08-30";
+
+export type DraftRankingsView = "board" | "compact";
 
 export type DraftRankingsPersisted = {
   ids: number[];
   draftedIds: number[];
   draftMode: boolean;
+  view: DraftRankingsView;
 };

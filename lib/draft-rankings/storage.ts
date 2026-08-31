@@ -1,6 +1,10 @@
 import { repairDraftedIds } from "./drafted";
 import { PLAYERS } from "./players";
-import { STORAGE_KEY, type DraftRankingsPersisted } from "./types";
+import {
+  STORAGE_KEY,
+  type DraftRankingsPersisted,
+  type DraftRankingsView,
+} from "./types";
 
 export function getDefaultPlayerIds(): number[] {
   return PLAYERS.map((player) => player.id);
@@ -11,6 +15,7 @@ export function getDefaultDraftRankingsState(): DraftRankingsPersisted {
     ids: getDefaultPlayerIds(),
     draftedIds: [],
     draftMode: false,
+    view: "board",
   };
 }
 
@@ -23,6 +28,10 @@ function isValidIdList(value: unknown): value is number[] {
 
 function knownPlayerIds(): Set<number> {
   return new Set(PLAYERS.map((player) => player.id));
+}
+
+function isDraftRankingsView(value: unknown): value is DraftRankingsView {
+  return value === "board" || value === "compact";
 }
 
 /** Merge saved order with the current player pool, dropping unknowns and appending missing ids. */
@@ -56,6 +65,7 @@ export function parseDraftRankingsState(
       ids: repairPlayerIds(parsed),
       draftedIds: [],
       draftMode: false,
+      view: "board",
     };
   }
 
@@ -74,6 +84,7 @@ export function parseDraftRankingsState(
       ? repairDraftedIds(record.draftedIds, knownPlayerIds())
       : [],
     draftMode: record.draftMode === true,
+    view: isDraftRankingsView(record.view) ? record.view : "board",
   };
 }
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Draft Rankings",
+  title: "Draft",
   description: "Editable fantasy football draft rankings board.",
 };
 

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 import type { Player } from "@/lib/draft-rankings/types";
+import { isTeamLogoHeadshot } from "@/lib/draft-rankings/headshots";
 import { cn } from "@/lib/utils";
 
 const SIZES = {
@@ -40,11 +41,16 @@ export function PlayerHeadshot({
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const showImage =
     player.headshot !== null && failedSrc !== player.headshot;
+  const isTeamLogo =
+    showImage && player.headshot
+      ? isTeamLogoHeadshot(player.headshot)
+      : false;
 
   return (
     <div
       className={cn(
-        "relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-black/20 font-semibold text-white/90 ring-2 ring-white/30",
+        "relative flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold text-white/90 ring-2 ring-white/30",
+        isTeamLogo ? "bg-white/90" : "bg-black/20",
         dimensions.className,
         className,
       )}
@@ -55,7 +61,7 @@ export function PlayerHeadshot({
           alt=""
           fill
           sizes={`${dimensions.display * 3}px`}
-          className="object-cover"
+          className={isTeamLogo ? "object-contain p-1" : "object-cover"}
           onError={() => setFailedSrc(player.headshot)}
         />
       ) : (

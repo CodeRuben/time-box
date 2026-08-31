@@ -58,19 +58,25 @@ describe("draft rankings player data", () => {
     expect(playerPositions.size).toBe(PLAYERS.length);
   });
 
-  it("assigns verified ESPN headshots with safe fallbacks", () => {
-    const playersWithHeadshots = PLAYERS.filter(
-      ({ headshot }) => headshot !== null,
-    );
+  it("assigns ESPN headshots or team logos for every player", () => {
+    expect(PLAYERS.every(({ headshot }) => headshot !== null)).toBe(true);
 
-    expect(playersWithHeadshots).toHaveLength(172);
-    expect(
-      playersWithHeadshots.every(({ headshot }) =>
+    const playerHeadshots = PLAYERS.filter(
+      ({ headshot }) =>
         headshot?.startsWith(
           "https://a.espncdn.com/i/headshots/nfl/players/full/",
         ),
-      ),
-    ).toBe(true);
+    );
+    const teamLogos = PLAYERS.filter(
+      ({ position, headshot }) =>
+        position === "DST" &&
+        headshot?.startsWith(
+          "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/",
+        ),
+    );
+
+    expect(playerHeadshots).toHaveLength(204);
+    expect(teamLogos).toHaveLength(14);
   });
 
   it("does not repeat a franchise among kickers or defenses", () => {

@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
         hostname: "a.espncdn.com",
         pathname: "/i/headshots/**",
       },
+      {
+        protocol: "https",
+        hostname: "a.espncdn.com",
+        pathname: "/i/teamlogos/**",
+      },
     ],
     // Book covers are static; keep optimized copies warm across refreshes.
     minimumCacheTTL: 60 * 60 * 24 * 7,

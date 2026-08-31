@@ -42,7 +42,7 @@ export const FEATURES = [
   },
   {
     key: "draft-rankings",
-    label: "Draft Rankings",
+    label: "Draft",
     description: "Editable fantasy football draft rankings board.",
     href: "/draft-rankings",
     kind: "page",
