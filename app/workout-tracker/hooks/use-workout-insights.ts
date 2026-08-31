@@ -14,6 +14,8 @@ import {
   buildWorkoutInsights,
   emptyWorkoutInsightsSummary,
   isInsightRangeWithinLimit,
+  constrainSelectedWorkoutTypes,
+  nextSelectedWorkoutTypes,
   parseWorkoutInsightsPage,
   toWorkoutInsightsPage,
   type WorkoutInsightEntry,
@@ -145,6 +147,9 @@ export function useWorkoutInsights() {
 
   const applyPage = useCallback((page: WorkoutInsightsPage) => {
     setSummary(page.summary);
+    setSelectedTypes((current) =>
+      constrainSelectedWorkoutTypes(current, page.summary.availableTypes),
+    );
     setEntries(page.entries);
     setTotalEntries(page.totalEntries);
     setNextOffset(page.nextOffset);
@@ -187,19 +192,14 @@ export function useWorkoutInsights() {
     [],
   );
 
-  const toggleType = useCallback((type: WorkoutType) => {
-    setSelectedTypes((current) => {
-      if (current.includes(type)) {
-        if (current.length === 1) {
-          return current;
-        }
-        return current.filter((item) => item !== type);
-      }
-      return WORKOUT_TYPES.filter(
-        (item) => item === type || current.includes(item),
+  const toggleType = useCallback(
+    (type: WorkoutType) => {
+      setSelectedTypes((current) =>
+        nextSelectedWorkoutTypes(current, type, summary.availableTypes),
       );
-    });
-  }, []);
+    },
+    [summary.availableTypes],
+  );
 
   useEffect(() => {
     const storageMode = getStorageMode(status);

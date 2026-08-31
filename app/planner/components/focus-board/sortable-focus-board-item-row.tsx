@@ -10,7 +10,7 @@ import {
 
 type SortableFocusBoardItemRowProps = Omit<
   FocusBoardItemRowProps,
-  "rowRef" | "rowStyle" | "dragHandleProps" | "isDragging"
+  "rowRef" | "rowStyle" | "rowDragProps" | "isDragging"
 >;
 
 export function SortableFocusBoardItemRow({
@@ -31,6 +31,9 @@ export function SortableFocusBoardItemRow({
   } = useSortable({
     id: item.id,
     disabled: !canDrag,
+    attributes: {
+      role: "group",
+    },
   });
 
   return (
@@ -48,9 +51,7 @@ export function SortableFocusBoardItemRow({
             }
           : undefined
       }
-      dragHandleProps={
-        canDrag ? { ...attributes, ...listeners } : undefined
-      }
+      rowDragProps={canDrag ? { ...attributes, ...listeners } : undefined}
       {...props}
     />
   );

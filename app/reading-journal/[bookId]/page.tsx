@@ -50,6 +50,9 @@ function BookDetailContent({ bookId }: { bookId: string }) {
     deleteBook,
     saveEntry,
     deleteEntry,
+    addTag,
+    removeTag,
+    isUpdatingTags,
   } = useBookDetail(bookId);
 
   if (isLoading) {
@@ -74,7 +77,14 @@ function BookDetailContent({ bookId }: { bookId: string }) {
         <Card className="gap-0 py-0 shadow-sm">
           <CardContent className="space-y-8 px-4 py-5 sm:px-6">
             <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
-              <BookInfoHeader book={book} onUpdate={updateBook} onDelete={deleteBook} />
+              <BookInfoHeader
+                book={book}
+                onUpdate={updateBook}
+                onDelete={deleteBook}
+                onAddTag={addTag}
+                onRemoveTag={removeTag}
+                isUpdatingTags={isUpdatingTags}
+              />
               <ReadingDaysGrid
                 readingDays={book.readingDays}
                 onTick={tickDay}

@@ -223,6 +223,7 @@ export function getFocusListItemSubitems(
       return (candidate?.subtasks ?? []).map((name) => ({ name }));
     }
     case "recurring_task":
+    case "custom":
       return [];
   }
 }
@@ -244,6 +245,7 @@ export function getFocusListItemLabel(
       label = source.text;
       break;
     case "recurring_task":
+    case "custom":
       label = source.label;
       break;
   }
@@ -287,6 +289,11 @@ export function isValidFocusListItem(value: unknown): value is FocusListItem {
         typeof item.source.recurringTaskId === "string" &&
         typeof item.source.occurrenceId === "string" &&
         typeof item.source.label === "string"
+      );
+    case "custom":
+      return (
+        typeof item.source.label === "string" &&
+        item.source.label.trim().length > 0
       );
     default:
       return false;

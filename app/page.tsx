@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useMemo, type SetStateAction } from "react";
+import { addDays } from "date-fns";
 import { PlannerHeader } from "./planner/components/planner-header";
 import { TopPriorities } from "./planner/components/top-priorities";
 import { WorkingNotes } from "./planner/components/working-notes";
@@ -21,6 +22,7 @@ import {
   MAX_TOP_PRIORITIES,
   usePlannerStorage,
   type CopyPreviousDayOptions,
+  type TopPriority,
 } from "@/lib/use-planner-storage";
 import { Button } from "@/components/ui/button";
 import { Copy, Eraser, SlidersHorizontal } from "lucide-react";
@@ -50,12 +52,9 @@ import {
   getFocusItemSourceKey,
   type FocusItemSource,
 } from "@/lib/focus-item-source";
-import type { TopPriority } from "@/lib/use-planner-storage";
 
 function getPreviousDate(date: Date): Date {
-  const previousDate = new Date(date);
-  previousDate.setDate(previousDate.getDate() - 1);
-  return previousDate;
+  return addDays(date, -1);
 }
 
 function PlannerPageContent() {
@@ -172,13 +171,13 @@ function PlannerPageContent() {
       const previousData = await loadDataForDate(sourceDate);
 
       if (!previousData) {
-        setCopyPreviousError("No planner data was found for the selected day.");
+        setCopyPreviousError("No planner data was found for that day.");
         return;
       }
 
       if (!hasCopyablePlannerData(previousData, options)) {
         setCopyPreviousError(
-          "The selected day does not have any matching items to copy."
+          "That day does not have any matching items to copy."
         );
         return;
       }

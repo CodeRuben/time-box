@@ -135,9 +135,19 @@ model Book {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   entries        ReadingEntry[]
   readingDays    ReadingDay[]
+  tags           BookTag[]
 
   @@index([userId])
   @@index([userId, status])
+}
+
+model BookTag {
+  bookId String
+  key    String
+  name   String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, key])
 }
 
 model ReadingEntry {

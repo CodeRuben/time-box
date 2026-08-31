@@ -89,6 +89,7 @@ function HistoricalInsightsBody() {
         startDate={startDate}
         endDate={endDate}
         selectedTypes={selectedTypes}
+        availableTypes={summary.availableTypes}
         onSelectPreset={applyPreset}
         onSelectCustomRange={applyCustomRange}
         onToggleType={toggleType}

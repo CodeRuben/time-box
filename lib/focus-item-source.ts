@@ -6,7 +6,12 @@ export type FocusItemSource =
       recurringTaskId: string;
       occurrenceId: string;
       label: string;
-    };
+    }
+  | { type: "custom"; label: string };
+
+export function createCustomFocusItemSource(label: string): FocusItemSource {
+  return { type: "custom", label: label.trim() };
+}
 
 export function getFocusItemSourceKey(source: FocusItemSource): string {
   switch (source.type) {
@@ -16,5 +21,7 @@ export function getFocusItemSourceKey(source: FocusItemSource): string {
       return `brain:${source.text.trim().toLowerCase()}`;
     case "recurring_task":
       return `recurring:${source.occurrenceId}`;
+    case "custom":
+      return `custom:${source.label.trim().toLowerCase()}`;
   }
 }

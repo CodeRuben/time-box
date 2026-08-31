@@ -23,7 +23,7 @@ const statusPresentation: Record<
 > = {
   idle: {
     Icon: Cloud,
-    label: "All changes saved",
+    label: "Saved",
     iconClassName: muted,
     textClassName: muted,
   },

@@ -16,6 +16,7 @@ function makeBook(
     currentPage: 50,
     startedOn: "2026-01-01",
     finishedOn: null,
+    tags: [],
     ...overrides,
   };
 }

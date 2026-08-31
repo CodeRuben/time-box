@@ -35,6 +35,7 @@ import { BookCoverImage } from "./book-cover-image";
 interface BookTableProps {
   books: BookSummaryView[];
   showFinishedOn?: boolean;
+  onOpenTags: (book: BookSummaryView) => void;
 }
 
 function getStatusLabel(status: BookSummaryView["status"]): string {
@@ -152,9 +153,11 @@ function SortableHeader({
 function BookTableRow({
   book,
   showFinishedOn,
+  onOpenTags,
 }: {
   book: BookSummaryView;
   showFinishedOn: boolean;
+  onOpenTags: (book: BookSummaryView) => void;
 }) {
   const router = useRouter();
   const href = `/reading-journal/${book.id}`;
@@ -219,6 +222,24 @@ function BookTableRow({
           <span className="text-xs text-muted-foreground/50">—</span>
         )}
       </td>
+      <td className="px-3 py-2">
+        <button
+          type="button"
+          className="inline-flex cursor-pointer items-center rounded-full bg-muted/80 px-2 py-0.5 text-xs font-medium tabular-nums text-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label={
+            book.tags.length === 1
+              ? "1 tag"
+              : `${book.tags.length} tags`
+          }
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpenTags(book);
+          }}
+          onKeyDown={(event) => event.stopPropagation()}
+        >
+          {book.tags.length}
+        </button>
+      </td>
       <td className="hidden whitespace-nowrap px-3 py-2 text-right text-xs tabular-nums text-muted-foreground md:table-cell">
         {formatShortDate(book.startedOn)}
       </td>
@@ -231,7 +252,11 @@ function BookTableRow({
   );
 }
 
-export function BookTable({ books, showFinishedOn = false }: BookTableProps) {
+export function BookTable({
+  books,
+  showFinishedOn = false,
+  onOpenTags,
+}: BookTableProps) {
   const [column, setColumn] = useState<BookSortColumn>(
     showFinishedOn ? "finishedOn" : "title"
   );
@@ -247,6 +272,7 @@ export function BookTable({ books, showFinishedOn = false }: BookTableProps) {
       setColumn(nextColumn);
       setDirection(
         nextColumn === "rating" ||
+          nextColumn === "tags" ||
           nextColumn === "startedOn" ||
           nextColumn === "finishedOn"
           ? "desc"
@@ -274,7 +300,7 @@ export function BookTable({ books, showFinishedOn = false }: BookTableProps) {
   return (
     <div className="space-y-4">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[28rem] border-collapse text-left">
+        <table className="w-full min-w-[32rem] border-collapse text-left">
           <thead>
             <tr className="border-b border-border/70">
               <SortableHeader
@@ -310,6 +336,14 @@ export function BookTable({ books, showFinishedOn = false }: BookTableProps) {
                 className="px-3 py-2"
               />
               <SortableHeader
+                label="Tags"
+                column="tags"
+                activeColumn={column}
+                direction={direction}
+                onSort={handleSort}
+                className="px-3 py-2"
+              />
+              <SortableHeader
                 label="Started"
                 column="startedOn"
                 activeColumn={column}
@@ -337,6 +371,7 @@ export function BookTable({ books, showFinishedOn = false }: BookTableProps) {
                 key={book.id}
                 book={book}
                 showFinishedOn={showFinishedOn}
+                onOpenTags={onOpenTags}
               />
             ))}
           </tbody>

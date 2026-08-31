@@ -3,8 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AUTOSAVE_DEBOUNCE_MS } from "@/lib/autosave-debounce";
+import { normalizeBookTag } from "@/lib/book-tags";
 import { getCurrentPage } from "@/lib/reading-progress";
-import type { BookDetailView, BookEntry } from "@/lib/reading-journal-types";
+import type {
+  BookDetailView,
+  BookEntry,
+  BookTag,
+} from "@/lib/reading-journal-types";
 
 function bookApiUrl(bookId: string) {
   return `/api/books/${bookId}`;
@@ -115,9 +120,35 @@ async function deleteEntryRequest(bookId: string, date: string): Promise<void> {
   if (!response.ok) throw new Error("Failed to delete entry");
 }
 
+async function addBookTagRequest(bookId: string, name: string): Promise<BookTag> {
+  const response = await fetch(`${bookApiUrl(bookId)}/tags`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({ name }),
+  });
+  if (!response.ok) throw new Error("Failed to add tag");
+  const payload = (await response.json()) as { data: BookTag };
+  return payload.data;
+}
+
+async function removeBookTagRequest(bookId: string, name: string): Promise<void> {
+  const response = await fetch(`${bookApiUrl(bookId)}/tags`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({ name }),
+  });
+  if (!response.ok) throw new Error("Failed to remove tag");
+}
+
 function replaceOrInsertEntry(entries: BookEntry[], entry: BookEntry): BookEntry[] {
   const withoutDate = entries.filter((existing) => existing.date !== entry.date);
   return [...withoutDate, entry].sort((a, b) => b.date.localeCompare(a.date));
+}
+
+function sortBookTags(tags: BookTag[]): BookTag[] {
+  return [...tags].sort((a, b) => a.key.localeCompare(b.key));
 }
 
 export function useBookDetail(bookId: string) {
@@ -127,6 +158,7 @@ export function useBookDetail(bookId: string) {
   const [notFound, setNotFound] = useState(false);
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
+  const [isUpdatingTags, setIsUpdatingTags] = useState(false);
 
   // Mirrors the latest book into a ref so async callbacks (rollback,
   // debounced saves) always read the freshest state instead of a stale
@@ -342,6 +374,73 @@ export function useBookDetail(bookId: string) {
     [bookId]
   );
 
+  const addTag = useCallback(
+    async (name: string) => {
+      const previous = bookRef.current;
+      if (!previous) return;
+
+      const optimisticTag = normalizeBookTag(name);
+      const optimistic: BookDetailView = {
+        ...previous,
+        tags: previous.tags.some((tag) => tag.key === optimisticTag.key)
+          ? previous.tags
+          : sortBookTags([...previous.tags, optimisticTag]),
+      };
+      bookRef.current = optimistic;
+      setBook(optimistic);
+      setIsUpdatingTags(true);
+
+      try {
+        const saved = await addBookTagRequest(bookId, name);
+        const current = bookRef.current ?? optimistic;
+        const updated: BookDetailView = {
+          ...current,
+          tags: sortBookTags([
+            ...current.tags.filter((tag) => tag.key !== saved.key),
+            saved,
+          ]),
+        };
+        bookRef.current = updated;
+        setBook(updated);
+      } catch (error) {
+        console.error("Failed to add tag:", error);
+        bookRef.current = previous;
+        setBook(previous);
+        throw error;
+      } finally {
+        setIsUpdatingTags(false);
+      }
+    },
+    [bookId]
+  );
+
+  const removeTag = useCallback(
+    async (tag: BookTag) => {
+      const previous = bookRef.current;
+      if (!previous) return;
+
+      const optimistic: BookDetailView = {
+        ...previous,
+        tags: previous.tags.filter((existing) => existing.key !== tag.key),
+      };
+      bookRef.current = optimistic;
+      setBook(optimistic);
+      setIsUpdatingTags(true);
+
+      try {
+        await removeBookTagRequest(bookId, tag.name);
+      } catch (error) {
+        console.error("Failed to remove tag:", error);
+        bookRef.current = previous;
+        setBook(previous);
+        throw error;
+      } finally {
+        setIsUpdatingTags(false);
+      }
+    },
+    [bookId]
+  );
+
   return {
     isLoading,
     book,
@@ -355,5 +454,8 @@ export function useBookDetail(bookId: string) {
     deleteBook,
     saveEntry,
     deleteEntry,
+    addTag,
+    removeTag,
+    isUpdatingTags,
   };
 }
