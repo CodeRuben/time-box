@@ -27,6 +27,17 @@ export type PlayerSignal =
       dependencyKey: PlayerKey;
     };
 
+export const PLAYER_SIGNAL_FILTER_IDS = [
+  "injury-risk",
+  "veteran-age",
+  "rookie",
+  "offense-good",
+  "offense-bad",
+  "contingent-upside",
+] as const;
+
+export type PlayerSignalFilterId = (typeof PLAYER_SIGNAL_FILTER_IDS)[number];
+
 export interface Player {
   id: number;
   key: PlayerKey;

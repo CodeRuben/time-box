@@ -13,6 +13,7 @@ import {
 import type {
   DraftRankingsView,
   Player,
+  PlayerSignalFilterId,
   Position,
 } from "@/lib/draft-rankings/types";
 
@@ -48,8 +49,11 @@ export function useDraftRankings() {
   const [draftMode, setDraftMode] = useState(initialState.draftMode);
   const [view, setView] = useState<DraftRankingsView>(initialState.view);
   const [activePositions, setActivePositions] = useState<Set<Position>>(
-    () => new Set()
+    () => new Set(),
   );
+  const [activeSignalFilters, setActiveSignalFilters] = useState<
+    Set<PlayerSignalFilterId>
+  >(() => new Set());
   const isHydrated = useSyncExternalStore(
     subscribeToHydration,
     getClientHydrationSnapshot,
@@ -84,8 +88,25 @@ export function useDraftRankings() {
     });
   }
 
+  function toggleSignalFilter(filterId: PlayerSignalFilterId) {
+    setActiveSignalFilters((current) => {
+      const next = new Set(current);
+      if (next.has(filterId)) {
+        next.delete(filterId);
+      } else {
+        next.add(filterId);
+      }
+      return next;
+    });
+  }
+
+  function clearSignalFilters() {
+    setActiveSignalFilters(new Set());
+  }
+
   function clearFilters() {
     setActivePositions(new Set());
+    setActiveSignalFilters(new Set());
   }
 
   function reorder(activeId: number, overId: number) {
@@ -115,17 +136,22 @@ export function useDraftRankings() {
     isHydrated,
     players,
     activePositions,
+    activeSignalFilters,
     draftMode,
     view,
     draftedIds: draftedIdSet,
     availableCount: players.length - draftedIds.length,
     takenCount: draftedIds.length,
     togglePosition,
+    toggleSignalFilter,
+    clearSignalFilters,
     clearFilters,
     reorder,
     toggleDraftMode,
     toggleView,
     toggleTaken,
     resetBoard,
+    hasActiveFilters:
+      activePositions.size > 0 || activeSignalFilters.size > 0,
   };
 }
