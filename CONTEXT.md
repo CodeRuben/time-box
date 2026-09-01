@@ -96,3 +96,25 @@ _Avoid_: Draft tracker, snake draft room
 **Taken**:
 A player already selected in the current Live Draft. Distinct from Board rank.
 _Avoid_: Drafted, unavailable (as stored state names)
+
+**Player Signal**:
+A draft-relevant fact or editorial assessment attached to a Player for a dated season snapshot. A Player Signal provides context but does not change Board rank.
+_Avoid_: Player trait, Draft tag
+
+**Injury Risk**:
+A binary Player Signal for a player whose recent health history and current outlook warrant extra draft caution. It is an editorial watchlist, not a prediction that the player will be injured.
+
+**Veteran Age**:
+A Player Signal for a player whose opening-day age meets the established threshold for their Position. The threshold differs by Position and does not claim that the player's performance has already declined.
+_Avoid_: Age cliff
+
+**Rookie**:
+A Player Signal for a player who entered the NFL in the current season's draft or undrafted free-agent class.
+
+**Team Offense Tier**:
+A preseason projection that groups an NFL offense as Good, Mid, or Bad by expected points per game. Offensive Players inherit their NFL team's tier.
+_Avoid_: Offense strength (when referring to the tier)
+
+**Contingent Upside**:
+A Player Signal for a reserve whose expected role would make them a likely weekly fantasy starter if one named teammate became unavailable.
+_Avoid_: Upside (unqualified), Sleeper

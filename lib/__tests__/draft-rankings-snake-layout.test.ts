@@ -6,12 +6,14 @@ import type { Player } from "../draft-rankings/types";
 function makePlayer(id: number): Player {
   return {
     id,
+    key: `espn:test-${id}`,
     rank: id,
     name: `Player ${id}`,
     position: "RB",
     nflTeam: "DET",
     bye: 6,
     headshot: null,
+    signals: [],
   };
 }
 

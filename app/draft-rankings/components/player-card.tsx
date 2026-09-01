@@ -9,6 +9,7 @@ import type { Player } from "@/lib/draft-rankings/types";
 import { cn } from "@/lib/utils";
 
 import { PlayerHeadshot } from "./player-headshot";
+import { PlayerSignalBadges } from "./player-signal-badges";
 
 interface PlayerCardProps {
   player: Player;
@@ -58,52 +59,60 @@ function PlayerCardContent({
     <div
       ref={setNodeRef}
       style={style}
-      {...dragProps}
-      role={draftMode ? "button" : undefined}
-      tabIndex={draftMode ? 0 : undefined}
-      aria-pressed={draftMode ? taken : undefined}
-      aria-label={
-        draftMode
-          ? taken
-            ? `Mark ${player.name} available`
-            : `Mark ${player.name} taken`
-          : undefined
-      }
-      onClick={handleActivate}
-      onKeyDown={handleKeyDown}
       className={cn(
         "flex flex-col items-center gap-1.5 rounded-md border p-2 text-center shadow-xs transition-opacity",
-        draftMode ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
         POSITION_CARD_CLASS[player.position],
         dimmed && !taken && "opacity-25",
         taken && "opacity-35 grayscale",
         isDragging && "z-10 opacity-95 shadow-md ring-2 ring-white/80",
       )}
     >
-      <div className="flex w-full items-center justify-between gap-1">
-        <span className="text-[11px] font-bold tabular-nums text-white/90">
-          {player.rank}
-        </span>
-        <span className="text-[10px] font-semibold tracking-wide text-white/80">
-          {player.position}
-        </span>
+      <div
+        {...dragProps}
+        role={draftMode ? "button" : dragProps?.role}
+        tabIndex={draftMode ? 0 : dragProps?.tabIndex}
+        aria-pressed={draftMode ? taken : undefined}
+        aria-label={
+          draftMode
+            ? taken
+              ? `Mark ${player.name} available`
+              : `Mark ${player.name} taken`
+            : undefined
+        }
+        onClick={handleActivate}
+        onKeyDown={draftMode ? handleKeyDown : dragProps?.onKeyDown}
+        className={cn(
+          "flex w-full flex-col items-center gap-1.5 outline-none",
+          draftMode ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
+        )}
+      >
+        <div className="flex w-full items-center justify-between gap-1">
+          <span className="text-[11px] font-bold tabular-nums text-white/90">
+            {player.rank}
+          </span>
+          <span className="text-[10px] font-semibold tracking-wide text-white/80">
+            {player.position}
+          </span>
+        </div>
+
+        <PlayerHeadshot player={player} size="lg" />
+
+        <div className="min-w-0 w-full">
+          <p
+            className={cn(
+              "truncate text-xs leading-tight font-semibold",
+              taken && "line-through",
+            )}
+          >
+            {player.name}
+          </p>
+          <p className="mt-0.5 truncate text-[10px] text-white/80">
+            {taken ? "Taken" : `${player.nflTeam} · Bye ${player.bye}`}
+          </p>
+        </div>
       </div>
 
-      <PlayerHeadshot player={player} size="lg" />
-
-      <div className="min-w-0 w-full">
-        <p
-          className={cn(
-            "truncate text-xs leading-tight font-semibold",
-            taken && "line-through"
-          )}
-        >
-          {player.name}
-        </p>
-        <p className="mt-0.5 truncate text-[10px] text-white/80">
-          {taken ? "Taken" : `${player.nflTeam} · Bye ${player.bye}`}
-        </p>
-      </div>
+      <PlayerSignalBadges signals={player.signals} />
     </div>
   );
 }

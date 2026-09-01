@@ -24,6 +24,8 @@ import {
 import type { Player, Position } from "@/lib/draft-rankings/types";
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
 
+import { TooltipProvider } from "@/components/ui/tooltip";
+
 import { CompactPlayerRow } from "./compact-player-row";
 import { SortablePlayerCard } from "./player-card";
 
@@ -74,16 +76,17 @@ export function RankingsBoard({
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
-      <SortableContext
-        items={players.map((player) => player.id)}
-        strategy={compact ? verticalListSortingStrategy : rectSortingStrategy}
+    <TooltipProvider>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
       >
-        {compact ? (
+        <SortableContext
+          items={players.map((player) => player.id)}
+          strategy={compact ? verticalListSortingStrategy : rectSortingStrategy}
+        >
+          {compact ? (
           <div className="flex w-full flex-col gap-1">
             {players.map((player, index) => (
               <Fragment key={player.id}>
@@ -147,7 +150,8 @@ export function RankingsBoard({
             </div>
           </div>
         )}
-      </SortableContext>
-    </DndContext>
+        </SortableContext>
+      </DndContext>
+    </TooltipProvider>
   );
 }

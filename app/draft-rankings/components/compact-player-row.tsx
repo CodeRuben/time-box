@@ -13,6 +13,8 @@ import { POSITION_COMPACT_CARD_CLASS } from "@/lib/draft-rankings/position-style
 import type { Player } from "@/lib/draft-rankings/types";
 import { cn } from "@/lib/utils";
 
+import { PlayerSignalBadges } from "./player-signal-badges";
+
 interface CompactPlayerRowProps {
   player: Player;
   dimmed: boolean;
@@ -64,23 +66,8 @@ export function CompactPlayerRow({
     <div
       ref={setNodeRef}
       style={style}
-      {...dragProps}
-      role={draftMode ? "button" : undefined}
-      tabIndex={draftMode ? 0 : undefined}
-      aria-pressed={draftMode ? taken : undefined}
-      aria-label={
-        draftMode
-          ? taken
-            ? `Mark ${player.name} available`
-            : `Mark ${player.name} taken`
-          : undefined
-      }
-      onClick={handleActivate}
-      onKeyDown={draftMode ? handleKeyDown : dragProps?.onKeyDown}
       className={cn(
-        "flex min-h-11 items-center gap-2 rounded-md border px-2.5 py-1.5 shadow-xs outline-none transition-[opacity,background-color,color,border-color]",
-        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        draftMode ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
+        "flex min-h-11 items-center gap-2 rounded-md border px-2.5 py-1.5 shadow-xs transition-[opacity,background-color,color,border-color]",
         POSITION_COMPACT_CARD_CLASS[player.position],
         dimmed && !taken && "opacity-25",
         taken &&
@@ -88,33 +75,58 @@ export function CompactPlayerRow({
         isDragging && "z-10 opacity-95 shadow-md ring-2 ring-ring",
       )}
     >
-      {draftMode ? (
-        taken ? (
-          <Check className="size-4 shrink-0" aria-hidden />
+      <div
+        {...dragProps}
+        role={draftMode ? "button" : dragProps?.role}
+        tabIndex={draftMode ? 0 : dragProps?.tabIndex}
+        aria-pressed={draftMode ? taken : undefined}
+        aria-label={
+          draftMode
+            ? taken
+              ? `Mark ${player.name} available`
+              : `Mark ${player.name} taken`
+            : undefined
+        }
+        onClick={handleActivate}
+        onKeyDown={draftMode ? handleKeyDown : dragProps?.onKeyDown}
+        className={cn(
+          "flex min-w-0 flex-1 items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          draftMode ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
+        )}
+      >
+        {draftMode ? (
+          taken ? (
+            <Check className="size-4 shrink-0" aria-hidden />
+          ) : (
+            <Circle className="size-4 shrink-0 opacity-70" aria-hidden />
+          )
         ) : (
-          <Circle className="size-4 shrink-0 opacity-70" aria-hidden />
-        )
-      ) : (
-        <GripVertical className="size-4 shrink-0 opacity-70" aria-hidden />
-      )}
+          <GripVertical className="size-4 shrink-0 opacity-70" aria-hidden />
+        )}
 
-      <span className="w-7 shrink-0 text-right text-xs font-bold tabular-nums">
-        {player.rank}
-      </span>
+        <span className="w-7 shrink-0 text-right text-xs font-bold tabular-nums">
+          {player.rank}
+        </span>
 
-      <div className="min-w-0 flex-1">
-        <p
-          className={cn(
-            "truncate text-sm font-semibold leading-tight",
-            taken && "line-through",
-          )}
-        >
-          {player.name}
-        </p>
-        <p className="truncate text-[11px] leading-tight opacity-80">
-          {player.nflTeam} · Bye {player.bye}
-        </p>
+        <div className="min-w-0 flex-1">
+          <p
+            className={cn(
+              "truncate text-sm font-semibold leading-tight",
+              taken && "line-through",
+            )}
+          >
+            {player.name}
+          </p>
+          <p className="truncate text-[11px] leading-tight opacity-80">
+            {player.nflTeam} · Bye {player.bye}
+          </p>
+        </div>
       </div>
+
+      <PlayerSignalBadges
+        signals={player.signals}
+        className="max-w-28 justify-end"
+      />
 
       <span className="shrink-0 rounded bg-black/15 px-1.5 py-0.5 text-[11px] font-bold">
         {player.position}
