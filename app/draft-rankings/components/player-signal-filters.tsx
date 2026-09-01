@@ -20,20 +20,20 @@ import {
 } from "./player-signal-style";
 
 interface PlayerSignalFiltersProps {
-  activeFilters: Set<PlayerSignalFilterId>;
+  activeFilters: ReadonlySet<PlayerSignalFilterId>;
   onToggle: (filterId: PlayerSignalFilterId) => void;
   onClear: () => void;
 }
 
 function selectedFilterIds(
-  activeFilters: Set<PlayerSignalFilterId>,
+  activeFilters: ReadonlySet<PlayerSignalFilterId>,
 ): PlayerSignalFilterId[] {
   return SIGNAL_FILTER_OPTIONS.filter((option) => activeFilters.has(option.id)).map(
     (option) => option.id,
   );
 }
 
-function triggerLabel(activeFilters: Set<PlayerSignalFilterId>): string {
+function triggerLabel(activeFilters: ReadonlySet<PlayerSignalFilterId>): string {
   if (activeFilters.size === 0) {
     return "Filter by player signals";
   }

@@ -17,16 +17,12 @@ import {
 } from "@dnd-kit/sortable";
 import { Fragment } from "react";
 
-import { isPlayerDimmed } from "@/lib/draft-rankings/player-signal-filters";
+import { isPlayerDimmed, type HighlightFilters } from "@/lib/draft-rankings/highlight-filters";
 import {
   BOARD_COLUMNS,
   toSnakeRows,
 } from "@/lib/draft-rankings/snake-layout";
-import type {
-  Player,
-  PlayerSignalFilterId,
-  Position,
-} from "@/lib/draft-rankings/types";
+import type { Player } from "@/lib/draft-rankings/types";
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -36,8 +32,7 @@ import { SortablePlayerCard } from "./player-card";
 
 interface RankingsBoardProps {
   players: Player[];
-  activePositions: Set<Position>;
-  activeSignalFilters: Set<PlayerSignalFilterId>;
+  highlightFilters: HighlightFilters;
   draftMode: boolean;
   compact: boolean;
   draftedIds: Set<number>;
@@ -47,8 +42,7 @@ interface RankingsBoardProps {
 
 export function RankingsBoard({
   players,
-  activePositions,
-  activeSignalFilters,
+  highlightFilters,
   draftMode,
   compact,
   draftedIds,
@@ -107,11 +101,7 @@ export function RankingsBoard({
                 ) : null}
                 <CompactPlayerRow
                   player={player}
-                  dimmed={isPlayerDimmed(
-                    player,
-                    activePositions,
-                    activeSignalFilters,
-                  )}
+                  dimmed={isPlayerDimmed(player, highlightFilters)}
                   taken={draftedIds.has(player.id)}
                   draftMode={draftMode}
                   prefersReducedMotion={prefersReducedMotion}
@@ -136,11 +126,7 @@ export function RankingsBoard({
                       <SortablePlayerCard
                         key={player.id}
                         player={player}
-                        dimmed={isPlayerDimmed(
-                          player,
-                          activePositions,
-                          activeSignalFilters,
-                        )}
+                        dimmed={isPlayerDimmed(player, highlightFilters)}
                         taken={draftedIds.has(player.id)}
                         draftMode={draftMode}
                         prefersReducedMotion={prefersReducedMotion}

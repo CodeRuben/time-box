@@ -8,6 +8,7 @@ import { DraftModeToggle } from "./components/draft-mode-toggle";
 import { PlayerSignalFilters } from "./components/player-signal-filters";
 import { PositionFilters } from "./components/position-filters";
 import { RankingsBoard } from "./components/rankings-board";
+import { TeamFilters } from "./components/team-filters";
 import { ViewModeToggle } from "./components/view-mode-toggle";
 import { useDraftRankings } from "./hooks/use-draft-rankings";
 
@@ -26,7 +27,7 @@ function DraftRankingsPageContent() {
           <p className="text-sm text-muted-foreground">
             {rankings.draftMode
               ? "Click a player when they are selected. Click again to undo. Reset restores the original board."
-              : "Drag players to reorder your board. Use position and signal filters to highlight matches without changing the order."}
+              : "Drag players to reorder your board. Use position, team, and signal filters to highlight matches without changing the order."}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -47,6 +48,11 @@ function DraftRankingsPageContent() {
         <PositionFilters
           activePositions={rankings.activePositions}
           onToggle={rankings.togglePosition}
+        />
+        <TeamFilters
+          activeTeams={rankings.activeTeams}
+          onToggle={rankings.toggleTeam}
+          onClear={rankings.clearTeamFilters}
         />
         <PlayerSignalFilters
           activeFilters={rankings.activeSignalFilters}
@@ -77,8 +83,7 @@ function DraftRankingsPageContent() {
 
       <RankingsBoard
         players={rankings.players}
-        activePositions={rankings.activePositions}
-        activeSignalFilters={rankings.activeSignalFilters}
+        highlightFilters={rankings.highlightFilters}
         draftMode={rankings.draftMode}
         compact={rankings.view === "compact"}
         draftedIds={rankings.draftedIds}

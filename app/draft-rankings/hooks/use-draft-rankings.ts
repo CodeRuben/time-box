@@ -3,6 +3,11 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { toggleDraftedId } from "@/lib/draft-rankings/drafted";
+import {
+  emptyHighlightFilters,
+  hasActiveHighlightFilters,
+  toggleSetMember,
+} from "@/lib/draft-rankings/highlight-filters";
 import { PLAYERS } from "@/lib/draft-rankings/players";
 import { reorderIds } from "@/lib/draft-rankings/reorder";
 import {
@@ -12,6 +17,7 @@ import {
 } from "@/lib/draft-rankings/storage";
 import type {
   DraftRankingsView,
+  NflTeam,
   Player,
   PlayerSignalFilterId,
   Position,
@@ -48,12 +54,9 @@ export function useDraftRankings() {
   const [draftedIds, setDraftedIds] = useState(initialState.draftedIds);
   const [draftMode, setDraftMode] = useState(initialState.draftMode);
   const [view, setView] = useState<DraftRankingsView>(initialState.view);
-  const [activePositions, setActivePositions] = useState<Set<Position>>(
-    () => new Set(),
+  const [highlightFilters, setHighlightFilters] = useState(
+    emptyHighlightFilters,
   );
-  const [activeSignalFilters, setActiveSignalFilters] = useState<
-    Set<PlayerSignalFilterId>
-  >(() => new Set());
   const isHydrated = useSyncExternalStore(
     subscribeToHydration,
     getClientHydrationSnapshot,
@@ -77,36 +80,42 @@ export function useDraftRankings() {
   const draftedIdSet = new Set(draftedIds);
 
   function togglePosition(position: Position) {
-    setActivePositions((current) => {
-      const next = new Set(current);
-      if (next.has(position)) {
-        next.delete(position);
-      } else {
-        next.add(position);
-      }
-      return next;
-    });
+    setHighlightFilters((current) => ({
+      ...current,
+      positions: toggleSetMember(current.positions, position),
+    }));
   }
 
   function toggleSignalFilter(filterId: PlayerSignalFilterId) {
-    setActiveSignalFilters((current) => {
-      const next = new Set(current);
-      if (next.has(filterId)) {
-        next.delete(filterId);
-      } else {
-        next.add(filterId);
-      }
-      return next;
-    });
+    setHighlightFilters((current) => ({
+      ...current,
+      signals: toggleSetMember(current.signals, filterId),
+    }));
   }
 
   function clearSignalFilters() {
-    setActiveSignalFilters(new Set());
+    setHighlightFilters((current) => ({
+      ...current,
+      signals: new Set(),
+    }));
+  }
+
+  function toggleTeam(team: NflTeam) {
+    setHighlightFilters((current) => ({
+      ...current,
+      teams: toggleSetMember(current.teams, team),
+    }));
+  }
+
+  function clearTeamFilters() {
+    setHighlightFilters((current) => ({
+      ...current,
+      teams: new Set(),
+    }));
   }
 
   function clearFilters() {
-    setActivePositions(new Set());
-    setActiveSignalFilters(new Set());
+    setHighlightFilters(emptyHighlightFilters());
   }
 
   function reorder(activeId: number, overId: number) {
@@ -135,8 +144,10 @@ export function useDraftRankings() {
   return {
     isHydrated,
     players,
-    activePositions,
-    activeSignalFilters,
+    highlightFilters,
+    activePositions: highlightFilters.positions,
+    activeSignalFilters: highlightFilters.signals,
+    activeTeams: highlightFilters.teams,
     draftMode,
     view,
     draftedIds: draftedIdSet,
@@ -145,13 +156,14 @@ export function useDraftRankings() {
     togglePosition,
     toggleSignalFilter,
     clearSignalFilters,
+    toggleTeam,
+    clearTeamFilters,
     clearFilters,
     reorder,
     toggleDraftMode,
     toggleView,
     toggleTaken,
     resetBoard,
-    hasActiveFilters:
-      activePositions.size > 0 || activeSignalFilters.size > 0,
+    hasActiveFilters: hasActiveHighlightFilters(highlightFilters),
   };
 }

@@ -38,13 +38,50 @@ export const PLAYER_SIGNAL_FILTER_IDS = [
 
 export type PlayerSignalFilterId = (typeof PLAYER_SIGNAL_FILTER_IDS)[number];
 
+export const NFL_TEAMS = [
+  "ARI",
+  "ATL",
+  "BAL",
+  "BUF",
+  "CAR",
+  "CHI",
+  "CIN",
+  "CLE",
+  "DAL",
+  "DEN",
+  "DET",
+  "GB",
+  "HOU",
+  "IND",
+  "JAX",
+  "KC",
+  "LAC",
+  "LAR",
+  "LV",
+  "MIA",
+  "MIN",
+  "NE",
+  "NO",
+  "NYG",
+  "NYJ",
+  "PHI",
+  "PIT",
+  "SEA",
+  "SF",
+  "TB",
+  "TEN",
+  "WAS",
+] as const;
+
+export type NflTeam = (typeof NFL_TEAMS)[number];
+
 export interface Player {
   id: number;
   key: PlayerKey;
   rank: number;
   name: string;
   position: Position;
-  nflTeam: string;
+  nflTeam: NflTeam;
   bye: number;
   headshot: string | null;
   signals: readonly PlayerSignal[];

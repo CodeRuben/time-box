@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   getSignalFilterId,
-  isPlayerDimmed,
   playerMatchesSignalFilters,
 } from "../draft-rankings/player-signal-filters";
 import { PLAYERS } from "../draft-rankings/players";
@@ -35,33 +34,16 @@ describe("draft rankings player signal filters", () => {
     ).toBe("offense-bad");
   });
 
-  it("matches any selected signal and leaves unmatched players dimmed", () => {
+  it("matches any selected signal", () => {
     const rookie = playerNamed("Jeremiyah Love");
     const injuryRisk = playerNamed("Joe Burrow");
-    const neither = playerNamed("Ja'Marr Chase");
 
     const rookieFilters = new Set(["rookie"] as const);
     expect(playerMatchesSignalFilters(rookie, rookieFilters)).toBe(true);
     expect(playerMatchesSignalFilters(injuryRisk, rookieFilters)).toBe(false);
-    expect(isPlayerDimmed(neither, new Set(), rookieFilters)).toBe(true);
 
     const unionFilters = new Set(["rookie", "injury-risk"] as const);
     expect(playerMatchesSignalFilters(rookie, unionFilters)).toBe(true);
     expect(playerMatchesSignalFilters(injuryRisk, unionFilters)).toBe(true);
-  });
-
-  it("dims players that miss either the position or signal filter", () => {
-    const rookieRb = playerNamed("Jeremiyah Love");
-    const veteranQb = playerNamed("Joe Burrow");
-
-    expect(
-      isPlayerDimmed(rookieRb, new Set(["RB"]), new Set(["rookie"])),
-    ).toBe(false);
-    expect(
-      isPlayerDimmed(rookieRb, new Set(["QB"]), new Set(["rookie"])),
-    ).toBe(true);
-    expect(
-      isPlayerDimmed(veteranQb, new Set(["QB"]), new Set(["rookie"])),
-    ).toBe(true);
   });
 });

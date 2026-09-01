@@ -1,9 +1,9 @@
 import { getPlayerHeadshotUrl, getTeamLogo } from "./headshots";
 import { getPlayerSignals } from "./player-signals";
-import type { Player, PlayerKey, Position } from "./types";
+import type { NflTeam, Player, PlayerKey, Position } from "./types";
 
 // 2026 NFL bye weeks (byes run weeks 5-14; no byes in week 12).
-export const BYE_WEEKS: Record<string, number> = {
+export const BYE_WEEKS: Record<NflTeam, number> = {
   CAR: 5,
   KC: 5,
   CIN: 6,
@@ -41,11 +41,11 @@ export const BYE_WEEKS: Record<string, number> = {
 type SkillPlayerData = readonly [
   name: string,
   position: Exclude<Position, "DST">,
-  nflTeam: string,
+  nflTeam: NflTeam,
   espnId: string,
 ];
 
-type DefensePlayerData = readonly [name: string, position: "DST", nflTeam: string];
+type DefensePlayerData = readonly [name: string, position: "DST", nflTeam: NflTeam];
 
 type PlayerData = SkillPlayerData | DefensePlayerData;
 

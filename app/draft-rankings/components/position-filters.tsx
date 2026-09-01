@@ -6,7 +6,7 @@ import { POSITIONS, type Position } from "@/lib/draft-rankings/types";
 import { cn } from "@/lib/utils";
 
 interface PositionFiltersProps {
-  activePositions: Set<Position>;
+  activePositions: ReadonlySet<Position>;
   onToggle: (position: Position) => void;
 }
 

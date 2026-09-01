@@ -2,7 +2,6 @@ import type {
   Player,
   PlayerSignal,
   PlayerSignalFilterId,
-  Position,
 } from "./types";
 
 export function getSignalFilterId(signal: PlayerSignal): PlayerSignalFilterId {
@@ -32,16 +31,4 @@ export function playerMatchesSignalFilters(
   return player.signals.some((signal) =>
     activeSignalFilters.has(getSignalFilterId(signal)),
   );
-}
-
-export function isPlayerDimmed(
-  player: Pick<Player, "position" | "signals">,
-  activePositions: ReadonlySet<Position>,
-  activeSignalFilters: ReadonlySet<PlayerSignalFilterId>,
-): boolean {
-  if (activePositions.size > 0 && !activePositions.has(player.position)) {
-    return true;
-  }
-
-  return !playerMatchesSignalFilters(player, activeSignalFilters);
 }
