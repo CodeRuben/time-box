@@ -9,6 +9,7 @@ import type { Player } from "@/lib/draft-rankings/types";
 import { cn } from "@/lib/utils";
 
 import { PlayerHeadshot } from "./player-headshot";
+import { DstScheduleBadgeForPlayer } from "./dst-schedule-badge-for-player";
 import { PlayerSignalBadges } from "./player-signal-badges";
 
 interface PlayerCardProps {
@@ -113,6 +114,7 @@ function PlayerCardContent({
       </div>
 
       <PlayerSignalBadges signals={player.signals} />
+      <DstScheduleBadgeForPlayer player={player} />
     </div>
   );
 }

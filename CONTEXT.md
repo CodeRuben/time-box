@@ -118,3 +118,11 @@ _Avoid_: Offense strength (when referring to the tier)
 **Contingent Upside**:
 A Player Signal for a reserve whose expected role would make them a likely weekly fantasy starter if one named teammate became unavailable.
 _Avoid_: Upside (unqualified), Sleeper
+
+**Defense Schedule Difficulty**:
+A preseason, static measure of how hard a defense's full regular-season schedule is, based on the average projected scoring of its opponents. Ranked across all 32 NFL teams into Easy, Average, or Hard. Shown on DST entries only; it is not a Player Signal and does not update during the season.
+_Avoid_: SOS (unqualified), schedule strength (when referring to the badge)
+
+**Opponent Matchup Difficulty**:
+The weekly Easy, Average, or Hard grade for a single defense matchup, derived from the opponent's Team Offense Tier. Good offenses are Hard matchups; Mid offenses are Average; Bad offenses are Easy.
+_Avoid_: Matchup grade (unqualified), weekly SOS

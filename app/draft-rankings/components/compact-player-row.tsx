@@ -13,6 +13,7 @@ import { POSITION_COMPACT_CARD_CLASS } from "@/lib/draft-rankings/position-style
 import type { Player } from "@/lib/draft-rankings/types";
 import { cn } from "@/lib/utils";
 
+import { DstScheduleBadgeForPlayer } from "./dst-schedule-badge-for-player";
 import { PlayerSignalBadges } from "./player-signal-badges";
 
 interface CompactPlayerRowProps {
@@ -127,6 +128,7 @@ export function CompactPlayerRow({
         signals={player.signals}
         className="max-w-28 justify-end"
       />
+      <DstScheduleBadgeForPlayer player={player} />
 
       <span className="shrink-0 rounded bg-black/15 px-1.5 py-0.5 text-[11px] font-bold">
         {player.position}

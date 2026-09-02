@@ -1,42 +1,9 @@
+import { BYE_WEEKS } from "./nfl-bye-weeks";
 import { getPlayerHeadshotUrl, getTeamLogo } from "./headshots";
 import { getPlayerSignals } from "./player-signals";
 import type { NflTeam, Player, PlayerKey, Position } from "./types";
 
-// 2026 NFL bye weeks (byes run weeks 5-14; no byes in week 12).
-export const BYE_WEEKS: Record<NflTeam, number> = {
-  CAR: 5,
-  KC: 5,
-  CIN: 6,
-  DET: 6,
-  MIA: 6,
-  MIN: 6,
-  BUF: 7,
-  JAX: 7,
-  LAC: 7,
-  WAS: 7,
-  HOU: 8,
-  NO: 8,
-  NYG: 8,
-  SF: 8,
-  PIT: 9,
-  TEN: 9,
-  CHI: 10,
-  DEN: 10,
-  PHI: 10,
-  TB: 10,
-  ATL: 11,
-  CLE: 11,
-  GB: 11,
-  LAR: 11,
-  NE: 11,
-  SEA: 11,
-  BAL: 13,
-  IND: 13,
-  LV: 13,
-  NYJ: 13,
-  ARI: 14,
-  DAL: 14,
-};
+export { BYE_WEEKS } from "./nfl-bye-weeks";
 
 type SkillPlayerData = readonly [
   name: string,
