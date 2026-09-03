@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, HTMLAttributes, KeyboardEvent } from "react";
+import { memo, type CSSProperties, type HTMLAttributes, type KeyboardEvent } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -119,7 +119,7 @@ function PlayerCardContent({
   );
 }
 
-export function SortablePlayerCard({
+export const SortablePlayerCard = memo(function SortablePlayerCard({
   player,
   dimmed,
   taken,
@@ -152,4 +152,4 @@ export function SortablePlayerCard({
       dragProps={draftMode ? undefined : { ...attributes, ...listeners }}
     />
   );
-}
+});

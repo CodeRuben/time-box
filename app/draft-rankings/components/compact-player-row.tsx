@@ -1,10 +1,11 @@
 "use client";
 
 import { Check, Circle, GripVertical } from "lucide-react";
-import type {
-  CSSProperties,
-  HTMLAttributes,
-  KeyboardEvent,
+import {
+  memo,
+  type CSSProperties,
+  type HTMLAttributes,
+  type KeyboardEvent,
 } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -25,7 +26,7 @@ interface CompactPlayerRowProps {
   onToggleTaken: (playerId: number) => void;
 }
 
-export function CompactPlayerRow({
+export const CompactPlayerRow = memo(function CompactPlayerRow({
   player,
   dimmed,
   taken,
@@ -141,4 +142,4 @@ export function CompactPlayerRow({
       ) : null}
     </div>
   );
-}
+});

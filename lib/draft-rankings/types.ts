@@ -89,7 +89,7 @@ export interface Player {
 
 export const POSITIONS: Position[] = ["QB", "RB", "WR", "TE", "K", "DST"];
 
-export const STORAGE_KEY = "draft-rankings-2026-08-30";
+export const STORAGE_KEY = "draft-rankings-2026-09-02";
 
 export type DraftRankingsView = "board" | "compact";
 

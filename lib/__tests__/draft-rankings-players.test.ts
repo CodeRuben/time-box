@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { BYE_WEEKS, PLAYERS } from "../draft-rankings/players";
+import { BOARD_PLAYER_LIMIT, BYE_WEEKS, PLAYERS } from "../draft-rankings/players";
 import type { Position } from "../draft-rankings/types";
 
 const POSITIONS: Position[] = ["QB", "RB", "WR", "TE", "K", "DST"];
 
 describe("draft rankings player data", () => {
   it("has contiguous ranks and stable ids", () => {
-    expect(PLAYERS).toHaveLength(218);
+    expect(PLAYERS).toHaveLength(BOARD_PLAYER_LIMIT);
     expect(PLAYERS.map(({ rank }) => rank)).toEqual(
-      Array.from({ length: 218 }, (_, index) => index + 1),
+      Array.from({ length: BOARD_PLAYER_LIMIT }, (_, index) => index + 1),
     );
     expect(PLAYERS.every(({ id, rank }) => id === rank)).toBe(true);
   });
@@ -23,12 +23,12 @@ describe("draft rankings player data", () => {
     );
 
     expect(counts).toEqual({
-      QB: 26,
-      RB: 62,
-      WR: 77,
-      TE: 25,
-      K: 14,
-      DST: 14,
+      QB: 30,
+      RB: 73,
+      WR: 93,
+      TE: 31,
+      K: 11,
+      DST: 12,
     });
     expect(PLAYERS.every(({ position }) => POSITIONS.includes(position))).toBe(
       true,
@@ -75,8 +75,8 @@ describe("draft rankings player data", () => {
         ),
     );
 
-    expect(playerHeadshots).toHaveLength(204);
-    expect(teamLogos).toHaveLength(14);
+    expect(playerHeadshots).toHaveLength(238);
+    expect(teamLogos).toHaveLength(12);
   });
 
   it("does not repeat a franchise among kickers or defenses", () => {
@@ -113,6 +113,11 @@ describe("draft rankings player data", () => {
     expect(PLAYERS[10]).toMatchObject({
       rank: 11,
       name: "Justin Jefferson",
+      position: "WR",
+    });
+    expect(PLAYERS[249]).toMatchObject({
+      rank: 250,
+      name: "Luke McCaffrey",
       position: "WR",
     });
   });

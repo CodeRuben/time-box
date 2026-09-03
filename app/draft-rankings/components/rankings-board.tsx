@@ -15,7 +15,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Fragment } from "react";
+import { Fragment, useCallback, useMemo } from "react";
 
 import { isPlayerDimmed, type HighlightFilters } from "@/lib/draft-rankings/highlight-filters";
 import {
@@ -50,7 +50,23 @@ export function RankingsBoard({
   onToggleTaken,
 }: RankingsBoardProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
-  const snakeRows = toSnakeRows(players);
+  const snakeRows = useMemo(
+    () => (compact ? [] : toSnakeRows(players)),
+    [compact, players],
+  );
+  const sortableItems = useMemo(
+    () => players.map((player) => player.id),
+    [players],
+  );
+  const dimmedPlayerIds = useMemo(
+    () =>
+      new Set(
+        players
+          .filter((player) => isPlayerDimmed(player, highlightFilters))
+          .map((player) => player.id),
+      ),
+    [highlightFilters, players],
+  );
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 6 },
@@ -60,14 +76,14 @@ export function RankingsBoard({
     }),
   );
 
-  function handleDragEnd(event: DragEndEvent) {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) {
       return;
     }
 
     onReorder(Number(active.id), Number(over.id));
-  }
+  }, [onReorder]);
 
   return (
     <TooltipProvider>
@@ -77,7 +93,7 @@ export function RankingsBoard({
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={players.map((player) => player.id)}
+          items={sortableItems}
           strategy={compact ? verticalListSortingStrategy : rectSortingStrategy}
         >
           {compact ? (
@@ -101,7 +117,7 @@ export function RankingsBoard({
                 ) : null}
                 <CompactPlayerRow
                   player={player}
-                  dimmed={isPlayerDimmed(player, highlightFilters)}
+                  dimmed={dimmedPlayerIds.has(player.id)}
                   taken={draftedIds.has(player.id)}
                   draftMode={draftMode}
                   prefersReducedMotion={prefersReducedMotion}
@@ -126,7 +142,7 @@ export function RankingsBoard({
                       <SortablePlayerCard
                         key={player.id}
                         player={player}
-                        dimmed={isPlayerDimmed(player, highlightFilters)}
+                        dimmed={dimmedPlayerIds.has(player.id)}
                         taken={draftedIds.has(player.id)}
                         draftMode={draftMode}
                         prefersReducedMotion={prefersReducedMotion}

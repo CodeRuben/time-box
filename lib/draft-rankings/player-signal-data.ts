@@ -40,6 +40,10 @@ export const VETERAN_BIRTH_DATES_BY_PLAYER_KEY: Readonly<
   "espn:3116365": "1995-09-06",
   "espn:3121023": "1995-01-03",
   "espn:3046439": "1994-12-07",
+  "espn:8439": "1983-12-02",
+  "espn:15864": "1990-10-10",
+  "espn:4040761": "1997-09-03",
+  "espn:4241457": "1998-03-09",
 };
 
 export const INJURY_RISK_PLAYER_KEYS: ReadonlySet<PlayerKey> = new Set([
@@ -66,6 +70,8 @@ export const INJURY_RISK_PLAYER_KEYS: ReadonlySet<PlayerKey> = new Set([
   "espn:3040151",
   "espn:4572680",
   "espn:4430027",
+  "espn:4243389",
+  "espn:3123076",
 ]);
 
 export const ROOKIE_PLAYER_KEYS: ReadonlySet<PlayerKey> = new Set([
@@ -90,6 +96,14 @@ export const ROOKIE_PLAYER_KEYS: ReadonlySet<PlayerKey> = new Set([
   "espn:4912218",
   "espn:4870612",
   "espn:4832846",
+  "espn:4837248",
+  "espn:4685261",
+  "espn:4431574",
+  "espn:4682648",
+  "espn:5220680",
+  "espn:4696044",
+  "espn:4869961",
+  "espn:5088338",
 ]);
 
 export const TEAM_OFFENSE_PROJECTED_POINTS_PER_GAME: Readonly<
@@ -174,4 +188,5 @@ export const CONTINGENT_UPSIDE_DEPENDENCY_BY_PLAYER_KEY: Readonly<
   "espn:4429059": "espn:4035538",
   "espn:4686658": "espn:4890973",
   "espn:4360761": "espn:4432708",
+  "espn:4685247": "espn:4427366",
 };

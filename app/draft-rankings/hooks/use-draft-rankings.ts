@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { toggleDraftedId } from "@/lib/draft-rankings/drafted";
 import {
@@ -23,11 +29,11 @@ import type {
   Position,
 } from "@/lib/draft-rankings/types";
 
-function playersFromIds(ids: number[]): Player[] {
-  const byId = new Map(PLAYERS.map((player) => [player.id, player]));
+const PLAYERS_BY_ID = new Map(PLAYERS.map((player) => [player.id, player]));
 
+function playersFromIds(ids: number[]): Player[] {
   return ids.flatMap((id, index) => {
-    const player = byId.get(id);
+    const player = PLAYERS_BY_ID.get(id);
     if (!player) {
       return [];
     }
@@ -76,70 +82,70 @@ export function useDraftRankings() {
     });
   }, [draftMode, draftedIds, isHydrated, playerIds, view]);
 
-  const players = playersFromIds(playerIds);
-  const draftedIdSet = new Set(draftedIds);
+  const players = useMemo(() => playersFromIds(playerIds), [playerIds]);
+  const draftedIdSet = useMemo(() => new Set(draftedIds), [draftedIds]);
 
-  function togglePosition(position: Position) {
+  const togglePosition = useCallback((position: Position) => {
     setHighlightFilters((current) => ({
       ...current,
       positions: toggleSetMember(current.positions, position),
     }));
-  }
+  }, []);
 
-  function toggleSignalFilter(filterId: PlayerSignalFilterId) {
+  const toggleSignalFilter = useCallback((filterId: PlayerSignalFilterId) => {
     setHighlightFilters((current) => ({
       ...current,
       signals: toggleSetMember(current.signals, filterId),
     }));
-  }
+  }, []);
 
-  function clearSignalFilters() {
+  const clearSignalFilters = useCallback(() => {
     setHighlightFilters((current) => ({
       ...current,
       signals: new Set(),
     }));
-  }
+  }, []);
 
-  function toggleTeam(team: NflTeam) {
+  const toggleTeam = useCallback((team: NflTeam) => {
     setHighlightFilters((current) => ({
       ...current,
       teams: toggleSetMember(current.teams, team),
     }));
-  }
+  }, []);
 
-  function clearTeamFilters() {
+  const clearTeamFilters = useCallback(() => {
     setHighlightFilters((current) => ({
       ...current,
       teams: new Set(),
     }));
-  }
+  }, []);
 
-  function clearFilters() {
+  const clearFilters = useCallback(() => {
     setHighlightFilters(emptyHighlightFilters());
-  }
+  }, []);
 
-  function reorder(activeId: number, overId: number) {
+  const reorder = useCallback((activeId: number, overId: number) => {
     setPlayerIds((current) => reorderIds(current, activeId, overId));
-  }
+  }, []);
 
-  function toggleDraftMode() {
+  const toggleDraftMode = useCallback(() => {
     setDraftMode((current) => !current);
-  }
+  }, []);
 
-  function toggleView() {
+  const toggleView = useCallback(() => {
     setView((current) => (current === "board" ? "compact" : "board"));
-  }
+  }, []);
 
-  function toggleTaken(playerId: number) {
+  const toggleTaken = useCallback((playerId: number) => {
     setDraftedIds((current) => toggleDraftedId(current, playerId));
-  }
+  }, []);
 
-  function resetBoard() {
+  const resetBoard = useCallback(() => {
     const next = getDefaultDraftRankingsState();
     setPlayerIds(next.ids);
     setDraftedIds(next.draftedIds);
     setDraftMode(next.draftMode);
-  }
+  }, []);
 
   return {
     isHydrated,

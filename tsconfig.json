@@ -36,7 +36,11 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts",
     ".next-verify/**/types/**/*.ts",
-    ".next-verify/**/dev/types/**/*.ts"
+    ".next-verify/**/dev/types/**/*.ts",
+    ".next-verify/draft-rankings-300-20260902/types/**/*.ts",
+    ".next-verify/draft-rankings-300-20260902/dev/types/**/*.ts",
+    ".next-verify/draft-signals-20260902/types/**/*.ts",
+    ".next-verify/draft-signals-20260902/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

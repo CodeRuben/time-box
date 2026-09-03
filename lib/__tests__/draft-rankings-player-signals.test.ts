@@ -84,12 +84,40 @@ describe("draft rankings player signals", () => {
       expect(player?.position).not.toBe("DST");
     }
 
-    expect(Object.keys(VETERAN_BIRTH_DATES_BY_PLAYER_KEY)).toHaveLength(25);
-    expect(INJURY_RISK_PLAYER_KEYS.size).toBe(23);
-    expect(ROOKIE_PLAYER_KEYS.size).toBe(21);
+    expect(Object.keys(VETERAN_BIRTH_DATES_BY_PLAYER_KEY)).toHaveLength(29);
+    expect(INJURY_RISK_PLAYER_KEYS.size).toBe(25);
+    expect(ROOKIE_PLAYER_KEYS.size).toBe(29);
     expect(Object.keys(CONTINGENT_UPSIDE_DEPENDENCY_BY_PLAYER_KEY)).toHaveLength(
-      7,
+      8,
     );
+  });
+
+  it("tags expanded-board rookies, injury risks, and handcuffs", () => {
+    const byName = (name: string) => {
+      const player = PLAYERS.find((candidate) => candidate.name === name);
+      if (!player) {
+        throw new Error(`Missing board player: ${name}`);
+      }
+      return player;
+    };
+
+    const kinds = (name: string) =>
+      new Set(byName(name).signals.map((signal) => signal.kind));
+
+    expect(kinds("Fernando Mendoza").has("rookie")).toBe(true);
+    expect(kinds("Kaelon Black").has("rookie")).toBe(true);
+    expect(kinds("Calvin Austin").has("injury-risk")).toBe(true);
+    expect(kinds("Aaron Rodgers").has("veteran-age")).toBe(true);
+
+    const allen = byName("Braelon Allen").signals.find(
+      (signal) => signal.kind === "contingent-upside",
+    );
+    expect(allen).toMatchObject({ dependencyKey: "espn:4427366" });
+
+    const corum = byName("Blake Corum").signals.find(
+      (signal) => signal.kind === "contingent-upside",
+    );
+    expect(corum).toMatchObject({ dependencyKey: "espn:4430737" });
   });
 
   it("derives veteran-age from stored birth dates and the position cutoff", () => {

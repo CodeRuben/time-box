@@ -1,8 +1,8 @@
 # 2026 player signal review
 
-Snapshot date: August 31, 2026
+Snapshot date: September 2, 2026
 
-This review covers only QB, RB, WR, and TE players on the 218-player Board. Signals add draft context. They do not change Board rank, sorting, or filtering.
+This review covers QB, RB, WR, and TE players on the 250-player Board. The August 31, 2026 pass covered the original 218-player Board. This update applies the same rules to the players added when the Board expanded. Signals add draft context. They do not change Board rank, sorting, or filtering.
 
 ## Definitions
 
@@ -23,6 +23,8 @@ This is not a prediction that a player will be injured or a recommendation to av
 - Lamar Jackson: 45% model probability plus four missed games and several lower-body issues in 2025. [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/lamar-jackson/9964), [CBS Sports](https://www.cbssports.com/nfl/news/ravens-lamar-jackson-john-harbaugh-future-after-disappointing-2025/)
 - Jayden Daniels: 41% model probability after knee, hamstring, and elbow injuries limited him to seven 2025 appearances. [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/jayden-daniels/34982), [ESPN](https://www.espn.com/nfl/story/_/id/49099896/daniels-long-way-go-master-commanders-offense)
 - Daniel Jones: returning about nine months after an Achilles rupture, with prior ACL and fibula injuries. [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/daniel-jones/10225), [ESPN](https://www.espn.com/nfl/story/_/id/49488952/indianapolis-colts-daniel-jones-achilles)
+- Tua Tagovailoa: recurring concussions and other missed time across 2021, 2022, and 2024, including a four-game IR stint after the 2024 Bills game. [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/tua-tagovailoa/10483), [Sporting News](https://www.sportingnews.com/us/nfl/atlanta-falcons/news/tua-tagovailoa-injury-update-falcons-training-camp/356b0510a4aadedc391c78af)
+- Deshaun Watson: two Achilles tears (October 2024 and January 2025) plus a 2023 season-ending throwing-shoulder fracture, and he missed all of 2025. [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/deshaun-watson/7744), [ESPN](https://www.espn.co.uk/nfl/story/_/id/49711613/sources-browns-tab-deshaun-watson-not-shedeur-sanders-qb1)
 
 ### Running backs
 
@@ -34,6 +36,8 @@ This is not a prediction that a player will be injured or a recommendation to av
 - Jonathon Brooks: two tears of the same ACL in 13 months and only three NFL games played. [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/jonathon-brooks/34987), [NFL.com](https://www.nfl.com/news/panthers-rb-jonathon-brooks-cleared-to-go-from-latest-knee-injury)
 - J.K. Dobbins: no complete NFL season, with major knee, Achilles, MCL, Lisfranc, and current soft-tissue history. [Draft Sharks history](https://www.draftsharks.com/fantasy/injury-history/jk-dobbins/10478), [camp report](https://www.draftsharks.com/fantasy-football-news/82179/jk-dobbins-has-soft-tissue-injury)
 - Zach Charbonnet: reserve/PUP after February ACL surgery, following earlier meniscus, hamstring, foot, and shoulder injuries. [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/zach-charbonnet/13564), [TSN](https://www.tsn.ca/nfl/article/seahawks-rb-charbonnet-still-on-pup-list-out-first-four-games-n1-49778534/)
+- James Conner: starts 2026 on injured reserve while still recovering from the 2025 ankle injury that ended his season. [Draft Sharks](https://www.draftsharks.com/fantasy-football-news/82412/james-conner-to-open-2026-on-ir-missing-cardinals-first-4-games), [Yahoo Sports](https://sports.yahoo.com/articles/6-vague-arizona-cardinals-injury-122224897.html)
+- Kendre Miller: October 2025 ACL tear after earlier hamstring, ankle, and concussion absences in 2023-24. [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/kendre-miller/13570), [NBC Sports](https://www.nbcsports.com/fantasy/football/player-news/2026-09-01/report-kendre-miller-practice-injury-is-minor)
 
 ### Wide receivers
 
@@ -43,6 +47,9 @@ This is not a prediction that a player will be injured or a recommendation to av
 - Chris Godwin: only 16 games across 2024-25 after ankle dislocation, two procedures, and a later fibula injury. [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/chris-godwin/7783), [DraftKings Network](https://dknetwork.draftkings.com/2026/08/31/is-chris-godwin-the-best-post-injury-value-at-wide-receiver-in-2026-fantasy-football/)
 - Tank Dell: on injured reserve after missing all of 2025 while recovering from a multi-ligament knee dislocation and two surgeries. [ESPN](https://www.espn.com/nfl/story/_/id/49777386/texans-place-tank-dell-ir-wr-least-4-weeks), [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/nathaniel-dell/13552)
 - Jordyn Tyson: on injured reserve with another hamstring injury after prior hamstring, ACL, MCL, PCL, ankle, and clavicle injuries. [NOLA.com](https://www.nola.com/sports/saints/saints-place-no-8-pick-jordyn-tyson-on-ir-to-start-season/article_65cdbaa8-33fb-43b4-b883-4f1ff686858c.html), [Yahoo Sports](https://sports.yahoo.com/nfl/article/saints-knew-the-risks-drafting-jordyn-tyson-but-they-did-it-anyway-because-thats-what-they-do-152344075.html)
+- Brandon Aiyuk: ACL and MCL tear with 27 missed games, and he remains away from the 49ers on the reserve/left squad list. [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/brandon-aiyuk/10582), [NFL.com](https://www.nfl.com/news/niners-place-brandon-aiyuk-on-reserve-left-squad-list-ending-wr-s-season)
+- Christian Kirk: starts 2026 on injured reserve with a calf strain after a 2024 collarbone fracture ended his season and a 2023 groin tear cost five games. [NBC Sports](https://www.nbcsports.com/fantasy/football/player-news/2026-08-30/christian-kirk-calf-starts-the-season-on-ir), [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/christian-kirk/9969)
+- Calvin Austin: torn ACL in August camp and will miss the 2026 season. [Giants](https://www.giants.com/news/calvin-austin-iii-injury-status-roster-new-york-giants), [ESPN](https://www.espn.com/nfl/story/_/id/49731270/source-giants-wr-calvin-austin-miss-upcoming-season)
 
 ### Tight ends
 
@@ -50,6 +57,7 @@ This is not a prediction that a player will be injured or a recommendation to av
 - George Kittle: accelerated return from Achilles repair after also missing time with a Grade 3 hamstring tear and ankle sprain. [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/george-kittle/9540), [Sporting News](https://www.sportingnews.com/us/nfl/san-francisco-49ers/news/george-kittle-injury-history-timeline-49ers-foot-achilles/e3444161a27fc740ea87ed43)
 - Tucker Kraft: returning from ACL reconstruction with partial LCL and meniscus tears, with monitored snaps expected. [Draft Sharks history](https://www.draftsharks.com/fantasy/injury-history/tucker-kraft/13575), [snap-count report](https://www.draftsharks.com/fantasy-football-news/82246/tucker-krafts-snap-count-adds-early-fantasy-risk)
 - Sam LaPorta: 60% model probability after back surgery for a herniated disc and a separate August hip aggravation. [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/sam-laporta/13576), [ESPN](https://www.espn.com/nfl/story/_/id/49672143/sam-laporta-status-uncertain-lions-season-opener)
+- David Njoku: 81% model probability after recurring 2024-25 knee injuries and multiple missed games. [Draft Sharks](https://www.draftsharks.com/fantasy/injury-history/david-njoku/7770)
 
 No manual override was needed. The four initial examples, Joe Burrow, Lamar Jackson, Malik Nabers, and George Kittle, cleared the same evidence rule as the rest of the list.
 
@@ -84,12 +92,24 @@ Birth dates come from the ESPN athlete endpoint `https://sports.core.api.espn.co
 | TE | 31 | Dallas Goedert | 1995-01-03 | 31 | 3121023 |
 | TE | 31 | Mark Andrews | 1995-09-06 | 31 | 3116365 |
 | TE | 31 | Hunter Henry | 1994-12-07 | 31 | 3046439 |
+| QB | 35 | Aaron Rodgers | 1983-12-02 | 42 | 8439 |
+| QB | 35 | Kirk Cousins | 1988-08-19 | 38 | 14880 |
+| QB | 35 | Geno Smith | 1990-10-10 | 35 | 15864 |
+| RB | 28 | James Conner | 1995-05-05 | 31 | 3045147 |
+| RB | 28 | Samaje Perine | 1995-09-16 | 30 | 3116389 |
+| RB | 28 | Devin Singletary | 1997-09-03 | 29 | 4040761 |
+| RB | 28 | Najee Harris | 1998-03-09 | 28 | 4241457 |
+| RB | 28 | Ty Johnson | 1997-09-17 | 28 | 3915411 |
+| RB | 28 | Justice Hill | 1997-11-14 | 28 | 4038441 |
+| WR | 30 | Cooper Kupp | 1993-06-15 | 33 | 2977187 |
+| WR | 30 | Mack Hollins | 1993-09-16 | 32 | 2991662 |
+| TE | 31 | Evan Engram | 1994-09-02 | 32 | 3051876 |
 
 The opening date comes from the [NFL Football Operations 2026 schedule](https://nfl-ops-prod-umbraco-author.azurewebsites.net/calendar-events/nfl-schedule/2026-regular-season-schedule/).
 
 ## Rookie
 
-All 21 matching Board players were drafted. No Board player matched the checked 2026 UDFA trackers.
+All 35 matching Board players were drafted. No Board player matched the checked 2026 UDFA trackers.
 
 | Player | Position | Round | Pick |
 | --- | --- | ---: | ---: |
@@ -114,6 +134,20 @@ All 21 matching Board players were drafted. No Board player matched the checked 
 | Cyrus Allen | WR | 5 | 176 |
 | Kaytron Allen | RB | 6 | 187 |
 | Demond Claiborne | RB | 6 | 198 |
+| Fernando Mendoza | QB | 1 | 1 |
+| Germie Bernard | WR | 2 | 47 |
+| Eli Stowers | TE | 2 | 54 |
+| Max Klare | TE | 2 | 61 |
+| Malachi Fields | WR | 3 | 74 |
+| Ted Hurst | WR | 3 | 84 |
+| Kaelon Black | RB | 3 | 90 |
+| Chris Bell | WR | 3 | 94 |
+| Eli Raridon | TE | 3 | 95 |
+| Elijah Sarratt | WR | 4 | 115 |
+| Skyler Bell | WR | 4 | 125 |
+| Bryce Lance | WR | 4 | 136 |
+| Adam Randall | RB | 5 | 174 |
+| Seth McGowan | RB | 7 | 237 |
 
 Sources: [NBC Sports complete draft tracker](https://www.nbcsports.com/nfl/profootballtalk/news/2026-nfl-draft-picks-full-tracker-of-every-selection-rounds-1-7), [Sporting News complete results](https://www.sportingnews.com/us/nfl/news/nfl-draft-picks-2026-live-results/41bcb44bb8c5d0162e06467e), [CBS Sports UDFA tracker](https://www.cbssports.com/nfl/draft/news/2026-nfl-udfa-tracker-signings-by-team/), and [NFL.com UDFA tracker](https://www.nfl.com/news/undrafted-free-agent-signings-tracker-every-team-s-udfas-after-the-2026-nfl-draft).
 
@@ -165,7 +199,7 @@ No tier-boundary tie occurred. NYJ and CLE tied on the final average, so the new
 
 ## Contingent Upside
 
-Six running backs and one wide receiver clear the conservative evidence bar. No tight end has a sufficiently clean one-teammate path.
+Six running backs and one wide receiver on the original Board cleared the conservative evidence bar. The expanded Board adds three more running backs. No tight end has a sufficiently clean one-teammate path.
 
 | Player | Position | Dependency | Expected role | Evidence |
 | --- | --- | --- | --- | --- |
@@ -176,6 +210,9 @@ Six running backs and one wide receiver clear the conservative evidence bar. No 
 | Woody Marks | RB | David Montgomery | Lead back with receiving work and a likely 15-20 touches | [Depth chart](https://muffed.ai/handcuffs/HOU), [FantasyPros](https://www.fantasypros.com/nfl/notes/419092/woody-marks-2026-outlook.php) |
 | Mike Washington Jr. | RB | Ashton Jeanty | Lead early-down runner with passing-down competition | [Raiders depth chart](https://www.raiders.com/news/raiders-unofficial-depth-chart-preseason-game-vs-san-francisco-49ers-082726), [NFL.com](https://www.nfl.com/news/raiders-klint-kubiak-really-excited-about-ashton-jeanty-mike-washington-jr) |
 | Michael Wilson | WR | Marvin Harrison Jr. | Perimeter and first-read volume with weekly WR2 potential | [ESPN depth chart](https://www.espn.com/nfl/team/depth/_/name/ari/arizona-cardinals), [FantasyPros](https://www.fantasypros.com/nfl/notes/427456/michael-wilson-2026-outlook.php) |
+| Braelon Allen | RB | Breece Hall | Lead Jets runner if Hall is out, with Isaiah Davis remaining a distant third | [Spike Week depth chart](https://spikeweek.com/2026-running-back-handcuff-cheat-sheet/), [PhillyVoice](https://www.phillyvoice.com/fantasy-football-every-teams-starting-backup-running-back-2026-start-injuries-rookies-rosters/) |
+| DJ Giddens | RB | Jonathan Taylor | Clear Colts RB2 with weekly starter upside if Taylor misses time | [Spike Week depth chart](https://spikeweek.com/2026-running-back-handcuff-cheat-sheet/), [PhillyVoice](https://www.phillyvoice.com/fantasy-football-every-teams-starting-backup-running-back-2026-start-injuries-rookies-rosters/) |
+| Justice Hill | RB | Derrick Henry | Listed RB2 in Baltimore with a featured role if Henry is unavailable | [Spike Week depth chart](https://spikeweek.com/2026-running-back-handcuff-cheat-sheet/), [USA Today](https://www.usatoday.com/story/sports/fantasy/football/2026/08/20/best-rb-handcuffs-2026-fantasy-football/91342403007/) |
 
 ## Notable exclusions and data notes
 
@@ -186,6 +223,9 @@ Six running backs and one wide receiver clear the conservative evidence bar. No 
 - Christian Watson: long history, but his current model result was 25% and his hamstring problem has not recurred since 2023.
 - Puka Nacua: medium 51% model result, but he played 16 games in 2025 and returned from a minor preseason issue.
 - Jahmyr Gibbs and Chase Brown: neither had enough corroborating missed-time evidence.
+- Aaron Rodgers: 53% model probability, but he missed only one 2025 game and is active for Week 1. Age is captured separately.
+- Cooper Kupp: 36% model probability and currently practicing in full.
+- Michael Penix: returning from a 2025 ACL tear, but Draft Sharks rates the 2026 risk Low and he is a full Week 1 practice participant.
 
 ### Contingent Upside exclusions
 
@@ -195,12 +235,17 @@ Six running backs and one wide receiver clear the conservative evidence bar. No 
 - Zach Charbonnet: reserve/PUP with a multi-back Seattle rotation expected.
 - Terrance Ferguson: athletic upside, but not a dependable weekly-starter projection.
 - Tank Dell: injured reserve and not close to game-ready.
+- Kimani Vidal and Keaton Mitchell: a Hampton absence likely creates a Chargers committee.
+- Jaylen Wright and Ollie Gordon: an Achane absence likely creates a Dolphins committee.
+- Chris Brooks and MarShawn Lloyd: Packers charts disagree on the Jacobs handcuff.
+- Samaje Perine: listed as Cincinnati's RB2, but not a projected featured weekly starter.
 
 ### Matching and missing data
 
-- All 190 scoped Board players have stable ESPN athlete IDs.
+- All 270 scoped Board players have stable ESPN athlete IDs.
 - ESPN uses Aaron Jones Sr., Chris Godwin Jr., and Deebo Samuel Sr.; the Board keeps its shorter display names.
 - NBC spells Jeremiyah Love as Jeremiah Love. ESPN, Sporting News, and the Board use Jeremiyah.
 - ESPN omits Rico Dowdle's draft object, consistent with his earlier undrafted entry. His birth date is present.
 - No veteran-threshold birth dates are missing.
 - No current Board player appears in the checked 2026 UDFA trackers.
+- Chris Brooks, Malik Davis, Emanuel Wilson, and George Holani have no ESPN draft object; their ESPN debut years predate the 2026 class.
