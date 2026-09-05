@@ -11,7 +11,7 @@ Lets a user pick a day on the calendar, add a workout, name it, and clear the da
 
 ## How to get to it (user POV)
 
-- Open **Workouts** from the header (desktop links or mobile **Open menu** sheet).
+- Open **Workouts** from the left sidebar (desktop) or the mobile **Open menu** sheet.
 - Use the month calendar to select a day (defaults to today).
 - In **Selected Day**, choose **Add workout** → **New workout**.
 - The new card is expanded by default; type a name in **Workout name**.

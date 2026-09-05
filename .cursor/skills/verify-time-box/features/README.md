@@ -42,7 +42,7 @@ Each feature file uses H1 title, one intro paragraph, then four H2 sections in o
 ### App chrome
 
 - [Sign in](./sign-in.md) — credentials login and account menu.
-- [Navigate features](./navigate-features.md) — primary nav between Planner, Workouts, and Book log.
+- [Navigate features](./navigate-features.md) — primary nav (sidebar on desktop, hamburger on mobile) between Planner, Workouts, and Books.
 - [Theme controls](./theme-controls.md) — light/dark toggle and persistence.
 - [Autosave](./autosave.md) — signed-in save indicators on planner, workouts, and book notes.
 - [Settings](./settings.md) — workspace toggles and admin feature flags (signed-in).

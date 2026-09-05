@@ -11,7 +11,7 @@ Lets a user open the historical workout insights sheet from the workout tracker 
 
 ## How to get to it (user POV)
 
-- Open **Workouts** from the header.
+- Open **Workouts** from the left sidebar.
 - Click the chart icon button **Workout Insights** beside **Export**.
 - In the sheet, try preset tabs such as **Year to date** or **Last 90 days**.
 - Scroll to **Activity trend**, **Monthly breakdown**, and the **Workouts** list.

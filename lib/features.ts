@@ -30,7 +30,7 @@ export const FEATURES = [
   },
   {
     key: "reading-journal",
-    label: "Book log",
+    label: "Books",
     description: "Track books, daily reading entries, and progress.",
     href: "/reading-journal",
     kind: "page",
@@ -69,6 +69,8 @@ export const FEATURES = [
 export type Feature = (typeof FEATURES)[number];
 export type FeatureKey = Feature["key"];
 export type FeatureKind = Feature["kind"];
+export type PageFeature = Extract<Feature, { kind: "page" }>;
+export type PageFeatureKey = PageFeature["key"];
 
 export type FeatureFlagState = {
   key: FeatureKey;
@@ -83,7 +85,9 @@ export type FeatureFlagState = {
 
 const FEATURE_KEYS = new Set<string>(FEATURES.map((feature) => feature.key));
 
-export const PAGE_FEATURES = FEATURES.filter((feature) => feature.kind === "page");
+export const PAGE_FEATURES = FEATURES.filter(
+  (feature): feature is PageFeature => feature.kind === "page"
+);
 
 export function isFeatureKey(value: string): value is FeatureKey {
   return FEATURE_KEYS.has(value);

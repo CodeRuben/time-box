@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Book log",
+  title: "Books",
 };
 
 export default function ReadingJournalLayout({

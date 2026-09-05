@@ -10,7 +10,7 @@ export type ProductArea = (typeof PRODUCT_AREAS)[number];
 export const PRODUCT_AREA_LABELS: Record<ProductArea, string> = {
   planner: "Planner",
   workouts: "Workouts",
-  book_log: "Book log",
+  book_log: "Books",
   new_page: "New page",
 };
 

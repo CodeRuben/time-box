@@ -10,7 +10,7 @@ Lets a user download all saved workouts as a CSV file from the workout tracker.
 
 ## How to get to it (user POV)
 
-- Open **Workouts** from the header.
+- Open **Workouts** from the left sidebar.
 - Click **Export** next to the **Workout Insights** chart icon (icon-only; no visible "Workout Insights" text).
 - In dialog **Export workouts?**, read *Download all your saved workouts as a CSV file.*
 - Choose **Export CSV** to download, or **Cancel** to close without exporting.

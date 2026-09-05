@@ -70,7 +70,7 @@ Free-form notes attached to a Book as a whole, independent of any day's Entry.
 _Avoid_: Notes (unqualified)
 
 **Product Notes**:
-Admin-only private idea notes with a title and optional description, each tagged to a fixed product area (Planner, Workouts, Book log, New page). Captured and managed from the Planner toolbar dialog; not a public feature page.
+Admin-only private idea notes with a title and optional description, each tagged to a fixed product area (Planner, Workouts, Books, New page). Captured and managed from the Planner toolbar dialog; not a public feature page.
 _Avoid_: Notes (unqualified), Idea notes (as a separate domain term)
 
 **Progress**:

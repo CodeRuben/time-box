@@ -1,6 +1,6 @@
 # Theme controls
 
-Lets a user switch between light and dark themes from the header and keep the choice across reloads.
+Lets a user switch between light and dark themes from the app chrome and keep the choice across reloads.
 
 ## Sub-features
 
@@ -10,7 +10,7 @@ Lets a user switch between light and dark themes from the header and keep the ch
 
 ## How to get to it (user POV)
 
-- On any page with the app header (planner, workouts, book log, settings), click **Toggle theme** (sun/moon icon) in the top-right. Auth is not required.
+- On any page with app chrome (planner, workouts, book log, settings), click **Toggle theme** (sun/moon icon). On desktop it sits at the bottom of the left sidebar; on small screens it is in the top-right bar. Auth is not required.
 - Reload the page; the chosen theme remains.
 - Press `D` while focus is not in an input to toggle quickly.
 

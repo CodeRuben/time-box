@@ -35,7 +35,7 @@ Preconditions:
 ## Gotchas
 
 - Reading days and reflection entries are independent; saving an entry does not tick a calendar day.
-- Book log is signed-in only; complete [Sign in](./sign-in.md) first.
+- Books is signed-in only; complete [Sign in](./sign-in.md) first.
 - Use `browser_type` for notes and entry fields.
 - **Book actions** menu exposes **Edit details** and **Delete book**; destructive delete is out of scope for the default recipe.
 - List-page behavior lives in [Book log](./book-log.md).

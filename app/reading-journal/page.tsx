@@ -90,7 +90,7 @@ function ReadingJournalContent() {
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 lg:mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
-              Book log
+              Books
             </h1>
             <p className="mt-2 text-muted-foreground">
               Track what you read, day by day.

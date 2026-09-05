@@ -1,10 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProviderWrapper } from "./components/theme-provider-wrapper";
 import { Providers } from "./components/providers";
-import { AppHeader } from "./components/app-header";
-import { SiteShell } from "./components/site-shell";
+import { AppShell } from "./components/app-shell";
 import { version } from "../package.json";
 
 const geistSans = Geist({
@@ -20,6 +19,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Timeboxing Planner",
   description: "Daily timeboxing planner for organizing your day",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({
@@ -48,13 +53,12 @@ export default function RootLayout({
       >
         <Providers>
           <ThemeProviderWrapper>
-            <SiteShell>
-              <AppHeader />
+            <AppShell>
               {children}
               <footer className="text-center text-gray-400 text-sm py-4">
                 v{version}
               </footer>
-            </SiteShell>
+            </AppShell>
           </ThemeProviderWrapper>
         </Providers>
       </body>

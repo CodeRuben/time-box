@@ -5,15 +5,26 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "./theme-provider";
 import { cn } from "@/lib/utils";
 
-export function ThemeToggle() {
+type ThemeToggleProps = {
+  className?: string;
+  variant?: "outline" | "ghost";
+};
+
+export function ThemeToggle({
+  className,
+  variant = "outline",
+}: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
 
   return (
     <Button
-      variant="outline"
+      variant={variant}
       size="icon"
       onClick={toggleTheme}
-      className="h-9 w-9 active:scale-[0.97] transition-transform ease-out will-change-transform motion-reduce:transition-none motion-reduce:active:scale-100"
+      className={cn(
+        "h-9 w-9 active:scale-[0.97] transition-transform ease-out will-change-transform motion-reduce:transition-none motion-reduce:active:scale-100",
+        className
+      )}
       aria-label="Toggle theme"
     >
       <span className="relative flex h-5 w-5 items-center justify-center">
