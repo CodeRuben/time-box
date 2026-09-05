@@ -127,7 +127,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="flex h-dvh overflow-hidden bg-background md:bg-muted">
       <aside className="hidden h-full w-[4.75rem] shrink-0 flex-col text-muted-foreground md:flex">
-        <div className="flex shrink-0 items-center justify-center px-1 pt-3 pb-5">
+        <div className="flex shrink-0 items-center justify-center px-1 pt-5 pb-5">
           <Link href="/" aria-label="Timebox" className="text-current">
             <LogoMarkA />
           </Link>
