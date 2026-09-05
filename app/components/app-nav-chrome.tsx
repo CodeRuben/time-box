@@ -41,7 +41,7 @@ const NAV_APPEARANCE = {
     base: "flex flex-col items-center gap-1 rounded-md px-1 py-2 text-center text-[11px] font-medium leading-tight transition-colors duration-150 ease-out",
     active:
       "bg-background text-foreground shadow-sm dark:bg-sky-500/30 dark:text-sky-200",
-    idle: "hover:bg-background/80 hover:text-foreground dark:hover:bg-sky-500/15 dark:hover:text-sky-300",
+    idle: "hover:bg-background/80 hover:text-foreground dark:hover:bg-sky-500/15 dark:hover:text-sky-200",
     largeIcon: true,
   },
   sheet: {
