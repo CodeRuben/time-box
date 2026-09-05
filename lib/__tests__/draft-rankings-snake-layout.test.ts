@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { toSnakeRows } from "../draft-rankings/snake-layout";
+import { chunkRounds, toSnakeRows } from "../draft-rankings/snake-layout";
 import type { Player } from "../draft-rankings/types";
 
 function makePlayer(id: number): Player {
@@ -17,6 +17,20 @@ function makePlayer(id: number): Player {
   };
 }
 
+describe("chunkRounds", () => {
+  it("groups players into league-size rounds without padding", () => {
+    const players = Array.from({ length: 14 }, (_, index) =>
+      makePlayer(index + 1),
+    );
+    const rounds = chunkRounds(players, 12);
+
+    expect(rounds.map((round) => round.map((player) => player.id))).toEqual([
+      Array.from({ length: 12 }, (_, index) => index + 1),
+      [13, 14],
+    ]);
+  });
+});
+
 describe("toSnakeRows", () => {
   it("keeps odd rounds left-to-right and even rounds right-to-left", () => {
     const players = Array.from({ length: 24 }, (_, index) =>
@@ -30,6 +44,21 @@ describe("toSnakeRows", () => {
     );
     expect(rows[1].map((player) => player?.id)).toEqual(
       Array.from({ length: 12 }, (_, index) => 24 - index),
+    );
+  });
+
+  it("groups ten-team rounds with snake reversal", () => {
+    const players = Array.from({ length: 20 }, (_, index) =>
+      makePlayer(index + 1),
+    );
+    const rows = toSnakeRows(players, 10);
+
+    expect(rows).toHaveLength(2);
+    expect(rows[0].map((player) => player?.id)).toEqual(
+      Array.from({ length: 10 }, (_, index) => index + 1),
+    );
+    expect(rows[1].map((player) => player?.id)).toEqual(
+      Array.from({ length: 10 }, (_, index) => 20 - index),
     );
   });
 

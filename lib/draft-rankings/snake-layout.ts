@@ -1,28 +1,36 @@
-import type { Player } from "./types";
+import { DEFAULT_LEAGUE_SIZE, type LeagueSize, type Player } from "./types";
 
-export const BOARD_COLUMNS = 12;
+export const BOARD_COLUMN_MIN_WIDTH_PX = 100;
 
-/** Split players into draft rounds, reversing even rounds for snake display. */
+/** Split players into Board rounds of League Size. The last round may be short. */
+export function chunkRounds(
+  players: Player[],
+  leagueSize: LeagueSize = DEFAULT_LEAGUE_SIZE,
+): Player[][] {
+  const rounds: Player[][] = [];
+
+  for (let start = 0; start < players.length; start += leagueSize) {
+    rounds.push(players.slice(start, start + leagueSize));
+  }
+
+  return rounds;
+}
+
+/** Pad each round to League Size and reverse even rounds for snake display. */
 export function toSnakeRows(
   players: Player[],
-  columns = BOARD_COLUMNS,
+  leagueSize: LeagueSize = DEFAULT_LEAGUE_SIZE,
 ): (Player | null)[][] {
-  const rows: (Player | null)[][] = [];
-
-  for (let start = 0; start < players.length; start += columns) {
-    const chunk = players.slice(start, start + columns);
+  return chunkRounds(players, leagueSize).map((chunk, roundIndex) => {
     const cells: (Player | null)[] = Array.from(
-      { length: columns },
+      { length: leagueSize },
       (_, index) => chunk[index] ?? null,
     );
-    const roundIndex = Math.floor(start / columns);
 
     if (roundIndex % 2 === 1) {
       cells.reverse();
     }
 
-    rows.push(cells);
-  }
-
-  return rows;
+    return cells;
+  });
 }

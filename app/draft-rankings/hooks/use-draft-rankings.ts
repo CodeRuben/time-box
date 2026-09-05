@@ -17,12 +17,13 @@ import {
 import { PLAYERS } from "@/lib/draft-rankings/players";
 import { reorderIds } from "@/lib/draft-rankings/reorder";
 import {
-  getDefaultDraftRankingsState,
+  getDefaultPlayerIds,
   loadDraftRankingsState,
   saveDraftRankingsState,
 } from "@/lib/draft-rankings/storage";
 import type {
   DraftRankingsView,
+  LeagueSize,
   NflTeam,
   Player,
   PlayerSignalFilterId,
@@ -60,6 +61,9 @@ export function useDraftRankings() {
   const [draftedIds, setDraftedIds] = useState(initialState.draftedIds);
   const [draftMode, setDraftMode] = useState(initialState.draftMode);
   const [view, setView] = useState<DraftRankingsView>(initialState.view);
+  const [leagueSize, setLeagueSize] = useState<LeagueSize>(
+    initialState.leagueSize,
+  );
   const [highlightFilters, setHighlightFilters] = useState(
     emptyHighlightFilters,
   );
@@ -79,8 +83,9 @@ export function useDraftRankings() {
       draftedIds,
       draftMode,
       view,
+      leagueSize,
     });
-  }, [draftMode, draftedIds, isHydrated, playerIds, view]);
+  }, [draftMode, draftedIds, isHydrated, leagueSize, playerIds, view]);
 
   const players = useMemo(() => playersFromIds(playerIds), [playerIds]);
   const draftedIdSet = useMemo(() => new Set(draftedIds), [draftedIds]);
@@ -141,10 +146,9 @@ export function useDraftRankings() {
   }, []);
 
   const resetBoard = useCallback(() => {
-    const next = getDefaultDraftRankingsState();
-    setPlayerIds(next.ids);
-    setDraftedIds(next.draftedIds);
-    setDraftMode(next.draftMode);
+    setPlayerIds(getDefaultPlayerIds());
+    setDraftedIds([]);
+    setDraftMode(false);
   }, []);
 
   return {
@@ -156,6 +160,7 @@ export function useDraftRankings() {
     activeTeams: highlightFilters.teams,
     draftMode,
     view,
+    leagueSize,
     draftedIds: draftedIdSet,
     availableCount: players.length - draftedIds.length,
     takenCount: draftedIds.length,
@@ -168,6 +173,7 @@ export function useDraftRankings() {
     reorder,
     toggleDraftMode,
     toggleView,
+    setLeagueSize,
     toggleTaken,
     resetBoard,
     hasActiveFilters: hasActiveHighlightFilters(highlightFilters),

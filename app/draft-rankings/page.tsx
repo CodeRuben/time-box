@@ -5,6 +5,7 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 import { FeatureGate } from "@/app/components/feature-gate";
 
 import { DraftModeToggle } from "./components/draft-mode-toggle";
+import { LeagueSizeSelect } from "./components/league-size-select";
 import { PlayerSignalFilters } from "./components/player-signal-filters";
 import { PositionFilters } from "./components/position-filters";
 import { RankingsBoard } from "./components/rankings-board";
@@ -31,6 +32,10 @@ function DraftRankingsPageContent() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <LeagueSizeSelect
+            value={rankings.leagueSize}
+            onChange={rankings.setLeagueSize}
+          />
           <ViewModeToggle
             compact={rankings.view === "compact"}
             onToggle={rankings.toggleView}
@@ -86,6 +91,7 @@ function DraftRankingsPageContent() {
         highlightFilters={rankings.highlightFilters}
         draftMode={rankings.draftMode}
         compact={rankings.view === "compact"}
+        leagueSize={rankings.leagueSize}
         draftedIds={rankings.draftedIds}
         onReorder={rankings.reorder}
         onToggleTaken={rankings.toggleTaken}

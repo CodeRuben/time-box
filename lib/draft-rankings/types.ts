@@ -93,9 +93,24 @@ export const STORAGE_KEY = "draft-rankings-2026-09-02";
 
 export type DraftRankingsView = "board" | "compact";
 
+export const LEAGUE_SIZES = [10, 12] as const;
+
+export type LeagueSize = (typeof LEAGUE_SIZES)[number];
+
+export const DEFAULT_LEAGUE_SIZE: LeagueSize = 12;
+
+export function isLeagueSize(value: unknown): value is LeagueSize {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    (LEAGUE_SIZES as readonly number[]).includes(value)
+  );
+}
+
 export type DraftRankingsPersisted = {
   ids: number[];
   draftedIds: number[];
   draftMode: boolean;
   view: DraftRankingsView;
+  leagueSize: LeagueSize;
 };

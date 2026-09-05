@@ -85,6 +85,10 @@ The Book's image, stored as a URL (from Open Library, or edited manually). A pla
 The ordered player list for a fantasy football draft. Users can reorder players by dragging; the custom order persists in local storage.
 _Avoid_: Rankings (when referring to the in-app list order — prefer Board)
 
+**League Size**:
+The number of teams in the draft. Each Board round contains this many player slots.
+_Avoid_: Columns, round width
+
 **Position Filter**:
 A multi-select control that greys out players whose Position is not in the active set, without changing Board order.
 _Avoid_: Filter chips (unqualified)

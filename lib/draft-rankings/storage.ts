@@ -1,7 +1,9 @@
 import { repairDraftedIds } from "./drafted";
 import { PLAYERS } from "./players";
 import {
+  DEFAULT_LEAGUE_SIZE,
   STORAGE_KEY,
+  isLeagueSize,
   type DraftRankingsPersisted,
   type DraftRankingsView,
 } from "./types";
@@ -16,6 +18,7 @@ export function getDefaultDraftRankingsState(): DraftRankingsPersisted {
     draftedIds: [],
     draftMode: false,
     view: "board",
+    leagueSize: DEFAULT_LEAGUE_SIZE,
   };
 }
 
@@ -66,6 +69,7 @@ export function parseDraftRankingsState(
       draftedIds: [],
       draftMode: false,
       view: "board",
+      leagueSize: DEFAULT_LEAGUE_SIZE,
     };
   }
 
@@ -85,6 +89,9 @@ export function parseDraftRankingsState(
       : [],
     draftMode: record.draftMode === true,
     view: isDraftRankingsView(record.view) ? record.view : "board",
+    leagueSize: isLeagueSize(record.leagueSize)
+      ? record.leagueSize
+      : DEFAULT_LEAGUE_SIZE,
   };
 }
 

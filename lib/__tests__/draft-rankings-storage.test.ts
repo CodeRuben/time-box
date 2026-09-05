@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { PLAYERS } from "../draft-rankings/players";
+import { DEFAULT_LEAGUE_SIZE } from "../draft-rankings/types";
 import { reorderIds } from "../draft-rankings/reorder";
 import {
   getDefaultPlayerIds,
@@ -54,6 +55,7 @@ describe("parseDraftRankingsState", () => {
       draftedIds: [],
       draftMode: false,
       view: "board",
+      leagueSize: DEFAULT_LEAGUE_SIZE,
     });
   });
 
@@ -83,6 +85,23 @@ describe("parseDraftRankingsState", () => {
     expect(
       parseDraftRankingsState({ ids, view: "unrecognized" })
     ).toMatchObject({ view: "board" });
+  });
+
+  it("reads a saved league size and defaults missing or invalid values to 12", () => {
+    const ids = getDefaultPlayerIds();
+
+    expect(parseDraftRankingsState({ ids, leagueSize: 10 })).toMatchObject({
+      leagueSize: 10,
+    });
+    expect(parseDraftRankingsState({ ids })).toMatchObject({
+      leagueSize: DEFAULT_LEAGUE_SIZE,
+    });
+    expect(
+      parseDraftRankingsState({ ids, leagueSize: 8 })
+    ).toMatchObject({ leagueSize: DEFAULT_LEAGUE_SIZE });
+    expect(
+      parseDraftRankingsState({ ids, leagueSize: 11 })
+    ).toMatchObject({ leagueSize: DEFAULT_LEAGUE_SIZE });
   });
 
   it("returns null for invalid payloads", () => {
