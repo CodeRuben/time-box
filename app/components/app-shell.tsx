@@ -142,7 +142,7 @@ export function AppShell({ children }: AppShellProps) {
             <NavLinks items={navItems} pathname={pathname} appearance="rail" />
           </nav>
         )}
-        <div className="mt-auto flex shrink-0 flex-col items-center gap-1 border-t border-border/60 p-1.5">
+        <div className="mt-auto flex shrink-0 flex-col items-center gap-1 px-1.5 pt-1.5 pb-5">
           <AccountHeaderControl
             variant="ghost"
             className={RAIL_TOOL_BUTTON_CLASS}

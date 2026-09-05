@@ -40,7 +40,9 @@
     ".next-verify/draft-rankings-300-20260902/types/**/*.ts",
     ".next-verify/draft-rankings-300-20260902/dev/types/**/*.ts",
     ".next-verify/draft-signals-20260902/types/**/*.ts",
-    ".next-verify/draft-signals-20260902/dev/types/**/*.ts"
+    ".next-verify/draft-signals-20260902/dev/types/**/*.ts",
+    ".next-verify/sidenav-pad-20260904/types/**/*.ts",
+    ".next-verify/sidenav-pad-20260904/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
