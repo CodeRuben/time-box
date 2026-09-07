@@ -23,6 +23,7 @@ import {
   type BookDetailView,
   type BookTag,
 } from "@/lib/reading-journal-types";
+import { cn } from "@/lib/utils";
 import type { BookPatch } from "../../hooks/use-book-detail";
 import { BookCoverImage } from "../../components/book-cover-image";
 import { BookTags } from "./book-tags";
@@ -39,8 +40,49 @@ interface BookInfoHeaderProps {
   isUpdatingTags: boolean;
 }
 
+const DATE_PICKER_CLASS =
+  "h-8 w-full min-w-0 flex-1 truncate border-dashed px-2.5 text-xs sm:w-auto sm:flex-none sm:text-sm";
+
 function parseLocalDate(value: string | null): Date | undefined {
   return value ? new Date(`${value}T00:00:00`) : undefined;
+}
+
+function BookStatusSelect({
+  status,
+  onUpdate,
+  className,
+}: {
+  status: BookDetailView["status"];
+  onUpdate: (patch: BookPatch) => Promise<unknown>;
+  className?: string;
+}) {
+  return (
+    <Select
+      value={status}
+      onValueChange={(value) => {
+        const option = BOOK_STATUS_OPTIONS.find(
+          (statusOption) => statusOption.value === value
+        );
+        if (option) void onUpdate({ status: option.value });
+      }}
+    >
+      <SelectTrigger
+        className={cn(
+          "h-8 w-auto min-w-28 gap-1.5 px-2.5 text-sm",
+          className
+        )}
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {BOOK_STATUS_OPTIONS.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
 }
 
 export function BookInfoHeader({
@@ -60,14 +102,14 @@ export function BookInfoHeader({
   ].filter(Boolean);
 
   return (
-    <div className="flex flex-col gap-5 sm:flex-row sm:gap-6">
-      <div className="w-28 shrink-0 sm:w-36">
+    <div className="grid grid-cols-[6rem_minmax(0,1fr)] items-start gap-x-4 gap-y-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-6 sm:gap-y-4">
+      <div className="sm:row-span-4">
         <div className="aspect-[2/3] overflow-hidden rounded-md border border-(--journal-border) bg-muted">
           {book.coverUrl ? (
             <BookCoverImage
               src={book.coverUrl}
               alt={book.title}
-              sizes="(max-width: 640px) 112px, 144px"
+              sizes="(max-width: 640px) 96px, 144px"
             />
           ) : (
             <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-(--journal-border)/40 p-3 text-center">
@@ -80,52 +122,40 @@ export function BookInfoHeader({
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-4">
-        <div className="space-y-2">
-          <div className="flex items-start gap-2 sm:gap-3">
+      <div className="flex min-w-0 flex-col gap-3 sm:gap-4">
+        <div className="space-y-1.5 sm:space-y-2">
+          <div className="flex flex-wrap items-start gap-2 sm:gap-3">
             <h1 className="journal-heading min-w-0 flex-1 text-xl sm:text-2xl">
               {book.title}
             </h1>
-            <div className="flex shrink-0 items-center gap-1.5 pt-0.5">
-              <Select
-                value={book.status}
-                onValueChange={(value) => {
-                  const option = BOOK_STATUS_OPTIONS.find(
-                    (status) => status.value === value
-                  );
-                  if (option) void onUpdate({ status: option.value });
-                }}
-              >
-                <SelectTrigger className="h-8 w-auto min-w-28 gap-1.5 px-2.5 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {BOOK_STATUS_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label="Book actions">
-                    <MoreHorizontal className="size-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onSelect={() => setEditOpen(true)}>
-                    Edit details
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onSelect={() => setDeleteOpen(true)}
-                  >
-                    Delete book
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            <BookStatusSelect
+              status={book.status}
+              onUpdate={onUpdate}
+              className="order-last w-full sm:order-0 sm:w-auto"
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0"
+                  aria-label="Book actions"
+                >
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+                  Edit details
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={() => setDeleteOpen(true)}
+                >
+                  Delete book
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {book.author ? (
@@ -138,38 +168,44 @@ export function BookInfoHeader({
             </p>
           ) : null}
         </div>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <DatePicker
-            date={parseLocalDate(book.startedOn)}
-            onSelect={(date) =>
-              void onUpdate({
-                startedOn: date ? format(date, "yyyy-MM-dd") : null,
-              })
-            }
-            placeholder="Set start date"
-            className="h-8 border-dashed px-2.5 text-sm"
-          />
-          <span className="text-(color:--journal-muted-ink)" aria-hidden>
-            →
-          </span>
-          <DatePicker
-            date={parseLocalDate(book.finishedOn)}
-            onSelect={(date) =>
-              void onUpdate({
-                finishedOn: date ? format(date, "yyyy-MM-dd") : null,
-              })
-            }
-            placeholder="Set finish date"
-            className="h-8 border-dashed px-2.5 text-sm"
-          />
-        </div>
+      <div className="col-span-2 flex min-w-0 items-center gap-2 sm:col-span-1">
+        <DatePicker
+          date={parseLocalDate(book.startedOn)}
+          onSelect={(date) =>
+            void onUpdate({
+              startedOn: date ? format(date, "yyyy-MM-dd") : null,
+            })
+          }
+          dateFormat="MMM d, yyyy"
+          placeholder="Set start date"
+          className={DATE_PICKER_CLASS}
+        />
+        <span className="shrink-0 text-(color:--journal-muted-ink)" aria-hidden>
+          →
+        </span>
+        <DatePicker
+          date={parseLocalDate(book.finishedOn)}
+          onSelect={(date) =>
+            void onUpdate({
+              finishedOn: date ? format(date, "yyyy-MM-dd") : null,
+            })
+          }
+          dateFormat="MMM d, yyyy"
+          placeholder="Set finish date"
+          className={DATE_PICKER_CLASS}
+        />
+      </div>
 
+      <div className="col-span-2 sm:col-span-1">
         <StarRating
           rating={book.rating}
           onChange={(rating) => void onUpdate({ rating })}
         />
+      </div>
 
+      <div className="col-span-2 sm:col-span-1">
         <BookTags
           tags={book.tags}
           isUpdating={isUpdatingTags}

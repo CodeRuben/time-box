@@ -15,6 +15,8 @@ interface ReadingDaysGridProps {
   onUntick: (date: string) => void;
 }
 
+const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+
 function formatCellLabel(date: string): string {
   return format(parseISO(date), "EEEE, MMMM d, yyyy");
 }
@@ -78,7 +80,16 @@ export function ReadingDaysGrid({
         </div>
       </div>
 
-      <div className="inline-grid grid-cols-7 gap-1.5">
+      <div className="grid w-full grid-cols-7 gap-1.5 sm:inline-grid sm:w-auto sm:gap-1.5">
+        {WEEKDAY_LABELS.map((label, index) => (
+          <div
+            key={`${label}-${index}`}
+            aria-hidden
+            className="text-center text-xs font-medium uppercase tracking-wide text-muted-foreground sm:hidden"
+          >
+            {label}
+          </div>
+        ))}
         {cells.map((cell) => {
           const isChecked = readingDaySet.has(cell.date);
           const dayNumber = Number(cell.date.slice(-2));
@@ -92,7 +103,8 @@ export function ReadingDaysGrid({
               aria-label={`${formatCellLabel(cell.date)}${isChecked ? ", read" : ", not read"}`}
               title={formatCellLabel(cell.date)}
               className={cn(
-                "flex size-7 cursor-pointer items-center justify-center rounded-full border text-[10px] font-medium tabular-nums transition-colors duration-150 ease motion-reduce:transition-none",
+                "flex cursor-pointer items-center justify-center rounded-full border font-medium tabular-nums transition-colors duration-150 ease motion-reduce:transition-none",
+                "aspect-square w-full min-h-9 text-base font-semibold sm:size-7 sm:min-h-0 sm:w-7 sm:aspect-auto sm:text-[10px] sm:font-medium",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-1",
                 !cell.isCurrentMonth && "opacity-35",
                 isChecked

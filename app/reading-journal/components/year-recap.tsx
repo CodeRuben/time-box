@@ -30,26 +30,26 @@ export function YearRecap({ books, year }: YearRecapProps) {
   return (
     <section
       aria-label={`${year} reading recap`}
-      className="mb-8 flex flex-col rounded-xl border border-border/70 bg-muted/30 sm:flex-row"
+      className="mb-8 flex rounded-xl border border-border/70 bg-muted/30"
     >
-      <div className="flex items-center justify-center px-6 py-5 sm:py-0">
+      <div className="flex shrink-0 items-center justify-center px-3 py-4 sm:px-6">
         <p className="text-center">
-          <span className="block text-2xl font-black tracking-tight text-foreground">
+          <span className="block text-xl font-black tracking-tight text-foreground sm:text-2xl">
             {year}
           </span>
-          <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+          <span className="block whitespace-nowrap text-[10px] font-medium uppercase leading-tight tracking-[0.12em] text-muted-foreground sm:tracking-[0.18em]">
             Reading log
           </span>
         </p>
       </div>
       <div
         aria-hidden
-        className="border-t border-dashed border-border sm:border-l sm:border-t-0"
+        className="border-l border-dashed border-border"
       />
-      <dl className="grid flex-1 grid-cols-2 gap-4 px-6 py-5 sm:grid-cols-4">
+      <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-3 gap-y-4 px-3 py-4 text-center sm:grid-cols-4 sm:gap-4 sm:px-6 sm:py-5 sm:text-left">
         {stats.map((stat) => (
-          <div key={stat.label}>
-            <dt className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+          <div key={stat.label} className="min-w-0">
+            <dt className="text-[10px] font-medium uppercase leading-tight tracking-[0.14em] text-muted-foreground">
               {stat.label}
             </dt>
             <dd className="mt-1 text-lg font-semibold tabular-nums tracking-tight text-foreground">

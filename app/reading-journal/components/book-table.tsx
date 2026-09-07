@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowDown, ArrowUp, ArrowUpDown, BookOpen, Star } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   sortBooks,
@@ -16,11 +14,8 @@ import {
   getPaginationItems,
   paginateItems,
 } from "@/lib/book-table-pagination";
-import { formatRating, getProgressPercent } from "@/lib/reading-progress";
-import {
-  BOOK_STATUS_OPTIONS,
-  type BookSummaryView,
-} from "@/lib/reading-journal-types";
+import { getProgressPercent } from "@/lib/reading-progress";
+import type { BookSummaryView } from "@/lib/reading-journal-types";
 import {
   Pagination,
   PaginationContent,
@@ -30,16 +25,23 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { BookCoverImage } from "./book-cover-image";
+import { BookMobileList } from "./book-mobile-list";
+import {
+  BOOK_ROW_INTERACTION_CLASS,
+  BookCoverThumb,
+  BookRowTitleLink,
+  RatingBadge,
+  TagsButton,
+  bookHref,
+  formatShortDate,
+  getProgressDetail,
+  visibleSortColumns,
+} from "./book-table-cells";
 
 interface BookTableProps {
   books: BookSummaryView[];
   showFinishedOn?: boolean;
   onOpenTags: (book: BookSummaryView) => void;
-}
-
-function getStatusLabel(status: BookSummaryView["status"]): string {
-  return BOOK_STATUS_OPTIONS.find((option) => option.value === status)?.label ?? status;
 }
 
 function getProgressPercentLabel(book: BookSummaryView): string | null {
@@ -48,34 +50,13 @@ function getProgressPercentLabel(book: BookSummaryView): string | null {
   return percent !== null ? `${percent}%` : null;
 }
 
-function getProgressDetail(book: BookSummaryView): string {
-  if (book.currentPage !== null && book.totalPages) {
-    return `${book.currentPage} / ${book.totalPages}`;
-  }
-  if (book.currentPage !== null) {
-    return `p. ${book.currentPage}`;
-  }
-  return getStatusLabel(book.status);
-}
-
-function formatShortDate(value: string | null): string {
-  if (!value) return "—";
-  const [year, month, day] = value.split("-").map(Number);
-  if (!year || !month || !day) return "—";
-  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 function ProgressMeter({ book }: { book: BookSummaryView }) {
   const percentLabel = getProgressPercentLabel(book);
   const detail = getProgressDetail(book);
   const label = percentLabel ?? detail;
 
   return (
-    <span className="inline-flex items-center rounded-full bg-muted/80 px-2 py-0.5 text-xs font-medium tabular-nums text-foreground">
+    <span className="inline-flex max-w-full flex-wrap items-center rounded-full bg-muted/80 px-2 py-0.5 text-xs font-medium tabular-nums text-foreground">
       {label}
       {percentLabel && detail !== percentLabel && (
         <span className="ml-1.5 font-normal text-muted-foreground">
@@ -159,92 +140,35 @@ function BookTableRow({
   showFinishedOn: boolean;
   onOpenTags: (book: BookSummaryView) => void;
 }) {
-  const router = useRouter();
-  const href = `/reading-journal/${book.id}`;
+  const href = bookHref(book.id);
 
   return (
-    <tr
-      tabIndex={0}
-      role="link"
-      onClick={() => router.push(href)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          router.push(href);
-        }
-      }}
-      className="cursor-pointer transition-colors duration-150 ease-out [@media(hover:hover)_and_(pointer:fine)]:hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none motion-reduce:transition-none"
-    >
+    <tr className={cn("relative", BOOK_ROW_INTERACTION_CLASS)}>
       <td className="py-2 pl-1 pr-3 sm:pl-2">
         <div className="flex min-w-0 items-center gap-3">
-          <span
-            className={cn(
-              "relative h-11 w-[1.85rem] shrink-0 overflow-hidden rounded-sm border border-border/70 bg-muted shadow-sm",
-              "dark:border-border dark:bg-background/40 dark:shadow-none",
-              "ring-1 ring-black/[0.03] dark:ring-white/[0.06]"
-            )}
-          >
-            {book.coverUrl ? (
-              <BookCoverImage src={book.coverUrl} alt="" sizes="30px" />
-            ) : (
-              <span className="flex h-full w-full items-center justify-center">
-                <BookOpen className="size-3 text-muted-foreground/70" />
-              </span>
-            )}
-          </span>
-          <div className="min-w-0">
-            <Link
-              href={href}
-              className="block truncate text-sm font-semibold tracking-tight text-foreground"
-              onClick={(event) => event.stopPropagation()}
-            >
-              {book.title}
-            </Link>
-            <p className="truncate text-xs text-muted-foreground sm:hidden">
-              {book.author || "Author unknown"}
-            </p>
-          </div>
+          <BookCoverThumb book={book} />
+          <BookRowTitleLink href={href} className="block truncate">
+            {book.title}
+          </BookRowTitleLink>
         </div>
       </td>
-      <td className="hidden max-w-[12rem] truncate px-3 py-2 text-sm text-muted-foreground sm:table-cell">
+      <td className="max-w-[12rem] truncate px-3 py-2 text-sm text-muted-foreground">
         {book.author || "Author unknown"}
       </td>
       <td className="px-3 py-2">
         <ProgressMeter book={book} />
       </td>
       <td className="px-3 py-2">
-        {book.rating !== null ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted/80 px-2 py-0.5 text-xs font-medium tabular-nums text-foreground">
-            <Star className="size-3 shrink-0" aria-hidden />
-            {formatRating(book.rating)}
-          </span>
-        ) : (
-          <span className="text-xs text-muted-foreground/50">—</span>
-        )}
+        <RatingBadge rating={book.rating} />
       </td>
       <td className="px-3 py-2">
-        <button
-          type="button"
-          className="inline-flex cursor-pointer items-center rounded-full bg-muted/80 px-2 py-0.5 text-xs font-medium tabular-nums text-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label={
-            book.tags.length === 1
-              ? "1 tag"
-              : `${book.tags.length} tags`
-          }
-          onClick={(event) => {
-            event.stopPropagation();
-            onOpenTags(book);
-          }}
-          onKeyDown={(event) => event.stopPropagation()}
-        >
-          {book.tags.length}
-        </button>
+        <TagsButton book={book} onOpenTags={onOpenTags} />
       </td>
-      <td className="hidden whitespace-nowrap px-3 py-2 text-right text-xs tabular-nums text-muted-foreground md:table-cell">
+      <td className="whitespace-nowrap px-3 py-2 text-right text-xs tabular-nums text-muted-foreground">
         {formatShortDate(book.startedOn)}
       </td>
       {showFinishedOn && (
-        <td className="hidden whitespace-nowrap px-3 py-2 text-right text-xs tabular-nums text-muted-foreground md:table-cell">
+        <td className="whitespace-nowrap px-3 py-2 text-right text-xs tabular-nums text-muted-foreground">
           {formatShortDate(book.finishedOn)}
         </td>
       )}
@@ -296,73 +220,35 @@ export function BookTable({
     currentPage * BOOK_TABLE_PAGE_SIZE,
     sortedBooks.length
   );
+  const headers = visibleSortColumns(showFinishedOn);
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[32rem] border-collapse text-left">
+      <BookMobileList
+        books={pageItems}
+        showFinishedOn={showFinishedOn}
+        onOpenTags={onOpenTags}
+        column={column}
+        direction={direction}
+        onSort={handleSort}
+      />
+
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-border/70">
-              <SortableHeader
-                label="Book"
-                column="title"
-                activeColumn={column}
-                direction={direction}
-                onSort={handleSort}
-                className="py-2 pl-1 pr-3 sm:pl-2"
-              />
-              <SortableHeader
-                label="Author"
-                column="author"
-                activeColumn={column}
-                direction={direction}
-                onSort={handleSort}
-                className="hidden px-3 py-2 sm:table-cell"
-              />
-              <SortableHeader
-                label="Progress"
-                column="progress"
-                activeColumn={column}
-                direction={direction}
-                onSort={handleSort}
-                className="px-3 py-2"
-              />
-              <SortableHeader
-                label="Rating"
-                column="rating"
-                activeColumn={column}
-                direction={direction}
-                onSort={handleSort}
-                className="px-3 py-2"
-              />
-              <SortableHeader
-                label="Tags"
-                column="tags"
-                activeColumn={column}
-                direction={direction}
-                onSort={handleSort}
-                className="px-3 py-2"
-              />
-              <SortableHeader
-                label="Started"
-                column="startedOn"
-                activeColumn={column}
-                direction={direction}
-                onSort={handleSort}
-                className="hidden px-3 py-2 md:table-cell"
-                align="right"
-              />
-              {showFinishedOn && (
+              {headers.map((header) => (
                 <SortableHeader
-                  label="Finished"
-                  column="finishedOn"
+                  key={header.value}
+                  label={header.label}
+                  column={header.value}
                   activeColumn={column}
                   direction={direction}
                   onSort={handleSort}
-                  className="hidden px-3 py-2 md:table-cell"
-                  align="right"
+                  className={header.headerClassName}
+                  align={header.align}
                 />
-              )}
+              ))}
             </tr>
           </thead>
           <tbody className="[&_tr]:border-b [&_tr]:border-border/50 [&_tr:last-child]:border-b-0">

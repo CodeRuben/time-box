@@ -20,6 +20,7 @@ interface DatePickerProps {
   placeholder?: string
   className?: string
   disabled?: Matcher | Matcher[]
+  dateFormat?: string
 }
 
 export function DatePicker({
@@ -28,6 +29,7 @@ export function DatePicker({
   placeholder = "Pick a date",
   className,
   disabled,
+  dateFormat = "PPP",
 }: DatePickerProps) {
   return (
     <Popover>
@@ -41,7 +43,7 @@ export function DatePicker({
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : <span>{placeholder}</span>}
+          {date ? format(date, dateFormat) : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">

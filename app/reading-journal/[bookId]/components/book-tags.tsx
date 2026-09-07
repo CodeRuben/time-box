@@ -59,7 +59,7 @@ export function BookTags({
           type="button"
           variant="outline"
           size="sm"
-          className="h-8 border-dashed"
+          className="h-8 border-dashed max-sm:flex-1"
           onClick={() => setAddOpen(true)}
           disabled={isUpdating && !addOpen}
         >
