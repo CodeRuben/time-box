@@ -44,7 +44,9 @@
     ".next-verify/sidenav-pad-20260904/types/**/*.ts",
     ".next-verify/sidenav-pad-20260904/dev/types/**/*.ts",
     ".next-verify/sidenav-logo-pad-20260904/types/**/*.ts",
-    ".next-verify/sidenav-logo-pad-20260904/dev/types/**/*.ts"
+    ".next-verify/sidenav-logo-pad-20260904/dev/types/**/*.ts",
+    ".next-verify/draft-rankings-0906/types/**/*.ts",
+    ".next-verify/draft-rankings-0906/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

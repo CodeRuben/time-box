@@ -105,6 +105,16 @@ describe("draft rankings player data", () => {
       name: "Ja'Marr Chase",
       position: "WR",
     });
+    expect(PLAYERS[4]).toMatchObject({
+      rank: 5,
+      name: "Christian McCaffrey",
+      position: "RB",
+    });
+    expect(PLAYERS[5]).toMatchObject({
+      rank: 6,
+      name: "Jaxon Smith-Njigba",
+      position: "WR",
+    });
     expect(PLAYERS[7]).toMatchObject({
       rank: 8,
       name: "Jonathan Taylor",
@@ -115,6 +125,12 @@ describe("draft rankings player data", () => {
       name: "Justin Jefferson",
       position: "WR",
     });
+    expect(PLAYERS.some((player) => player.name === "Roschon Johnson")).toBe(
+      true,
+    );
+    expect(PLAYERS.some((player) => player.name === "Jordan James")).toBe(
+      false,
+    );
     expect(PLAYERS[249]).toMatchObject({
       rank: 250,
       name: "Luke McCaffrey",
