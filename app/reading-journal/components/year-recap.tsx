@@ -30,23 +30,21 @@ export function YearRecap({ books, year }: YearRecapProps) {
   return (
     <section
       aria-label={`${year} reading recap`}
-      className="mb-8 flex rounded-xl border border-border/70 bg-muted/30"
+      className="mb-8 rounded-xl border border-border/70 bg-muted/30 px-4 py-4 sm:flex sm:px-0 sm:py-0"
     >
-      <div className="flex shrink-0 items-center justify-center px-3 py-4 sm:px-6">
-        <p className="text-center">
-          <span className="block text-xl font-black tracking-tight text-foreground sm:text-2xl">
-            {year}
-          </span>
-          <span className="block whitespace-nowrap text-[10px] font-medium uppercase leading-tight tracking-[0.12em] text-muted-foreground sm:tracking-[0.18em]">
-            Reading log
-          </span>
-        </p>
-      </div>
+      <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 sm:shrink-0 sm:flex-col sm:items-center sm:justify-center sm:px-6 sm:py-5 sm:text-center">
+        <span className="text-xl font-black tracking-tight text-foreground sm:text-2xl">
+          {year}
+        </span>
+        <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground sm:mt-0.5 sm:leading-tight">
+          Reading log
+        </span>
+      </p>
       <div
         aria-hidden
-        className="border-l border-dashed border-border"
+        className="my-3 border-t border-dashed border-border sm:my-0 sm:border-t-0 sm:border-l"
       />
-      <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-3 gap-y-4 px-3 py-4 text-center sm:grid-cols-4 sm:gap-4 sm:px-6 sm:py-5 sm:text-left">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:min-w-0 sm:flex-1 sm:grid-cols-4 sm:gap-4 sm:px-6 sm:py-5">
         {stats.map((stat) => (
           <div key={stat.label} className="min-w-0">
             <dt className="text-[10px] font-medium uppercase leading-tight tracking-[0.14em] text-muted-foreground">
