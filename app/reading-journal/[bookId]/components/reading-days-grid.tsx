@@ -104,7 +104,7 @@ export function ReadingDaysGrid({
               title={formatCellLabel(cell.date)}
               className={cn(
                 "flex cursor-pointer items-center justify-center rounded-full border font-medium tabular-nums transition-colors duration-150 ease motion-reduce:transition-none",
-                "aspect-square w-full min-h-9 text-base font-semibold sm:size-7 sm:min-h-0 sm:w-7 sm:aspect-auto sm:text-[10px] sm:font-medium",
+                "aspect-square w-full min-h-9 text-xs font-medium sm:size-7 sm:min-h-0 sm:w-7 sm:aspect-auto sm:text-[10px]",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-1",
                 !cell.isCurrentMonth && "opacity-35",
                 isChecked
