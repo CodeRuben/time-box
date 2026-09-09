@@ -53,6 +53,7 @@ export function DateSelector({ value, onChange }: DateSelectorProps) {
       <DatePicker
         date={value}
         onSelect={handleSelect}
+        dateFormat="EEE, MMM d, yyyy"
         className="w-auto sm:w-56"
       />
       <Button
