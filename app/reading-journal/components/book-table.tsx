@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   sortBooks,
@@ -10,21 +16,24 @@ import {
 } from "@/lib/book-table-sort";
 import {
   BOOK_TABLE_PAGE_SIZE,
+  BOOK_TABLE_PAGE_SIZE_OPTIONS,
   getPageCount,
-  getPaginationItems,
+  getVisibleBookRange,
   paginateItems,
+  parseBookTablePageSize,
+  type BookTablePageSize,
 } from "@/lib/book-table-pagination";
 import { getProgressPercent } from "@/lib/reading-progress";
 import type { BookSummaryView } from "@/lib/reading-journal-types";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { BookMobileList } from "./book-mobile-list";
 import {
   BOOK_ROW_INTERACTION_CLASS,
@@ -188,6 +197,7 @@ export function BookTable({
     showFinishedOn ? "desc" : "asc"
   );
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<BookTablePageSize>(BOOK_TABLE_PAGE_SIZE);
 
   function handleSort(nextColumn: BookSortColumn) {
     if (nextColumn === column) {
@@ -206,19 +216,21 @@ export function BookTable({
     setPage(1);
   }
 
+  function handlePageSizeChange(value: string) {
+    const nextSize = parseBookTablePageSize(value);
+    if (nextSize === null) return;
+    setPageSize(nextSize);
+    setPage(1);
+  }
+
   const sortedBooks = sortBooks(books, column, direction);
-  const pageCount = getPageCount(sortedBooks.length, BOOK_TABLE_PAGE_SIZE);
+  const pageCount = getPageCount(sortedBooks.length, pageSize);
   const currentPage = Math.min(page, pageCount);
-  const pageItems = paginateItems(
-    sortedBooks,
+  const pageItems = paginateItems(sortedBooks, currentPage, pageSize);
+  const { first: firstVisibleBook, last: lastVisibleBook } = getVisibleBookRange(
+    sortedBooks.length,
     currentPage,
-    BOOK_TABLE_PAGE_SIZE
-  );
-  const paginationItems = getPaginationItems(currentPage, pageCount);
-  const firstVisibleBook = (currentPage - 1) * BOOK_TABLE_PAGE_SIZE + 1;
-  const lastVisibleBook = Math.min(
-    currentPage * BOOK_TABLE_PAGE_SIZE,
-    sortedBooks.length
+    pageSize
   );
   const headers = visibleSortColumns(showFinishedOn);
 
@@ -265,46 +277,65 @@ export function BookTable({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm tabular-nums text-muted-foreground">
-          Showing {firstVisibleBook}–{lastVisibleBook} of {sortedBooks.length}{" "}
-          {sortedBooks.length === 1 ? "book" : "books"}
-        </p>
-        {pageCount > 1 && (
-          <Pagination className="mx-0 w-auto justify-end">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={() => setPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage <= 1}
-                />
-              </PaginationItem>
-              {paginationItems.map((item, index) =>
-                item === "ellipsis" ? (
-                  <PaginationItem key={`ellipsis-${index}`}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={item}>
-                    <PaginationLink
-                      isActive={item === currentPage}
-                      onClick={() => setPage(item)}
-                    >
-                      {item}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-              )}
-              <PaginationItem>
-                <PaginationNext
-                  onClick={() =>
-                    setPage(Math.min(pageCount, currentPage + 1))
-                  }
-                  disabled={currentPage >= pageCount}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <p className="text-sm tabular-nums text-muted-foreground">
+            Showing {firstVisibleBook}–{lastVisibleBook} of {sortedBooks.length}{" "}
+            {sortedBooks.length === 1 ? "book" : "books"}
+          </p>
+          <div className="flex items-center gap-2">
+            <Label
+              htmlFor="book-table-page-size"
+              className="text-sm font-normal text-muted-foreground"
+            >
+              Per page
+            </Label>
+            <Select
+              value={String(pageSize)}
+              onValueChange={handlePageSizeChange}
+            >
+              <SelectTrigger
+                id="book-table-page-size"
+                size="sm"
+                aria-label="Books per page"
+                className="w-[4.5rem]"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {BOOK_TABLE_PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            onClick={() => setPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage <= 1}
+            aria-label="Go to previous page"
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <p className="min-w-[6.5rem] text-center text-sm tabular-nums text-foreground">
+            Page {currentPage} of {pageCount}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            onClick={() => setPage(Math.min(pageCount, currentPage + 1))}
+            disabled={currentPage >= pageCount}
+            aria-label="Go to next page"
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );

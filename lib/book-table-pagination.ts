@@ -1,4 +1,15 @@
-export const BOOK_TABLE_PAGE_SIZE = 10;
+export const BOOK_TABLE_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+
+export type BookTablePageSize = (typeof BOOK_TABLE_PAGE_SIZE_OPTIONS)[number];
+
+export const BOOK_TABLE_PAGE_SIZE: BookTablePageSize = 25;
+
+export function parseBookTablePageSize(value: string): BookTablePageSize | null {
+  for (const size of BOOK_TABLE_PAGE_SIZE_OPTIONS) {
+    if (String(size) === value) return size;
+  }
+  return null;
+}
 
 export function getPageCount(totalItems: number, pageSize: number): number {
   if (totalItems <= 0 || pageSize <= 0) return 1;
@@ -16,37 +27,15 @@ export function paginateItems<T>(
   return items.slice(start, start + pageSize);
 }
 
-/** Compact page list with ellipses, e.g. [1, "ellipsis", 4, 5, 6, "ellipsis", 12] */
-export function getPaginationItems(
-  currentPage: number,
-  pageCount: number
-): Array<number | "ellipsis"> {
-  if (pageCount <= 7) {
-    return Array.from({ length: pageCount }, (_, index) => index + 1);
-  }
-
-  if (currentPage <= 3) {
-    return [1, 2, 3, 4, "ellipsis", pageCount];
-  }
-
-  if (currentPage >= pageCount - 2) {
-    return [
-      1,
-      "ellipsis",
-      pageCount - 3,
-      pageCount - 2,
-      pageCount - 1,
-      pageCount,
-    ];
-  }
-
-  return [
-    1,
-    "ellipsis",
-    currentPage - 1,
-    currentPage,
-    currentPage + 1,
-    "ellipsis",
-    pageCount,
-  ];
+export function getVisibleBookRange(
+  totalItems: number,
+  page: number,
+  pageSize: number
+): { first: number; last: number } {
+  if (totalItems <= 0) return { first: 0, last: 0 };
+  const pageCount = getPageCount(totalItems, pageSize);
+  const currentPage = Math.min(Math.max(page, 1), pageCount);
+  const first = (currentPage - 1) * pageSize + 1;
+  const last = Math.min(currentPage * pageSize, totalItems);
+  return { first, last };
 }
