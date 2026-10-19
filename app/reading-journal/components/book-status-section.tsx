@@ -5,6 +5,7 @@ interface BookStatusSectionProps {
   title: string;
   books: BookSummaryView[];
   showFinishedOn?: boolean;
+  paginated?: boolean;
   onOpenTags: (book: BookSummaryView) => void;
 }
 
@@ -12,6 +13,7 @@ export function BookStatusSection({
   title,
   books,
   showFinishedOn = false,
+  paginated = true,
   onOpenTags,
 }: BookStatusSectionProps) {
   if (books.length === 0) {
@@ -24,6 +26,7 @@ export function BookStatusSection({
       <BookTable
         books={books}
         showFinishedOn={showFinishedOn}
+        paginated={paginated}
         onOpenTags={onOpenTags}
       />
     </section>

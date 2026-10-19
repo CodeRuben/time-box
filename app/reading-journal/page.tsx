@@ -42,6 +42,7 @@ function BookLogLists({
       <BookStatusSection
         title="Reading"
         books={booksByStatus.reading}
+        paginated={false}
         onOpenTags={onOpenTags}
       />
       <BookStatusSection

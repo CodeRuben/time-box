@@ -50,6 +50,7 @@ import {
 interface BookTableProps {
   books: BookSummaryView[];
   showFinishedOn?: boolean;
+  paginated?: boolean;
   onOpenTags: (book: BookSummaryView) => void;
 }
 
@@ -188,6 +189,7 @@ function BookTableRow({
 export function BookTable({
   books,
   showFinishedOn = false,
+  paginated = true,
   onOpenTags,
 }: BookTableProps) {
   const [column, setColumn] = useState<BookSortColumn>(
@@ -213,7 +215,7 @@ export function BookTable({
           : "asc"
       );
     }
-    setPage(1);
+    if (paginated) setPage(1);
   }
 
   function handlePageSizeChange(value: string) {
@@ -226,7 +228,9 @@ export function BookTable({
   const sortedBooks = sortBooks(books, column, direction);
   const pageCount = getPageCount(sortedBooks.length, pageSize);
   const currentPage = Math.min(page, pageCount);
-  const pageItems = paginateItems(sortedBooks, currentPage, pageSize);
+  const pageItems = paginated
+    ? paginateItems(sortedBooks, currentPage, pageSize)
+    : sortedBooks;
   const { first: firstVisibleBook, last: lastVisibleBook } = getVisibleBookRange(
     sortedBooks.length,
     currentPage,
@@ -276,67 +280,70 @@ export function BookTable({
         </table>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <p className="text-sm tabular-nums text-muted-foreground">
-            Showing {firstVisibleBook}–{lastVisibleBook} of {sortedBooks.length}{" "}
-            {sortedBooks.length === 1 ? "book" : "books"}
-          </p>
-          <div className="flex items-center gap-2">
-            <Label
-              htmlFor="book-table-page-size"
-              className="text-sm font-normal text-muted-foreground"
-            >
-              Per page
-            </Label>
-            <Select
-              value={String(pageSize)}
-              onValueChange={handlePageSizeChange}
-            >
-              <SelectTrigger
-                id="book-table-page-size"
-                size="sm"
-                aria-label="Books per page"
-                className="w-[4.5rem]"
+      {paginated && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <p className="text-sm tabular-nums text-muted-foreground">
+              Showing {firstVisibleBook}–{lastVisibleBook} of{" "}
+              {sortedBooks.length}{" "}
+              {sortedBooks.length === 1 ? "book" : "books"}
+            </p>
+            <div className="flex items-center gap-2">
+              <Label
+                htmlFor="book-table-page-size"
+                className="text-sm font-normal text-muted-foreground"
               >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {BOOK_TABLE_PAGE_SIZE_OPTIONS.map((size) => (
-                  <SelectItem key={size} value={String(size)}>
-                    {size}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                Per page
+              </Label>
+              <Select
+                value={String(pageSize)}
+                onValueChange={handlePageSizeChange}
+              >
+                <SelectTrigger
+                  id="book-table-page-size"
+                  size="sm"
+                  aria-label="Books per page"
+                  className="w-[4.5rem]"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {BOOK_TABLE_PAGE_SIZE_OPTIONS.map((size) => (
+                    <SelectItem key={size} value={String(size)}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              onClick={() => setPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage <= 1}
+              aria-label="Go to previous page"
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <p className="min-w-[6.5rem] text-center text-sm tabular-nums text-foreground">
+              Page {currentPage} of {pageCount}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              onClick={() => setPage(Math.min(pageCount, currentPage + 1))}
+              disabled={currentPage >= pageCount}
+              aria-label="Go to next page"
+            >
+              <ChevronRight className="size-4" />
+            </Button>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon-sm"
-            onClick={() => setPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage <= 1}
-            aria-label="Go to previous page"
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <p className="min-w-[6.5rem] text-center text-sm tabular-nums text-foreground">
-            Page {currentPage} of {pageCount}
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon-sm"
-            onClick={() => setPage(Math.min(pageCount, currentPage + 1))}
-            disabled={currentPage >= pageCount}
-            aria-label="Go to next page"
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
