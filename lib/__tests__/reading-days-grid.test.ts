@@ -1,6 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import { getMonthGridCells } from "../reading-days-grid";
+import {
+  getInitialMonthDate,
+  getMonthGridCells,
+} from "../reading-days-grid";
+
+describe("getInitialMonthDate", () => {
+  it("opens on the month of the latest reading day", () => {
+    const monthDate = getInitialMonthDate(["2025-01-10", "2025-03-15"]);
+    expect(monthDate.getFullYear()).toBe(2025);
+    expect(monthDate.getMonth()).toBe(2);
+  });
+
+  it("opens on the current month when there are no reading days", () => {
+    const now = new Date();
+    const monthDate = getInitialMonthDate([]);
+    expect(monthDate.getFullYear()).toBe(now.getFullYear());
+    expect(monthDate.getMonth()).toBe(now.getMonth());
+  });
+});
 
 describe("getMonthGridCells", () => {
   it("pads a month so every week is complete, Sunday-start", () => {

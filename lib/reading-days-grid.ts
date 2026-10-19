@@ -13,6 +13,10 @@ export interface MonthGridCell {
   isCurrentMonth: boolean;
 }
 
+export function getInitialMonthDate(_readingDays: string[]): Date {
+  return startOfMonth(new Date());
+}
+
 /**
  * Builds a Sun-Sat calendar grid for the given month, padded with the
  * trailing/leading days of adjacent months so every week is complete —
