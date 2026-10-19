@@ -4,6 +4,7 @@ import {
   endOfWeek,
   format,
   isSameMonth,
+  parseISO,
   startOfMonth,
   startOfWeek,
 } from "date-fns";
@@ -11,6 +12,17 @@ import {
 export interface MonthGridCell {
   date: string; // YYYY-MM-DD
   isCurrentMonth: boolean;
+}
+
+export function getInitialMonthDate(readingDays: string[]): Date {
+  if (readingDays.length === 0) {
+    return startOfMonth(new Date());
+  }
+
+  const latestDay = readingDays.reduce((latest, day) =>
+    day > latest ? day : latest
+  );
+  return startOfMonth(parseISO(latestDay));
 }
 
 /**

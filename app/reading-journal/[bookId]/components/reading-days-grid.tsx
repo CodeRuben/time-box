@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
+  getInitialMonthDate,
   getMonthGridCells,
 } from "@/lib/reading-days-grid";
 
@@ -26,7 +27,9 @@ export function ReadingDaysGrid({
   onTick,
   onUntick,
 }: ReadingDaysGridProps) {
-  const [monthDate, setMonthDate] = useState(() => new Date());
+  const [monthDate, setMonthDate] = useState(() =>
+    getInitialMonthDate(readingDays)
+  );
   const readingDaySet = useMemo(() => new Set(readingDays), [readingDays]);
   const cells = useMemo(() => getMonthGridCells(monthDate), [monthDate]);
 
